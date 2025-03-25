@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.log4u.domain.media.dto.MediaResponseDto;
 import com.example.log4u.domain.media.service.MediaService;
 
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,12 @@ public class MediaController {
 
 	@PostMapping("/upload")
 	public ResponseEntity<?> upload(@RequestParam("file") List<MultipartFile> files) {
-		return ResponseEntity.status(HttpStatus.CREATED).build();
+		List<MediaResponseDto> responses = List.of(
+			new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg"),
+			new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg")
+		);
+
+		return ResponseEntity.ok().body(responses);
 	}
 
 	@DeleteMapping("/{mediaId}")
@@ -41,7 +47,12 @@ public class MediaController {
 		@RequestParam("mediaIds") List<Long> mediaIds,
 		@RequestParam("files") List<MultipartFile> files
 	) {
-		return ResponseEntity.ok().build();
+		List<MediaResponseDto> responses = List.of(
+			new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg"),
+			new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg")
+		);
+
+		return ResponseEntity.ok().body(responses);
 	}
 
 }
