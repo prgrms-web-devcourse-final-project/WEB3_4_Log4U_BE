@@ -1,4 +1,4 @@
-package com.example.log4u.reports.dto;
+package com.example.log4u.domain.reports.dto;
 
 public record ReportCreateRequestDto(
 
