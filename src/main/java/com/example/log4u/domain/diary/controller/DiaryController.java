@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
+import com.example.log4u.domain.diary.service.DiaryService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class DiaryController {
+
+	private final DiaryService diaryService;
 
 	@PostMapping
 	public ResponseEntity<?> createDiary(
