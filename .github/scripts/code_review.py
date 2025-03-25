@@ -79,7 +79,7 @@ def call_claude_api(changes, related_files):
         "- 주요 이슈 (있는 경우에만):\n"
         "  1. [문제 설명]\n"
         "     - 제안: [개선 방안 설명]\n"
-        "     ```typescript\n"
+        "     ```java\n"
         "     // 수정된 코드 예시\n"
         "     ```\n"
         "  2. ...\n"
