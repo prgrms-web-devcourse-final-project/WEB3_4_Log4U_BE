@@ -9,12 +9,23 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  test:
+  review:
     runs-on: ubuntu-latest
     steps:
-      - uses: anc95/ChatGPT-CodeReview@main
-        env:
+#      - uses: anc95/ChatGPT-CodeReview@main
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+#          LANGUAGE: Korean
+#          MODEL: gpt-3.5-turbo
+
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: AI Code Reviewer
+        uses: sapiens2000/ai-code-reviewer@main
+        with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          LANGUAGE: Korean
-          MODEL: gpt-3.5-turbo
+          OPENAI_API_MODEL: "gpt-4" #
+          exclude: "**/*.json, **/*.md"
