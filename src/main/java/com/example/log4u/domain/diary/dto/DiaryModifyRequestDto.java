@@ -1,11 +1,11 @@
 package com.example.log4u.domain.diary.dto;
 
-import java.util.List;
-
 public record DiaryModifyRequestDto(
+	String title,
 	String content,
+	float latitude,
+	float longitude,
 	String weatherInfo,
-	String visibility,
-	List<String> fileUrls
+	String visibility
 ) {
 }
