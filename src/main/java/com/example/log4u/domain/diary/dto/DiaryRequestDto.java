@@ -1,6 +1,6 @@
 package com.example.log4u.domain.diary.dto;
 
-public record DiaryModifyRequestDto(
+public record DiaryRequestDto(
 	String title,
 	String content,
 	float latitude,
