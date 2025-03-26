@@ -100,4 +100,50 @@ public class LikeServiceTest {
 
 		verify(likeRepository, never()).save(any(Like.class));
 	}
+
+	@DisplayName("성공 테스트: 좋아요 취소")
+	@Test
+	void cancelLike_Success() {
+		Long userId = 1L;
+		Long diaryId = 123L;
+
+		Like like = LikeFixture.createLikeFixture(123243L, userId, diaryId);
+		Long updatedLikeCount = 11L;
+
+		given(likeRepository.findByUserIdAndDiaryId(userId, diaryId)).willReturn(Optional.of(like));
+		doNothing().when(likeRepository).delete(like);
+		given(diaryService.decreaseLikeCount(diaryId)).willReturn(updatedLikeCount);
+
+		// when
+		LikeCancelResponseDto response = likeService.cancelLike(userId, diaryId);
+
+		// then
+		verify(likeRepository).delete(like);
+		verify(diaryService).decreaseLikeCount(diaryId);
+
+		assertThat(response.liked()).isFalse();
+		assertThat(response.likeCount()).isEqualTo(updatedLikeCount);
+	}
+
+	@DisplayName("성공 테스트: 좋아요 취소 - 존재하지 않는 좋아요에 대해 동일한 결과 반환)")
+	@Test
+	void cancelLike_NoLikeExists() {
+		// given
+		Long userId = 1L;
+		Long diaryId = 100L;
+		Long currentCount = 5L;
+
+		given(likeRepository.findByUserIdAndDiaryId(userId, diaryId)).willReturn(Optional.empty());
+		given(diaryService.getLikeCount(diaryId)).willReturn(currentCount);
+
+		// when
+		LikeCancelResponseDto response = likeService.cancelLike(userId, diaryId);
+
+		// then
+		verify(likeRepository, never()).delete(any());
+		verify(diaryService).getLikeCount(diaryId);
+
+		assertThat(response.liked()).isFalse();
+		assertThat(response.likeCount()).isEqualTo(currentCount);
+	}
 }
