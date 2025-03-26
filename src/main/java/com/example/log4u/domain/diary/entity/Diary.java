@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.example.log4u.domain.comment.Comment;
+import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.user.entity.User;
 import com.example.log4u.global.entity.BaseTimeEntity;
@@ -54,15 +55,26 @@ public class Diary extends BaseTimeEntity {
 
 	@Builder.Default
 	@OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Media> mediaList = new ArrayList<>();
+	private List<Media> media = new ArrayList<>();
 
 	@Builder.Default
 	@OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Comment> commentList = new ArrayList<>();
+	private List<Comment> comments = new ArrayList<>();
 
-	public void addMediaList(List<Media> mediaList) {
+	public static Diary toEntity(DiaryRequestDto request) {
+		return Diary.builder()
+			.title(request.title())
+			.content(request.content())
+			.latitude(request.latitude())
+			.longitude(request.longitude())
+			.weatherInfo(request.weatherInfo())
+			.visibility(request.visibility())
+			.build();
+	}
+
+	public void addMedia(List<Media> mediaList) {
 		mediaList.forEach(media -> {
-			this.mediaList.add(media);
+			this.media.add(media);
 			media.setDiary(this);
 		});
 
@@ -70,8 +82,12 @@ public class Diary extends BaseTimeEntity {
 	}
 
 	public void addComment(Comment comment) {
-		commentList.add(comment);
+		comments.add(comment);
 		comment.setDiary(this);
 	}
 
+	public void addUser(User user) {
+		this.user = user;
+		user.getDiaries().add(this);
+	}
 }

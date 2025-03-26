@@ -1,6 +1,7 @@
 package com.example.log4u.domain.media.entity;
 
 import com.example.log4u.domain.diary.entity.Diary;
+import com.example.log4u.domain.media.dto.MediaRequestDto;
 import com.example.log4u.global.entity.BaseTimeEntity;
 
 import jakarta.persistence.Entity;
@@ -37,8 +38,19 @@ public class Media extends BaseTimeEntity {
 
 	private Long size;
 
+	@Setter
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "diary_id")
-	@Setter
 	private Diary diary;
+
+	public static Media toEntity(MediaRequestDto request) {
+		return Media.builder()
+			.originalName(request.originalName())
+			.storedName(request.storedName())
+			.url(request.url())
+			.contentType(request.contentType())
+			.size(request.size())
+			.build();
+	}
+
 }

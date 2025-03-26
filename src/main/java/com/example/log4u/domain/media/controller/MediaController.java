@@ -30,8 +30,8 @@ public class MediaController {
 	@PostMapping("/upload")
 	public ResponseEntity<?> upload(@RequestParam("file") List<MultipartFile> files) {
 		List<MediaResponseDto> responses = List.of(
-			new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg"),
-			new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg")
+			new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg", "jpeg"),
+			new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg", "jpeg")
 		);
 
 		return ResponseEntity.ok().body(responses);
@@ -48,8 +48,8 @@ public class MediaController {
 		@RequestParam("files") List<MultipartFile> files
 	) {
 		List<MediaResponseDto> responses = List.of(
-			new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg"),
-			new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg")
+			new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg", "jpeg"),
+			new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg", "jpeg")
 		);
 
 		return ResponseEntity.ok().body(responses);

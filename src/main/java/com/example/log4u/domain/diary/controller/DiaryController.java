@@ -19,7 +19,9 @@ import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.media.dto.MediaResponseDto;
+import com.example.log4u.domain.user.entity.User;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,27 +34,12 @@ public class DiaryController {
 	private final DiaryService diaryService;
 
 	@PostMapping
-	public ResponseEntity<?> createDiary(
-		@RequestBody DiaryRequestDto request
+	public ResponseEntity<Void> createDiary(
+		@Valid @RequestBody DiaryRequestDto request
 	) {
-		DiaryResponseDto response = new DiaryResponseDto(
-			1L,                     // diaryId
-			5L,                     // userId
-			request.latitude(),
-			request.longitude(),
-			request.title(),
-			request.content(),
-			request.weatherInfo(),
-			request.visibility(),
-			LocalDateTime.now(),    // createdAt
-			LocalDateTime.now(),    // updatedAt
-			"https://s3.amazonaws.com/example/thumb.jpg",  // thumbnailUrl
-			List.of(               // mediaList
-				new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg"),
-				new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg")
-			)
-		);
-		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+		User user = mockUser();
+		diaryService.saveDiary(user.getId(), request);
+		return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 
 	@GetMapping
@@ -65,8 +52,8 @@ public class DiaryController {
 			new DiaryResponseDto(
 				149L,
 				5L,
-				37.5665f,
-				126.9780f,
+				37.5665,
+				126.9780,
 				"서울 날씨",
 				"서울 날씨 좋아요!",
 				"SUNNY",
@@ -74,13 +61,13 @@ public class DiaryController {
 				LocalDateTime.now(),
 				LocalDateTime.now(),
 				"https://s3.amazonaws.com/example/thumb1.jpg",
-				List.of(new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg"))
+				List.of(new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg", "jpeg"))
 			),
 			new DiaryResponseDto(
 				148L,
 				3L,
-				35.1796f,
-				129.0756f,
+				35.1796,
+				129.0756,
 				"부산 날씨",
 				"부산은 흐려요.",
 				"CLOUDY",
@@ -88,7 +75,7 @@ public class DiaryController {
 				LocalDateTime.now().minusHours(1),
 				LocalDateTime.now().minusHours(1),
 				"https://s3.amazonaws.com/example/thumb2.jpg",
-				List.of(new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg"))
+				List.of(new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg", "jpeg"))
 			)
 		);
 
@@ -102,8 +89,8 @@ public class DiaryController {
 		DiaryResponseDto diary = new DiaryResponseDto(
 			diaryId,
 			1L,
-			37.5665f,
-			126.9780f,
+			37.5665,
+			126.9780,
 			"오늘의 일기",
 			"오늘 서울은 흐려요.",
 			"CLOUDY",
@@ -112,8 +99,8 @@ public class DiaryController {
 			LocalDateTime.now(),
 			"https://s3.amazonaws.com/example/thumb.jpg",
 			List.of(
-				new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg"),
-				new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg")
+				new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg", "jpeg"),
+				new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg", "jpeg")
 			)
 		);
 
@@ -138,8 +125,8 @@ public class DiaryController {
 			LocalDateTime.now(),
 			"https://s3.amazonaws.com/example/thumb.jpg",
 			List.of(
-				new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg"),
-				new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg")
+				new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg", "jpeg"),
+				new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg", "jpeg")
 			)
 		);
 
@@ -151,5 +138,16 @@ public class DiaryController {
 		@PathVariable Long diaryId
 	) {
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+	}
+
+	private User mockUser() {
+		return User.builder()
+			.id(1L)
+			.nickname("목유저")
+			.providerId(12345L)
+			.provider("MOCK")
+			.email("mock@mock.com")
+			.status_message("목유저입니다.")
+			.build();
 	}
 }
