@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,10 +14,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.log4u.domain.diary.entity.Diary;
+import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.like.dto.request.LikeAddRequestDto;
 import com.example.log4u.domain.like.dto.response.LikeAddResponseDto;
+import com.example.log4u.domain.like.dto.response.LikeCancelResponseDto;
 import com.example.log4u.domain.like.entity.Like;
+import com.example.log4u.domain.like.exception.DuplicateLikeException;
 import com.example.log4u.domain.like.repository.LikeRepository;
 import com.example.log4u.domain.user.entity.User;
 import com.example.log4u.fixture.DiaryFixture;
@@ -36,22 +41,22 @@ public class LikeServiceTest {
 	private DiaryService diaryService;
 
 	@Test
-	@DisplayName("성공 테스트: 사용자가 게시물에 좋아요를 누르면 좋아요가 저장된다")
+	@DisplayName("성공 테스트: 좋아요 추가 ")
 	void likeSuccess() {
 		// given
-		User user = UserFixture.createUserFixture();
-		Diary diary = DiaryFixture.createDiaryFixture();
-		LikeAddRequestDto requestDto = new LikeAddRequestDto(diary.getDiaryId());
+		Long userId = 1L;
+		Long diaryId = 123L;
+		LikeAddRequestDto requestDto = new LikeAddRequestDto(diaryId);
 
-		Like like = LikeFixture.createLikeFixture(123243L, user.getUserId(), diary.getDiaryId());
+		Like like = LikeFixture.createLikeFixture(123243L, userId, diaryId);
 		Long updatedLikeCount = 11L;
 
-		given(likeRepository.existsByUserIdAndDiaryId(user.getUserId(), diary.getDiaryId())).willReturn(false);
+		given(likeRepository.existsByUserIdAndDiaryId(userId, diaryId)).willReturn(false);
 		given(likeRepository.save(any(Like.class))).willReturn(like);
-		given(diaryService.incrementLikeCount(diary.getDiaryId())).willReturn(updatedLikeCount);
+		given(diaryService.incrementLikeCount(diaryId)).willReturn(updatedLikeCount);
 
 		// when
-		LikeAddResponseDto response = likeService.addLike(user.getUserId(), requestDto);
+		LikeAddResponseDto response = likeService.addLike(userId, requestDto);
 
 		// then
 		verify(likeRepository).save(any(Like.class));
@@ -60,7 +65,7 @@ public class LikeServiceTest {
 	}
 
 	@Test
-	@DisplayName("예외 테스트: 존재하지 않는 다이어리에 좋아요 요청 시 예외가 발생한다")
+	@DisplayName("예외 테스트: 좋아요 추가 - 존재하지 않는 다이어리에 좋아요 요청")
 	void likeFail_whenDiaryNotFound() {
 		// given
 		Long userId = 1L;
@@ -68,10 +73,10 @@ public class LikeServiceTest {
 		LikeAddRequestDto requestDto = new LikeAddRequestDto(diaryId);
 
 		given(likeRepository.existsByUserIdAndDiaryId(userId, diaryId)).willReturn(false);
-		given(diaryService.incrementLikeCount(diaryId)).willThrow(new IllegalArgumentException());
+		given(diaryService.incrementLikeCount(diaryId)).willThrow(new NotFoundDiaryException());
 
 		// when & then
-		assertThrows(IllegalArgumentException.class, () -> {
+		assertThrows(NotFoundDiaryException.class, () -> {
 			likeService.addLike(userId, requestDto);
 		});
 
@@ -79,7 +84,7 @@ public class LikeServiceTest {
 	}
 
 	@Test
-	@DisplayName("예외 테스트: 사용자가 이미 좋아요를 누른 다이어리에 또 요청하면 예외가 발생한다")
+	@DisplayName("예외 테스트: 좋아요 추가 - 이미 누른 좋아요 또 요청")
 	void likeFail_whenAlreadyLiked() {
 		// given
 		Long userId = 1L;
@@ -89,7 +94,7 @@ public class LikeServiceTest {
 		given(likeRepository.existsByUserIdAndDiaryId(userId, diaryId)).willReturn(true);
 
 		// when & then
-		assertThrows(IllegalArgumentException.class, () -> {
+		assertThrows(DuplicateLikeException.class, () -> {
 			likeService.addLike(userId, requestDto);
 		});
 
