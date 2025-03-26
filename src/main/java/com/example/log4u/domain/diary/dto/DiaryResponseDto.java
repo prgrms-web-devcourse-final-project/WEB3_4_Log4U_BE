@@ -8,8 +8,8 @@ import com.example.log4u.domain.media.dto.MediaResponseDto;
 public record DiaryResponseDto(
 	Long diaryId,
 	Long userId,
-	float latitude,
-	float longitude,
+	Double latitude,
+	Double longitude,
 	String title,
 	String content,
 	String weatherInfo,

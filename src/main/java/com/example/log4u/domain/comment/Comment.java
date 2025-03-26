@@ -1,6 +1,7 @@
-package com.example.log4u.domain.media.entity;
+package com.example.log4u.domain.comment;
 
 import com.example.log4u.domain.diary.entity.Diary;
+import com.example.log4u.domain.user.entity.User;
 import com.example.log4u.global.entity.BaseTimeEntity;
 
 import jakarta.persistence.Entity;
@@ -22,23 +23,20 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Media extends BaseTimeEntity {
+public class Comment extends BaseTimeEntity {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private String originalName;
-
-	private String storedName;
-
-	private String url;
-
-	private String contentType;
-
-	private Long size;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id")
+	private User user;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "diary_id")
 	@Setter
 	private Diary diary;
+
+	private String content;
 }
