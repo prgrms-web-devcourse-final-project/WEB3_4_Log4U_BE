@@ -1,11 +1,14 @@
 package com.example.log4u.domain.like.service;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.like.dto.request.LikeAddRequestDto;
 import com.example.log4u.domain.like.dto.response.LikeAddResponseDto;
+import com.example.log4u.domain.like.dto.response.LikeCancelResponseDto;
 import com.example.log4u.domain.like.entity.Like;
 import com.example.log4u.domain.like.exception.DuplicateLikeException;
 import com.example.log4u.domain.like.repository.LikeRepository;
@@ -28,6 +31,20 @@ public class LikeService {
 
 		Long likeCount = diaryService.incrementLikeCount(requestDto.diaryId());
 		return LikeAddResponseDto.of(true, likeCount);
+	}
+
+	@Transactional
+	public LikeCancelResponseDto cancelLike(Long userId, Long diaryId) {
+		return likeRepository.findByUserIdAndDiaryId(userId, diaryId)
+			.map(like -> {
+				likeRepository.delete(like);
+				Long likeCount = diaryService.decreaseLikeCount(diaryId);
+				return LikeCancelResponseDto.of(false, likeCount);
+			})
+			.orElseGet(() -> {
+				Long currentCount = diaryService.getLikeCount(diaryId);
+				return LikeCancelResponseDto.of(false, currentCount);
+			});
 	}
 
 	private void validateDuplicateLike(Long userId, Long diaryId) {

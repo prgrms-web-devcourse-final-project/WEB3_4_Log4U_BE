@@ -22,6 +22,16 @@ public class DiaryService {
 
 	public Long incrementLikeCount(Long diaryId) {
 		Diary diary = getDiary(diaryId);
-		return diary.updateLikeCount();
+		return diary.incrementLikeCount();
+	}
+
+	public Long decreaseLikeCount(Long diaryId) {
+		Diary diary = getDiary(diaryId);
+		return diary.decreaseLikeCount();
+	}
+
+	public Long getLikeCount(Long diaryId) {
+		Diary diary = getDiary(diaryId);
+		return diary.getLikeCount();
 	}
 }

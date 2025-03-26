@@ -46,8 +46,13 @@ public class Diary extends BaseEntity {
 	@Column(nullable = false)
 	private Long likeCount;
 
-	public Long updateLikeCount() {
+	public Long incrementLikeCount() {
 		this.likeCount++;
+		return this.likeCount;
+	}
+
+	public Long decreaseLikeCount() {
+		this.likeCount--;
 		return this.likeCount;
 	}
 }
