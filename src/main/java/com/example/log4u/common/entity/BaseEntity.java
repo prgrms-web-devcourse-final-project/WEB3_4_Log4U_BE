@@ -1,4 +1,4 @@
-package com.example.log4u.domain.common.entity;
+package com.example.log4u.common.entity;
 
 import java.time.LocalDateTime;
 
