@@ -1,14 +1,18 @@
 package com.example.log4u.domain.reports.dto;
 
-public record ReportCreateRequestDto(
+import com.example.log4u.domain.reports.entity.Report;
+import com.example.log4u.domain.reports.reportType.ReportType;
 
+public record ReportCreateRequestDto(
+    ReportType reportType,
+    Long targetId,
+    String content
 ) {
-    public enum ReportType {
-        INAPPROPRIATE_CONTENT,
-        FALSE_INFORMATION,
-        SPAM,
-        COPYRIGHT_INFRINGEMENT,
-        PRIVACY_VIOLATION,
-        ETC
+    public Report toEntity(){
+        Report report = new Report();
+        report.setReportTargetId(targetId);
+        report.setContent(content);
+        report.setReportType(reportType);
+        return report;
     }
 }
