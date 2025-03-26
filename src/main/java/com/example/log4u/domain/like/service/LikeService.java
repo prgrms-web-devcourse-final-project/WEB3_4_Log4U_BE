@@ -7,6 +7,7 @@ import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.like.dto.request.LikeAddRequestDto;
 import com.example.log4u.domain.like.dto.response.LikeAddResponseDto;
 import com.example.log4u.domain.like.entity.Like;
+import com.example.log4u.domain.like.exception.DuplicateLikeException;
 import com.example.log4u.domain.like.repository.LikeRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class LikeService {
 
 	private void validateDuplicateLike(Long userId, Long diaryId) {
 		if (likeRepository.existsByUserIdAndDiaryId(userId, diaryId)) {
-			throw new IllegalArgumentException();
+			throw new DuplicateLikeException();
 		}
 	}
 }

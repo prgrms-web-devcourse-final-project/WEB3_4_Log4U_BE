@@ -3,6 +3,7 @@ package com.example.log4u.domain.diary.service;
 import org.springframework.stereotype.Service;
 
 import com.example.log4u.domain.diary.entity.Diary;
+import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ public class DiaryService {
 
 	public Diary getDiary(Long diaryId) {
 		return diaryRepository.findById(diaryId)
-			.orElseThrow(IllegalArgumentException::new);
+			.orElseThrow(NotFoundDiaryException::new);
 	}
 
 	public Long incrementLikeCount(Long diaryId) {
