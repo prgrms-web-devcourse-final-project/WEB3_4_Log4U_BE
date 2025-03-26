@@ -30,11 +30,5 @@ public class TestController {
 	public String testLog4uException() {
 		throw new NotFoundCommentException(); // 또는 임의의 ServiceException
 	}
-
-	@GetMapping("/unknown")
-	public String testUnexpectedException() {
-		String str = null;
-		str.length(); // NPE
-		return "절대 도달하지 않음";
-	}
+	
 }
