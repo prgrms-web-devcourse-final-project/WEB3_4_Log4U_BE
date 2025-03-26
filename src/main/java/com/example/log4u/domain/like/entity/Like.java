@@ -1,6 +1,6 @@
 package com.example.log4u.domain.like.entity;
 
-import com.example.log4u.domain.entity.BaseEntity;
+import com.example.log4u.domain.common.entity.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
