@@ -30,8 +30,13 @@ public class NaverResponseDto implements OAuth2Response{
 	}
 
 	@Override
-	public String getImageUrl() {
-		return "";
+	public String getNickname() {
+		return attribute.get("nickname").toString();
+	}
+
+	@Override
+	public String getProfileImageUrl() {
+		return attribute.get("profile_image").toString();
 	}
 
 }

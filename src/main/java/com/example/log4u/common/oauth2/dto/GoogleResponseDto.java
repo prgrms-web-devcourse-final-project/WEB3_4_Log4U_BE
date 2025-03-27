@@ -23,14 +23,20 @@ public class GoogleResponseDto implements OAuth2Response{
 	public String getEmail() {
 		return attribute.get("email").toString();
 	}
-
+	
+	// 구글은 이름이 닉네임
 	@Override
 	public String getName() {
 		return attribute.get("name").toString();
 	}
 
 	@Override
-	public String getImageUrl() {
+	public String getNickname() {
+		return "";
+	}
+
+	@Override
+	public String getProfileImageUrl() {
 		return attribute.get("picture").toString();
 	}
 

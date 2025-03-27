@@ -5,5 +5,6 @@ public interface OAuth2Response {
 	String getProviderId();
 	String getEmail();
 	String getName();
-	String getImageUrl();
+	String getNickname();
+	String getProfileImageUrl();
 }
