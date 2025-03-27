@@ -51,6 +51,9 @@ dependencies {
 
 //    Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")
+
+    // mysql
+    runtimeOnly("com.mysql:mysql-connector-j")
 }
 
 tasks.withType<Test> {
