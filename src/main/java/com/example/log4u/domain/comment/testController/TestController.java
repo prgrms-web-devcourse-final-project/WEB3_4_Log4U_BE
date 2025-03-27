@@ -30,6 +30,4 @@ public class TestController {
 	public String testLog4uException() {
 		throw new NotFoundCommentException(); // 또는 임의의 ServiceException
 	}
-
-	//test
 }
