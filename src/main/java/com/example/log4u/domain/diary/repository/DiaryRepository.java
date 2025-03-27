@@ -1,8 +1,28 @@
 package com.example.log4u.domain.diary.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.entity.Diary;
 
+@Repository
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
+	@Query("SELECT d FROM Diary d " +
+		"WHERE d.visibility IN :visibilities " +
+		"AND (:keyword IS NULL OR d.content LIKE %:keyword% OR d.title LIKE %:keyword%) " +
+		"ORDER BY " +
+		"CASE WHEN :sort = 'POPULAR' THEN d.likesCount " +
+		"ELSE d.id END DESC")
+	List<Diary> searchDiaries(
+		@Param("keyword") String keyword,
+		@Param("visibilities") List<VisibilityType> visibilities,
+		@Param("sort") String sort,
+		Pageable pageable
+	);
 }

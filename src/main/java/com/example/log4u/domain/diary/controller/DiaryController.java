@@ -1,6 +1,5 @@
 package com.example.log4u.domain.diary.controller;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.service.DiaryService;
-import com.example.log4u.domain.media.dto.MediaResponseDto;
 import com.example.log4u.domain.user.entity.User;
 
 import jakarta.validation.Valid;
@@ -43,100 +41,44 @@ public class DiaryController {
 	}
 
 	@GetMapping
-	public ResponseEntity<?> getDiaryList(
-		@RequestParam(required = false) String author,
-		@RequestParam(defaultValue = "PUBLIC") String visibility,
-		@RequestParam(defaultValue = "LATEST") String sort
+	public ResponseEntity<List<DiaryResponseDto>> searchDiaries(
+		@RequestParam(required = false) String keyword,
+		@RequestParam(defaultValue = "LATEST") String sort,
+		@RequestParam(defaultValue = "0") int page
 	) {
-		List<DiaryResponseDto> diaries = List.of(
-			new DiaryResponseDto(
-				149L,
-				5L,
-				37.5665,
-				126.9780,
-				"서울 날씨",
-				"서울 날씨 좋아요!",
-				"SUNNY",
-				"PUBLIC",
-				LocalDateTime.now(),
-				LocalDateTime.now(),
-				"https://s3.amazonaws.com/example/thumb1.jpg",
-				List.of(new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg", "jpeg"))
-			),
-			new DiaryResponseDto(
-				148L,
-				3L,
-				35.1796,
-				129.0756,
-				"부산 날씨",
-				"부산은 흐려요.",
-				"CLOUDY",
-				"PUBLIC",
-				LocalDateTime.now().minusHours(1),
-				LocalDateTime.now().minusHours(1),
-				"https://s3.amazonaws.com/example/thumb2.jpg",
-				List.of(new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg", "jpeg"))
-			)
+		List<DiaryResponseDto> diaries = diaryService.searchDiaries(
+			keyword,
+			sort,
+			page
 		);
-
 		return ResponseEntity.ok(diaries);
 	}
 
 	@GetMapping("/{diaryId}")
-	public ResponseEntity<?> getDiary(
+	public ResponseEntity<DiaryResponseDto> getDiary(
 		@PathVariable Long diaryId
 	) {
-		DiaryResponseDto diary = new DiaryResponseDto(
-			diaryId,
-			1L,
-			37.5665,
-			126.9780,
-			"오늘의 일기",
-			"오늘 서울은 흐려요.",
-			"CLOUDY",
-			"PUBLIC",
-			LocalDateTime.now(),
-			LocalDateTime.now(),
-			"https://s3.amazonaws.com/example/thumb.jpg",
-			List.of(
-				new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg", "jpeg"),
-				new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg", "jpeg")
-			)
-		);
-
+		User user = mockUser();
+		DiaryResponseDto diary = diaryService.getDiary(user.getId(), diaryId);
 		return ResponseEntity.ok(diary);
 	}
 
 	@PatchMapping("/{diaryId}")
-	public ResponseEntity<?> modifyDiary(
+	public ResponseEntity<Void> modifyDiary(
 		@PathVariable Long diaryId,
 		@RequestBody DiaryRequestDto request
 	) {
-		DiaryResponseDto updated = new DiaryResponseDto(
-			diaryId,
-			5L,
-			request.latitude(),
-			request.longitude(),
-			request.title(),
-			request.content(),
-			request.weatherInfo(),
-			request.visibility(),
-			LocalDateTime.now().minusHours(1),
-			LocalDateTime.now(),
-			"https://s3.amazonaws.com/example/thumb.jpg",
-			List.of(
-				new MediaResponseDto(1L, "https://s3.amazonaws.com/example/image1.jpg", "jpeg"),
-				new MediaResponseDto(2L, "https://s3.amazonaws.com/example/image2.jpg", "jpeg")
-			)
-		);
-
-		return ResponseEntity.ok(updated);
+		User user = mockUser();
+		diaryService.updateDiary(user.getId(), diaryId, request);
+		return ResponseEntity.ok().build();
 	}
 
 	@DeleteMapping("/{diaryId}")
 	public ResponseEntity<?> deleteDiary(
 		@PathVariable Long diaryId
 	) {
+		User user = mockUser();
+		diaryService.deleteDiary(user.getId(), diaryId);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 

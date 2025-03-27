@@ -21,7 +21,9 @@ public record DiaryResponseDto(
 	LocalDateTime createdAt,
 	LocalDateTime updatedAt,
 	String thumbnailUrl,
+	Integer likesCount,
 	List<MediaResponseDto> mediaList
+	// TODO: isLiked 현재 로그인한 사용자의 좋아요 여부
 ) {
 	public static DiaryResponseDto of(Diary diary) {
 		return DiaryResponseDto.builder()
@@ -32,10 +34,11 @@ public record DiaryResponseDto(
 			.title(diary.getTitle())
 			.content(diary.getContent())
 			.weatherInfo(diary.getWeatherInfo())
-			.visibility(diary.getVisibility())
+			.visibility(diary.getVisibility().name())
 			.createdAt(diary.getCreatedAt())
 			.updatedAt(diary.getUpdatedAt())
 			.thumbnailUrl(diary.getThumbnailUrl())
+			.likesCount(diary.getLikesCount())
 			.mediaList(diary.getMedia().stream()
 				.map(MediaResponseDto::of).toList())
 			.build();

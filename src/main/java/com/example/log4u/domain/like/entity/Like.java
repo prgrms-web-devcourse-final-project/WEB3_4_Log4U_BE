@@ -1,43 +1,37 @@
-package com.example.log4u.domain.user.entity;
-
-import java.util.List;
+package com.example.log4u.domain.like.entity;
 
 import com.example.log4u.domain.diary.entity.Diary;
+import com.example.log4u.domain.user.entity.User;
 import com.example.log4u.global.entity.BaseTimeEntity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "users")
-public class User extends BaseTimeEntity {
+@AllArgsConstructor
+@Table(name = "likes")
+public class Like extends BaseTimeEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private String nickname;
+	@ManyToOne
+	private User user;
 
-	private Long providerId;
-
-	private String provider;
-
-	private String email;
-
-	private String status_message;
-
-	@OneToMany(mappedBy = "user")
-	private List<Diary> diaries;
+	@ManyToOne
+	@Setter
+	private Diary diary;
 }
