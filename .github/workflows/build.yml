@@ -2,10 +2,11 @@ name: log4u-build
 on:
 #  push:
 #    branches:
-#      - dev # dev 브랜치 push
+#      - develop # dev 브랜치 push
   pull_request:
     branches:
       - main # main pr
+      - develop # develop pr
     types: [ opened, synchronize, reopened ]
 jobs:
   build:
