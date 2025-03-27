@@ -42,4 +42,4 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}   # Database password
         run: |
           chmod +x ./gradlew
-          ./gradlew build jacocoTestReport sonar --info
+          ./gradlew build jacocoTestReport sonar --info -Dsonar.branch.name=${{ github.ref_name }}
