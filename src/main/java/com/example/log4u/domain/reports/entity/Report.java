@@ -12,8 +12,9 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @EntityListeners(AuditingEntityListener.class)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Report {
-    public enum reportTargetType{
+    public enum ReportTargetType{
         DIARY,
         COMMENT
     }
@@ -22,18 +23,23 @@ public class Report {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Setter
-    private reportTargetType reportTargetType;
+    @Enumerated(EnumType.STRING)
+    private ReportTargetType reportTargetType;
 
-    @Setter
+    @Enumerated(EnumType.STRING)
     private ReportType reportType;
 
-    @Setter
     private Long reportTargetId;
 
-    @Setter
     private String content;
 
     @CreatedDate
     private LocalDateTime createdAt;
+
+    public Report(ReportTargetType reportTargetType, ReportType reportType, Long reportTargetId, String content) {
+        this.reportTargetType = reportTargetType;
+        this.reportType = reportType;
+        this.reportTargetId = reportTargetId;
+        this.content = content;
+    }
 }

@@ -13,17 +13,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReportService {
     private final ReportRepository reportRepository;
 
-    public Report createDiaryReport(ReportCreateRequestDto reportCreateRequestDto) {
-        Report report = reportCreateRequestDto.toEntity();
-        report.setReportTargetType(Report.reportTargetType.DIARY);
+    //diary 엔티티 생긴 후 수정
+    public void createDiaryReport(
+            ReportCreateRequestDto reportCreateRequestDto,
+            Long diaryId) {
+        Report report = reportCreateRequestDto.toEntity(Report.ReportTargetType.DIARY, diaryId);
         reportRepository.save(report);
-        return report;
     }
 
-    public Report createCommentReport(ReportCreateRequestDto reportCreateRequestDto) {
-        Report report = reportCreateRequestDto.toEntity();
-        report.setReportTargetType(Report.reportTargetType.COMMENT);
+    //comment 엔티티 생긴 후 수정
+    public void createCommentReport(
+            ReportCreateRequestDto reportCreateRequestDto,
+            Long commentId) {
+        Report report = reportCreateRequestDto.toEntity(Report.ReportTargetType.DIARY, commentId);
         reportRepository.save(report);
-        return report;
     }
 }

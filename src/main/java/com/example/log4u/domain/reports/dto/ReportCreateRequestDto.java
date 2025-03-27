@@ -5,14 +5,9 @@ import com.example.log4u.domain.reports.reportType.ReportType;
 
 public record ReportCreateRequestDto(
     ReportType reportType,
-    Long targetId,
     String content
 ) {
-    public Report toEntity(){
-        Report report = new Report();
-        report.setReportTargetId(targetId);
-        report.setContent(content);
-        report.setReportType(reportType);
-        return report;
+    public Report toEntity(Report.ReportTargetType reportTargetType, Long targetId){
+        return new Report(reportTargetType, reportType, targetId, content);
     }
 }
