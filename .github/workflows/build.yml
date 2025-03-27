@@ -2,10 +2,11 @@ name: log4u-build
 on:
 #  push:
 #    branches:
-#      - dev # dev 브랜치 push
+#      - develop # dev 브랜치 push
   pull_request:
     branches:
       - main # main pr
+      - develop # develop pr
     types: [ opened, synchronize, reopened ]
 jobs:
   build:
@@ -41,4 +42,4 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}   # Database password
         run: |
           chmod +x ./gradlew
-          ./gradlew build jacocoTestReport sonar --info
+          ./gradlew build jacocoTestReport sonar --info -Dsonar.branch.name=${{ github.ref_name }}
