@@ -76,4 +76,64 @@ public class CommonServiceTest {
 
 		verify(commentRepository, never()).save(any());
 	}
+
+	@DisplayName("성공 테스트: 댓글 삭제")
+	@Test
+	void commentDelete_Success() {
+		// given
+		Long userId = 1L;
+		Long commentId = 100L;
+		Long diaryId = 12L;
+
+		Comment comment = CommentFixture.createCommentFixture(commentId, userId, diaryId);
+
+		given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+
+		// when
+		commentService.deleteComment(userId, commentId);
+
+		// then
+		verify(commentRepository).delete(comment);
+	}
+
+	@DisplayName("예외 테스트: 댓글 삭제 - 존재하지 않는 댓글")
+	@Test
+	void commentDelete_Fail_NotFound() {
+		// given
+		Long userId = 1L;
+		Long commentId = 999L;
+
+		given(commentRepository.findById(commentId)).willReturn(Optional.empty());
+
+		// when & then
+		assertThrows(NotFoundCommentException.class, () -> {
+			commentService.deleteComment(userId, commentId);
+		});
+
+		verify(commentRepository, never()).delete(any());
+	}
+
+	@DisplayName("예외 테스트: 댓글 삭제 - 본인 댓글이 아닌 사용자의 삭제 요청")
+	@Test
+	void commentDelete_Fail_Unauthorized() {
+		// given
+		Long commentId = 100L;
+		Long commentOwnerId = 1L;
+		Long otherUserId = 2L;
+		Long diaryId = 12L;
+
+		Comment comment = CommentFixture.createCommentFixture(commentId, commentOwnerId, diaryId);
+
+		given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+
+		// when & then
+		assertThrows(UnauthorizedAccessException.class, () -> {
+			commentService.deleteComment(otherUserId, commentId);
+		});
+
+		verify(commentRepository, never()).delete(any());
+	}
+
+
+
 }
