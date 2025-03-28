@@ -7,6 +7,8 @@ import java.util.Map;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+import com.example.log4u.domain.user.entity.User;
+
 import lombok.Getter;
 
 public class CustomOAuth2User implements OAuth2User {
@@ -15,6 +17,11 @@ public class CustomOAuth2User implements OAuth2User {
 	public CustomOAuth2User(UserCreateRequestDto userCreateRequestDto) {
 		this.userCreateRequestDto = userCreateRequestDto;
 	}
+
+	public CustomOAuth2User(User user){
+		this.userCreateRequestDto = UserCreateRequestDto.fromEntity(user);
+	}
+
 
 	@Override
 	public Map<String, Object> getAttributes() {

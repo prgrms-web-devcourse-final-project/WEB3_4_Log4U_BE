@@ -36,4 +36,17 @@ public record UserCreateRequestDto (
 			role
 		);
 	}
+
+	public static UserCreateRequestDto fromEntity(User user){
+		return new UserCreateRequestDto(
+			user.getProvider(),
+			user.getProviderId(),
+			user.getUserId(),
+			user.getName(),
+			user.getEmail(),
+			user.getNickname(),
+			user.getProfileImageUrl(),
+			user.getRole()
+		);
+	}
 }
