@@ -72,14 +72,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		log.info("필터에서 추출한 access: " + accessToken + "\n");
 
 
-		// 토큰 만료 확인, 만료 시 다음 필터로 넘기지 않음(재발급 필요)
+		// 토큰 만료 확인 , 만료 시 다음 필터로 넘기지 않음(재발급 필요)
 		try {
 			System.out.println("만료확인");
-			jwtUtil.isExpired(accessToken);
 			System.out.println("category : " + jwtUtil.getCategory(accessToken));
 			System.out.println("userId : " + jwtUtil.getUserId(accessToken));
 			System.out.println("role : " + jwtUtil.getRole(accessToken));
+			jwtUtil.isExpired(accessToken);
 		} catch (ExpiredJwtException e) {
+			e.printStackTrace();
 			PrintWriter writer = response.getWriter();
 			writer.print("토큰이 만료되었습니다.");
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
