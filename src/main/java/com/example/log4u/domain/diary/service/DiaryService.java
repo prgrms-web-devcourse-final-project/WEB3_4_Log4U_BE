@@ -12,8 +12,7 @@ import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
-import com.example.log4u.domain.media.entity.Media;
-import com.example.log4u.domain.user.entity.User;
+import com.example.log4u.domain.media.service.MediaService;
 import com.example.log4u.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -29,23 +28,16 @@ public class DiaryService {
 	private final DiaryRepository diaryRepository;
 	private final UserRepository userRepository;
 	private final FollowRepository followRepository;
+	private final MediaService mediaService;
 
 	@Transactional
-	public void saveDiary(Long id, DiaryRequestDto request) {
-		User user = userRepository.findById(id)
-			.orElseThrow(() -> new RuntimeException("User not found"));
-
-		Diary diary = Diary.toEntity(request);
-		diary.addUser(user);
-
-		if (request.mediaList() != null && !request.mediaList().isEmpty()) {
-			List<Media> mediaList = request.mediaList()
-				.stream()
-				.map(Media::toEntity)
-				.toList();
-			diary.addMedia(mediaList);
-		}
-		diaryRepository.save(diary);
+	public void saveDiary(Long userId, DiaryRequestDto request) {
+		validateUser(userId);
+		String thumbnailUrl = mediaService.extractThumbnailUrl(request.mediaList());
+		Diary diary = diaryRepository.save(
+			Diary.toEntity(userId, request, thumbnailUrl)
+		);
+		mediaService.saveMedia(diary.getId(), request.mediaList());
 	}
 
 	@Transactional(readOnly = true)
@@ -81,7 +73,13 @@ public class DiaryService {
 			.orElseThrow(() -> new RuntimeException("Diary not found"));
 
 		validateDiaryOwner(diary, userId);
-		diary.update(request);
+
+		if (request.mediaList() != null) {
+			mediaService.updateMedia(diary.getId(), request.mediaList());
+		}
+
+		String newThumbnailUrl = mediaService.extractThumbnailUrl(request.mediaList());
+		diary.update(request, newThumbnailUrl);
 	}
 
 	@Transactional
@@ -90,27 +88,35 @@ public class DiaryService {
 			.orElseThrow(() -> new RuntimeException("Diary not found"));
 
 		validateDiaryOwner(diary, userId);
+
+		mediaService.deleteMedia(diaryId);
 		diaryRepository.delete(diary);
 	}
 
 	private void validateDiaryAccess(Diary diary, Long userId) {
 		if (diary.getVisibility() == VisibilityType.PRIVATE) {
-			if (!diary.getUser().getId().equals(userId)) {
+			if (!diary.getUserId().equals(userId)) {
 				throw new RuntimeException("Diary access denied");
 			}
 		}
 
 		if (diary.getVisibility() == VisibilityType.FOLLOWER) {
-			if (!diary.getUser().getId().equals(userId) &&
-				!followRepository.existsByFollowerIdAndFollowingId(userId, diary.getUser().getId())) {
+			if (!diary.getUserId().equals(userId)
+				&& !followRepository.existsByFollowerIdAndFollowingId(userId, diary.getUserId())) {
 				throw new RuntimeException("Follower access denied");
 			}
 		}
 	}
 
 	private void validateDiaryOwner(Diary diary, Long userId) {
-		if (!diary.getUser().getId().equals(userId)) {
+		if (!diary.getUserId().equals(userId)) {
 			throw new RuntimeException("Diary owner access denied");
+		}
+	}
+
+	private void validateUser(Long userId) {
+		if (!userRepository.existsById(userId)) {
+			throw new RuntimeException("User not found");
 		}
 	}
 }

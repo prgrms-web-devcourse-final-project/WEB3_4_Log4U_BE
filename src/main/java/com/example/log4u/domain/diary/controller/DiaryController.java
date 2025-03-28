@@ -66,7 +66,7 @@ public class DiaryController {
 	@PatchMapping("/{diaryId}")
 	public ResponseEntity<Void> modifyDiary(
 		@PathVariable Long diaryId,
-		@RequestBody DiaryRequestDto request
+		@Valid @RequestBody DiaryRequestDto request
 	) {
 		User user = mockUser();
 		diaryService.updateDiary(user.getId(), diaryId, request);

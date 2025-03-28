@@ -1,22 +1,18 @@
 package com.example.log4u.domain.media.entity;
 
-import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.media.dto.MediaRequestDto;
 import com.example.log4u.global.entity.BaseTimeEntity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
@@ -28,6 +24,9 @@ public class Media extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Column(nullable = false)
+	private Long diaryId;
+
 	private String originalName;
 
 	private String storedName;
@@ -38,13 +37,9 @@ public class Media extends BaseTimeEntity {
 
 	private Long size;
 
-	@Setter
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "diary_id")
-	private Diary diary;
-
-	public static Media toEntity(MediaRequestDto request) {
+	public static Media toEntity(Long diaryId, MediaRequestDto request) {
 		return Media.builder()
+			.diaryId(diaryId)
 			.originalName(request.originalName())
 			.storedName(request.storedName())
 			.url(request.url())
