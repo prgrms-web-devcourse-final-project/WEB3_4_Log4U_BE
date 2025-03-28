@@ -47,14 +47,14 @@ public class User extends BaseEntity {
 	@Column(nullable = false)
 	private String role;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private SocialType socialType;
+	// @Enumerated(EnumType.STRING)
+	// @Column(nullable = false)
+	// private SocialType socialType;
 
 	private String statusMessage;
 
-	@Column(nullable = false)
-	private boolean isPremium;
+	// @Column(nullable = false)
+	// private boolean isPremium;
 
 	public void updateOauth2Profile(OAuth2Response oAuth2Response) {
 		this.email = oAuth2Response.getEmail();
