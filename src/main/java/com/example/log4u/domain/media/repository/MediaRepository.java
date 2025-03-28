@@ -16,4 +16,7 @@ public interface MediaRepository extends JpaRepository<Media, Long> {
 	void deleteByDiaryId(@Param("diaryId") Long diaryId);
 
 	List<Media> findByDiaryId(Long diaryId);
+
+	@Query("SELECT m FROM Media m WHERE m.diaryId IN :diaryIds")
+	List<Media> findByDiaryIdIn(@Param("diaryIds") List<Long> diaryIds);
 }

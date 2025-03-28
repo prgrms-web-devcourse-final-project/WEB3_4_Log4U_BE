@@ -13,12 +13,16 @@ import com.example.log4u.domain.diary.entity.Diary;
 
 @Repository
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
-	@Query("SELECT d FROM Diary d " +
-		"WHERE d.visibility IN :visibilities " +
-		"AND (:keyword IS NULL OR d.content LIKE %:keyword% OR d.title LIKE %:keyword%) " +
-		"ORDER BY " +
-		"CASE WHEN :sort = 'POPULAR' THEN d.likeCount " +
-		"ELSE d.diaryId END DESC")
+	@Query("""
+		SELECT d FROM Diary d 
+		WHERE d.visibility IN :visibilities 
+		AND (:keyword IS NULL OR 
+		    LOWER(d.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR 
+		    LOWER(d.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) 
+		ORDER BY 
+		    CASE WHEN :sort = 'POPULAR' THEN d.likeCount 
+		    ELSE d.createdAt END DESC
+		""")
 	List<Diary> searchDiaries(
 		@Param("keyword") String keyword,
 		@Param("visibilities") List<VisibilityType> visibilities,
@@ -26,11 +30,13 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
 		Pageable pageable
 	);
 
-	@Query("SELECT d FROM Diary d " +
-		"WHERE d.userId = :userId " +
-		"AND d.visibility IN :visibilities " +
-		"AND (:cursorId IS NULL OR d.diaryId < :cursorId) " +
-		"ORDER BY d.diaryId DESC")
+	@Query("""
+		SELECT d FROM Diary d 
+		WHERE d.userId = :userId 
+		AND d.visibility IN :visibilities 
+		AND (:cursorId IS NULL OR d.id < :cursorId) 
+		ORDER BY d.id DESC
+		""")
 	List<Diary> findByUserIdAndVisibilityInAndCursorId(
 		@Param("userId") Long userId,
 		@Param("visibilities") List<VisibilityType> visibilities,

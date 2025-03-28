@@ -50,6 +50,7 @@ public class Diary extends BaseEntity {
 	private VisibilityType visibility;
 
 	@Column(nullable = false)
+	@Builder.Default
 	private Long likeCount = 0L;
 
 	public static Diary toEntity(Long userId, DiaryRequestDto request, String thumbnailUrl) {

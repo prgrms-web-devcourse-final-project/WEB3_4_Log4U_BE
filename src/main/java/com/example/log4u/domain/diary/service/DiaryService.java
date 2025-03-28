@@ -1,6 +1,7 @@
 package com.example.log4u.domain.diary.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -51,19 +52,14 @@ public class DiaryService {
 		String sort,
 		int page
 	) {
-		List<VisibilityType> visibilities = List.of(VisibilityType.PUBLIC);
+		List<Diary> diaries = diaryRepository.searchDiaries(
+			keyword,
+			List.of(VisibilityType.PUBLIC),
+			sort,
+			PageRequest.of(page, SEARCH_PAGE_SIZE)
+		);
 
-		return diaryRepository.searchDiaries(
-				keyword,
-				visibilities,
-				sort,
-				PageRequest.of(page, SEARCH_PAGE_SIZE)
-			).stream()
-			.map(diary -> {
-				List<Media> media = mediaService.getMedia(diary.getDiaryId());
-				return DiaryResponseDto.of(diary, media);
-			})
-			.toList();
+		return getDiaryResponsesWithMedia(diaries);
 	}
 
 	// 다이어리 상세 조회
@@ -78,6 +74,7 @@ public class DiaryService {
 		return DiaryResponseDto.of(diary, media);
 	}
 
+	// 다이어리 목록 (프로필 페이지)
 	@Transactional(readOnly = true)
 	public List<DiaryResponseDto> getDiariesByCursor(Long userId, Long targetUserId, Long cursorId) {
 		List<VisibilityType> visibilities = determineAccessibleVisibilities(userId, targetUserId);
@@ -89,12 +86,7 @@ public class DiaryService {
 			PageRequest.of(0, CURSOR_PAGE_SIZE)
 		);
 
-		return diaries.stream()
-			.map(diary -> {
-				List<Media> media = mediaService.getMedia(diary.getDiaryId());
-				return DiaryResponseDto.of(diary, media);
-			})
-			.toList();
+		return getDiaryResponsesWithMedia(diaries);
 	}
 
 	// 다이어리 수정
@@ -123,6 +115,26 @@ public class DiaryService {
 
 		mediaService.deleteMedia(diaryId);
 		diaryRepository.delete(diary);
+	}
+
+	// 다이어리 + 미디어 같이 반환
+	private List<DiaryResponseDto> getDiaryResponsesWithMedia(List<Diary> diaries) {
+		if (diaries.isEmpty()) {
+			return List.of();
+		}
+
+		List<Long> diaryIds = diaries.stream()
+			.map(Diary::getDiaryId)
+			.toList();
+
+		Map<Long, List<Media>> mediaMap = mediaService.getMediaMapByDiaryIds(diaryIds);
+
+		return diaries.stream()
+			.map(diary -> DiaryResponseDto.of(
+				diary,
+				mediaMap.getOrDefault(diary.getDiaryId(), List.of())
+			))
+			.toList();
 	}
 
 	// 다이어리 목록 조회 시 권한 체크

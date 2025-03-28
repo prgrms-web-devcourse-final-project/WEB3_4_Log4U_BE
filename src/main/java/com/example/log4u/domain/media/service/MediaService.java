@@ -1,6 +1,8 @@
 package com.example.log4u.domain.media.service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,5 +55,18 @@ public class MediaService {
 			return null;
 		}
 		return mediaList.getFirst().url();
+	}
+
+	public Map<Long, List<Media>> getMediaMapByDiaryIds(List<Long> diaryIds) {
+		if (diaryIds.isEmpty()) {
+			return Map.of();
+		}
+		try {
+			return mediaRepository.findByDiaryIdIn(diaryIds)
+				.stream()
+				.collect(Collectors.groupingBy(Media::getDiaryId));
+		} catch (Exception e) {
+			return Map.of();
+		}
 	}
 }
