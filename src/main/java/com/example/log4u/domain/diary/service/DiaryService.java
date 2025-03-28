@@ -34,4 +34,11 @@ public class DiaryService {
 		Diary diary = getDiary(diaryId);
 		return diary.getLikeCount();
 	}
+
+	public void checkDiaryExists(Long diaryId) {
+		if (!diaryRepository.existsById(diaryId)) {
+			throw new NotFoundDiaryException();
+		}
+	}
+
 }
