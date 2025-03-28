@@ -19,6 +19,10 @@ public record SupportCreateRequestDto(
         String content
 ) {
         public Support toEntity(){
-                return new Support(supportType, title, content);
+                return Support.builder()
+                        .supportType(supportType)
+                        .title(title)
+                        .content(content)
+                        .build();
         }
 }

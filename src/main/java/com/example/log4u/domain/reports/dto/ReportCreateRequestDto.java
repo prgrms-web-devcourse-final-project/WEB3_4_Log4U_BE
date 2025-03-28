@@ -15,6 +15,11 @@ public record ReportCreateRequestDto(
     String content
 ) {
     public Report toEntity(Report.ReportTargetType reportTargetType, Long targetId){
-        return new Report(reportTargetType, reportType, targetId, content);
+        return Report.builder()
+                .reportTargetType(reportTargetType)
+                .reportType(reportType)
+                .reportTargetId(targetId)
+                .content(content)
+                .build();
     }
 }

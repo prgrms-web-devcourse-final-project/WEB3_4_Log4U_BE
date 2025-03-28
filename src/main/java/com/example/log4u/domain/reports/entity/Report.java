@@ -1,18 +1,19 @@
 package com.example.log4u.domain.reports.entity;
 
-import com.example.log4u.domain.reports.dto.ReportCreateRequestDto;
 import com.example.log4u.domain.reports.reportType.ReportType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import java.time.LocalDateTime;
 
-@Entity
+@Builder
 @Getter
-@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
+
+@Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Report {
     public enum ReportTargetType{
         DIARY,
@@ -35,11 +36,4 @@ public class Report {
 
     @CreatedDate
     private LocalDateTime createdAt;
-
-    public Report(ReportTargetType reportTargetType, ReportType reportType, Long reportTargetId, String content) {
-        this.reportTargetType = reportTargetType;
-        this.reportType = reportType;
-        this.reportTargetId = reportTargetId;
-        this.content = content;
-    }
 }
