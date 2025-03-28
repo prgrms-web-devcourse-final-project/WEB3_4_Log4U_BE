@@ -12,17 +12,8 @@ import lombok.Getter;
 public class CustomOAuth2User implements OAuth2User {
 	private final UserCreateRequestDto userCreateRequestDto;
 
-	@Getter
-	private final Long userId;
-
 	public CustomOAuth2User(UserCreateRequestDto userCreateRequestDto) {
 		this.userCreateRequestDto = userCreateRequestDto;
-		this.userId = null;
-	}
-
-	public CustomOAuth2User(UserCreateRequestDto userCreateRequestDto, Long userId) {
-		this.userCreateRequestDto = userCreateRequestDto;
-		this.userId = userId;
 	}
 
 	@Override
@@ -42,9 +33,11 @@ public class CustomOAuth2User implements OAuth2User {
 		return userCreateRequestDto.name();
 	}
 
-	public String getUid() {
-		return userCreateRequestDto.uid();
+	public String getRole() { return userCreateRequestDto.role();}
+
+	public String getProviderId() {
+		return userCreateRequestDto.providerId();
 	}
 
-	public String getRole() { return userCreateRequestDto.role();}
+	public Long getUserId() { return userCreateRequestDto.userId(); }
 }

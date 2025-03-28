@@ -14,7 +14,6 @@ import com.example.log4u.common.oauth2.dto.NaverResponseDto;
 import com.example.log4u.common.oauth2.dto.OAuth2Response;
 import com.example.log4u.common.oauth2.dto.UserCreateRequestDto;
 import com.example.log4u.domain.user.entity.User;
-import com.example.log4u.domain.user.exception.UserNotFoundException;
 import com.example.log4u.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -43,24 +42,29 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 			default -> throw new OAuth2AuthenticationException("지원하지 않는 소셜 로그인");
 		};
 
-		// 유저 인식용 이름
-		String uid = oAuth2Response.getProvider() + ":" + oAuth2Response.getProviderId();
-
 		// 정보 조회
-		Optional<User> dbUser = userRepository.findByUid(uid);
+		String providerId = oAuth2Response.getProviderId();
+		Optional<User> dbUser = userRepository.findByProviderId(providerId);
 
 		UserCreateRequestDto userCreateRequestDto;
 		// 첫 로그이면 이면 프로필 없으므로 우선 GUEST 설정
 		if (dbUser.isEmpty()) {
 			userCreateRequestDto = UserCreateRequestDto.fromOAuth2Response(
 				oAuth2Response,
-				uid,
+				null,
 				"ROLE_GUEST"
 			);
 			User user = UserCreateRequestDto.toEntity(userCreateRequestDto);
 			userRepository.save(user);
 
-			return new CustomOAuth2User(userCreateRequestDto);
+
+			UserCreateRequestDto afterSaveDto = UserCreateRequestDto.fromOAuth2Response(
+				oAuth2Response,
+				user.getUserId(),
+				"ROLE_GUEST"
+			);
+
+			return new CustomOAuth2User(afterSaveDto);
 		}
 		// DB의 유저 정보 갱신
 		else {
@@ -70,10 +74,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
 			 userCreateRequestDto = UserCreateRequestDto.fromOAuth2Response(
 				oAuth2Response,
-				uid,
+				user.getUserId(),
 				user.getRole()
 			);
-			return new CustomOAuth2User(userCreateRequestDto, user.getUserId());
+			return new CustomOAuth2User(userCreateRequestDto);
 		}
 	}
 }
