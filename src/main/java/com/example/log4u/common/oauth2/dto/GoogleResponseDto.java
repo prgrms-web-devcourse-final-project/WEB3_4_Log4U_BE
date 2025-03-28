@@ -4,10 +4,12 @@ import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 
+
 @RequiredArgsConstructor
 public class GoogleResponseDto implements OAuth2Response{
 
 	private final Map<String, Object> attribute;
+
 
 	@Override
 	public String getProvider() {
