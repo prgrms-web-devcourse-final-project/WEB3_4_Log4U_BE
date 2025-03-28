@@ -9,6 +9,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 
 @Component
@@ -22,31 +23,42 @@ public class JwtUtil {
 	}
 
 	public Long getUserId(String token) {
-		return Jwts.parser()
-			.verifyWith(secretKey)
-			.build()
-			.parseSignedClaims(token)
-			.getPayload()
-			.get("userId", Long.class);
+		try {
+			return Jwts.parser()
+				.verifyWith(secretKey)
+				.build()
+				.parseSignedClaims(token)
+				.getPayload()
+				.get("userId", Long.class);
+		} catch(ExpiredJwtException ex){
+			return ex.getClaims().get("userId", Long.class);
+		}
 	}
 
 	public String getRole(String token) {
-		return Jwts.parser()
-			.verifyWith(secretKey)
-			.build()
-			.parseSignedClaims(token)
-			.getPayload()
-			.get("role", String.class);
+		try {
+			return Jwts.parser()
+				.verifyWith(secretKey)
+				.build()
+				.parseSignedClaims(token)
+				.getPayload()
+				.get("role", String.class);
+		}catch(ExpiredJwtException ex){
+			return ex.getClaims().get("role", String.class);
+		}
 	}
 
 	public String getCategory(String token) {
-		return Jwts.parser()
-			.verifyWith(secretKey)
-			.build()
-			.parseSignedClaims(token)
-			.getPayload()
-			.get("category", String.class);
-
+		try {
+			return Jwts.parser()
+				.verifyWith(secretKey)
+				.build()
+				.parseSignedClaims(token)
+				.getPayload()
+				.get("category", String.class);
+		}catch(ExpiredJwtException ex){
+			return ex.getClaims().get("category", String.class);
+		}
 	}
 
 	public Boolean isExpired(String token) {
