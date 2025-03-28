@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.media.dto.MediaResponseDto;
+import com.example.log4u.domain.media.entity.Media;
 
 import lombok.Builder;
 
@@ -25,10 +26,10 @@ public record DiaryResponseDto(
 	List<MediaResponseDto> mediaList
 	// TODO: isLiked 현재 로그인한 사용자의 좋아요 여부
 ) {
-	public static DiaryResponseDto of(Diary diary) {
+	public static DiaryResponseDto of(Diary diary, List<Media> media) {
 		return DiaryResponseDto.builder()
-			.diaryId(diary.getId())
-			.userId(diary.getUser().getId())
+			.diaryId(diary.getDiaryId())
+			.userId(diary.getUserId())
 			.latitude(diary.getLatitude())
 			.longitude(diary.getLongitude())
 			.title(diary.getTitle())
@@ -39,7 +40,7 @@ public record DiaryResponseDto(
 			.updatedAt(diary.getUpdatedAt())
 			.thumbnailUrl(diary.getThumbnailUrl())
 			.likesCount(diary.getLikesCount())
-			.mediaList(diary.getMedia().stream()
+			.mediaList(media.stream()
 				.map(MediaResponseDto::of).toList())
 			.build();
 	}

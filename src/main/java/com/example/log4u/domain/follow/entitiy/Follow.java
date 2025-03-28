@@ -1,7 +1,7 @@
 package com.example.log4u.domain.follow.entitiy;
 
+import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.domain.user.entity.User;
-import com.example.log4u.global.entity.BaseTimeEntity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Follow extends BaseTimeEntity {
+public class Follow extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;

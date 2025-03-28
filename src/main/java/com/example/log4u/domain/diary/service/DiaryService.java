@@ -12,6 +12,7 @@ import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
+import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
 import com.example.log4u.domain.user.repository.UserRepository;
 
@@ -37,7 +38,7 @@ public class DiaryService {
 		Diary diary = diaryRepository.save(
 			Diary.toEntity(userId, request, thumbnailUrl)
 		);
-		mediaService.saveMedia(diary.getId(), request.mediaList());
+		mediaService.saveMedia(diary.getDiaryId(), request.mediaList());
 	}
 
 	@Transactional(readOnly = true)
@@ -54,7 +55,10 @@ public class DiaryService {
 				sort,
 				PageRequest.of(page, PAGE_SIZE)
 			).stream()
-			.map(DiaryResponseDto::of)
+			.map(diary -> {
+				List<Media> media = mediaService.getMedia(diary.getDiaryId());
+				return DiaryResponseDto.of(diary, media);
+			})
 			.toList();
 	}
 
@@ -64,7 +68,9 @@ public class DiaryService {
 			.orElseThrow(() -> new RuntimeException("Diary not found"));
 
 		validateDiaryAccess(diary, userId);
-		return DiaryResponseDto.of(diary);
+
+		List<Media> media = mediaService.getMedia(diary.getDiaryId());
+		return DiaryResponseDto.of(diary, media);
 	}
 
 	@Transactional
@@ -75,7 +81,7 @@ public class DiaryService {
 		validateDiaryOwner(diary, userId);
 
 		if (request.mediaList() != null) {
-			mediaService.updateMedia(diary.getId(), request.mediaList());
+			mediaService.updateMedia(diary.getDiaryId(), request.mediaList());
 		}
 
 		String newThumbnailUrl = mediaService.extractThumbnailUrl(request.mediaList());

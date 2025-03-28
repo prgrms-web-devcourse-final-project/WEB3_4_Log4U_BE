@@ -1,8 +1,8 @@
 package com.example.log4u.domain.like.entity;
 
+import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.user.entity.User;
-import com.example.log4u.global.entity.BaseTimeEntity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,7 +23,7 @@ import lombok.Setter;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(name = "likes")
-public class Like extends BaseTimeEntity {
+public class Like extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;

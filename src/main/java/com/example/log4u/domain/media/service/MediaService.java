@@ -31,6 +31,11 @@ public class MediaService {
 		mediaRepository.saveAll(media);
 	}
 
+	@Transactional(readOnly = true)
+	public List<Media> getMedia(Long diaryId) {
+		return mediaRepository.findByDiaryId(diaryId);
+	}
+
 	@Transactional
 	public void deleteMedia(Long diaryId) {
 		mediaRepository.deleteByDiaryId(diaryId);

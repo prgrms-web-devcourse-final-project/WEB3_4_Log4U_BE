@@ -1,15 +1,11 @@
 package com.example.log4u.domain.user.entity;
 
-import java.util.List;
-
-import com.example.log4u.domain.diary.entity.Diary;
-import com.example.log4u.global.entity.BaseTimeEntity;
+import com.example.log4u.common.entity.BaseEntity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -23,7 +19,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "users")
-public class User extends BaseTimeEntity {
+public class User extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -37,7 +33,4 @@ public class User extends BaseTimeEntity {
 	private String email;
 
 	private String status_message;
-
-	@OneToMany(mappedBy = "user")
-	private List<Diary> diaries;
 }

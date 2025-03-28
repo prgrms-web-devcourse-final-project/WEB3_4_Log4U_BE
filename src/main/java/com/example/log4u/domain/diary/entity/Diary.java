@@ -1,8 +1,8 @@
 package com.example.log4u.domain.diary.entity;
 
+import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
-import com.example.log4u.global.entity.BaseTimeEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,11 +22,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Diary extends BaseTimeEntity {
+public class Diary extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private Long diaryId;
 
 	@Column(nullable = false)
 	private Long userId;

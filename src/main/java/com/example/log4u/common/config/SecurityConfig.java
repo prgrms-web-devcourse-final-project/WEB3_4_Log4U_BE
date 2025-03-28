@@ -1,4 +1,4 @@
-package com.example.log4u.global.config;
+package com.example.log4u.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

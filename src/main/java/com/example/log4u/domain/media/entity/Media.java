@@ -1,7 +1,7 @@
 package com.example.log4u.domain.media.entity;
 
+import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.domain.media.dto.MediaRequestDto;
-import com.example.log4u.global.entity.BaseTimeEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Media extends BaseTimeEntity {
+public class Media extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
