@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReportService {
     private final ReportRepository reportRepository;
 
-    //diary 엔티티 생긴 후 수정
     public void createDiaryReport(
             ReportCreateRequestDto reportCreateRequestDto,
             Long diaryId) {
@@ -21,7 +20,6 @@ public class ReportService {
         reportRepository.save(report);
     }
 
-    //comment 엔티티 생긴 후 수정
     public void createCommentReport(
             ReportCreateRequestDto reportCreateRequestDto,
             Long commentId) {
