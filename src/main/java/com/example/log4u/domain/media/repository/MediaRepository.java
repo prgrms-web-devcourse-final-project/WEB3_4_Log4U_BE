@@ -4,19 +4,15 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import com.example.log4u.domain.media.entity.Media;
 
 public interface MediaRepository extends JpaRepository<Media, Long> {
 
 	@Modifying
-	@Query("DELETE FROM Media m WHERE m.diaryId = :diaryId")
-	void deleteByDiaryId(@Param("diaryId") Long diaryId);
+	void deleteByDiaryId(Long diaryId);
 
 	List<Media> findByDiaryId(Long diaryId);
 
-	@Query("SELECT m FROM Media m WHERE m.diaryId IN :diaryIds")
-	List<Media> findByDiaryIdIn(@Param("diaryIds") List<Long> diaryIds);
+	List<Media> findByDiaryIdIn(List<Long> diaryIds);
 }
