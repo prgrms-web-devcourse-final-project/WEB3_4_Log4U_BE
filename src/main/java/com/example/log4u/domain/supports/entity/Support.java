@@ -3,13 +3,14 @@ package com.example.log4u.domain.supports.entity;
 import com.example.log4u.domain.supports.supportType.SupportType;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-
-@Entity
 @Getter
+@NoArgsConstructor
+@Entity
 @EntityListeners(AuditingEntityListener.class)
 public class Support {
     @Id
@@ -28,4 +29,10 @@ public class Support {
     private String answerContent;
 
     private LocalDateTime answeredAt;
+
+    public Support (SupportType supportType, String title, String content) {
+        this.supportType = supportType;
+        this.title = title;
+        this.content = content;
+    }
 }
