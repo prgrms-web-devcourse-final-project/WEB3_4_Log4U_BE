@@ -31,4 +31,12 @@ public class CommentController {
 		CommentCreateResponseDto response = commentService.addComment(userId, requestDto);
 		return ResponseEntity.ok(response);
 	}
+
+	@DeleteMapping("/{commentId}")
+	public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
+		Long userId = 1L; //임시 처리
+
+		commentService.deleteComment(userId, commentId);
+		return ResponseEntity.noContent().build();
+	}
 }

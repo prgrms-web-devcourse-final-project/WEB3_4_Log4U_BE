@@ -20,6 +20,7 @@ public class CommentService {
 	private final CommentRepository commentRepository;
 	private final DiaryService diaryService;
 
+	@Transactional
 	public CommentCreateResponseDto addComment(Long userId, CommentCreateRequestDto requestDto) {
 		checkDiaryExists(requestDto);
 		Comment comment = requestDto.toEntity(userId);
@@ -27,7 +28,25 @@ public class CommentService {
 		return CommentCreateResponseDto.of(comment);
 	}
 
+	@Transactional
+	public void deleteComment(Long userId, Long commentId) {
+		Comment comment = getComment(commentId);
+		validateCommentOwner(userId, comment);
+		commentRepository.delete(comment);
+	}
+
 	private void checkDiaryExists(CommentCreateRequestDto requestDto) {
 		diaryService.checkDiaryExists(requestDto.diaryId());
+	}
+
+	private void validateCommentOwner(Long userId, Comment comment) {
+		if (!comment.getUserId().equals(userId)) {
+			throw new UnauthorizedAccessException();
+		}
+	}
+
+	private Comment getComment(Long commentId) {
+		return commentRepository.findById(commentId)
+			.orElseThrow(NotFoundCommentException::new);
 	}
 }
