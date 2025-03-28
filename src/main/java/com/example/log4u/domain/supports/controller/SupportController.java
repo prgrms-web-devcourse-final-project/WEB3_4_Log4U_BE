@@ -23,7 +23,8 @@ public class SupportController {
     public ResponseEntity<Void> createSupport(
             @RequestBody @Valid SupportCreateRequestDto supportCreateRequestDto
             ){
-        supportService.createSupport(supportCreateRequestDto);
+        long requesterId = 1L;
+        supportService.createSupport(requesterId, supportCreateRequestDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -32,14 +33,16 @@ public class SupportController {
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) SupportType supportType
     ){
-        Page<SupportOverviewGetResponseDto> supportOverviewPage = supportService.getSupportPage(page, supportType);
+        long requesterId = 1L;
+        Page<SupportOverviewGetResponseDto> supportOverviewPage = supportService.getSupportPage(requesterId, page, supportType);
         return ResponseEntity.ok().body(supportOverviewPage);
     }
 
     @GetMapping("/{supportId}")
     public ResponseEntity<SupportGetResponseDto> getSupportBySupportId(
             @PathVariable Long supportId){
-        SupportGetResponseDto supportGetResponseDto = supportService.getSupportById(supportId);
+        long requesterId = 1L;
+        SupportGetResponseDto supportGetResponseDto = supportService.getSupportById(requesterId, supportId);
         return ResponseEntity.ok().body(supportGetResponseDto);
     }
 }

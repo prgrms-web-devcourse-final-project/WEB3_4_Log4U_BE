@@ -21,23 +21,28 @@ public class SupportService {
     private final SupportRepository supportRepository;
     private final SupportQuerydsl supportQuerydsl;
 
-    public void createSupport(SupportCreateRequestDto supportCreateRequestDto) {
-        Support support = supportCreateRequestDto.toEntity();
+    public void createSupport(
+            long requesterId,
+            SupportCreateRequestDto supportCreateRequestDto) {
+        Support support = supportCreateRequestDto.toEntity(requesterId);
         supportRepository.save(support);
     }
 
     @Transactional(readOnly = true)
     public Page<SupportOverviewGetResponseDto> getSupportPage(
+            long requesterId,
             Integer page,
             SupportType supportType
     ){
         int primitivePage = page == null ? 0 : page - 1;
         Pageable pageable = PageRequest.of(primitivePage, 10);
-        return supportQuerydsl.getSupportOverviewGetResponseDtoPage(pageable, supportType);
+        return supportQuerydsl.getSupportOverviewGetResponseDtoPage(requesterId, pageable, supportType);
     }
 
     @Transactional(readOnly = true)
-    public SupportGetResponseDto getSupportById(Long supportId) {
-        return supportQuerydsl.getSupportGetResponseDtoById(supportId);
+    public SupportGetResponseDto getSupportById(
+            long requesterId,
+            Long supportId) {
+        return supportQuerydsl.getSupportGetResponseDtoById(requesterId, supportId);
     }
 }

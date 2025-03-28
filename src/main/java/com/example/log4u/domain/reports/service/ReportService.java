@@ -14,16 +14,18 @@ public class ReportService {
     private final ReportRepository reportRepository;
 
     public void createDiaryReport(
+            long reporterId,
             ReportCreateRequestDto reportCreateRequestDto,
             Long diaryId) {
-        Report report = reportCreateRequestDto.toEntity(Report.ReportTargetType.DIARY, diaryId);
+        Report report = reportCreateRequestDto.toEntity(reporterId, Report.ReportTargetType.DIARY, diaryId);
         reportRepository.save(report);
     }
 
     public void createCommentReport(
+            long reporterId,
             ReportCreateRequestDto reportCreateRequestDto,
             Long commentId) {
-        Report report = reportCreateRequestDto.toEntity(Report.ReportTargetType.DIARY, commentId);
+        Report report = reportCreateRequestDto.toEntity(reporterId, Report.ReportTargetType.COMMENT, commentId);
         reportRepository.save(report);
     }
 }

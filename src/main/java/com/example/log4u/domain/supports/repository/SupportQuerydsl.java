@@ -24,9 +24,12 @@ public class SupportQuerydsl extends QuerydslRepositorySupport {
     }
 
     public Page<SupportOverviewGetResponseDto> getSupportOverviewGetResponseDtoPage(
+            long requesterId,
             Pageable pageable,
             SupportType supportType) {
+
         BooleanBuilder builder = new BooleanBuilder();
+        builder.and(support.requesterId.eq(requesterId));
 
         if (supportType != null){
             builder.and(support.supportType.eq(supportType));
@@ -35,6 +38,7 @@ public class SupportQuerydsl extends QuerydslRepositorySupport {
         List<SupportOverviewGetResponseDto> content = from(support)
                 .select(Projections.constructor(SupportOverviewGetResponseDto.class,
                         support.id,
+                        support.requesterId,
                         support.supportType,
                         support.title,
                         support.createdAt,
@@ -50,17 +54,21 @@ public class SupportQuerydsl extends QuerydslRepositorySupport {
                 .fetchCount());
     }
 
-    public SupportGetResponseDto getSupportGetResponseDtoById(Long supportId) {
+    public SupportGetResponseDto getSupportGetResponseDtoById(
+            long requesterId,
+            Long supportId) {
         return from(support)
                 .select(Projections.constructor(SupportGetResponseDto.class,
                         support.id,
+                        support.requesterId,
                         support.supportType,
                         support.title,
                         support.content,
                         support.createdAt,
                         support.answerContent,
                         support.answeredAt))
-                .where(support.id.eq(supportId))
+                .where(support.id.eq(supportId)
+                        .and(support.requesterId.eq(requesterId)))
                 .fetchOne();
     }
 }

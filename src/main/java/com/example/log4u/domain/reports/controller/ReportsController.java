@@ -18,7 +18,8 @@ public class ReportsController {
     public ResponseEntity<Void> createReportForDiary(
             @RequestBody ReportCreateRequestDto reportCreateRequestDto,
             @PathVariable Long diaryId) {
-        reportService.createDiaryReport(reportCreateRequestDto, diaryId);
+        long reporterId = 1L; // SecurityContextHolder 에서 온다고 가정
+        reportService.createDiaryReport(reporterId, reportCreateRequestDto, diaryId);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -26,7 +27,8 @@ public class ReportsController {
     public ResponseEntity<Void> createReport(
             @RequestBody ReportCreateRequestDto reportCreateRequestDto,
             @PathVariable Long commentId) {
-        reportService.createCommentReport(reportCreateRequestDto, commentId);
+        long reporterId = 1L;
+        reportService.createCommentReport(reporterId, reportCreateRequestDto, commentId);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }

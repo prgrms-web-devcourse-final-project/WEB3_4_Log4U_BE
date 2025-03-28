@@ -27,7 +27,7 @@ public class ReportServiceTest {
     @Test
     void createDiaryReportTest() {
         ReportCreateRequestDto reportCreateRequestDto = new ReportCreateRequestDto(ReportType.ETC, "기타 신고");
-        reportService.createDiaryReport(reportCreateRequestDto, 1L);
+        reportService.createDiaryReport(1L, reportCreateRequestDto, 1L);
 
         verify(reportRepository, times(1))
                 .save(any());
@@ -37,7 +37,7 @@ public class ReportServiceTest {
     @Test
     void createCommentReportTest() {
         ReportCreateRequestDto reportCreateRequestDto = new ReportCreateRequestDto(ReportType.ETC, "기타 신고");
-        reportService.createCommentReport(reportCreateRequestDto, 1L);
+        reportService.createCommentReport(1L, reportCreateRequestDto, 1L);
 
         verify(reportRepository, times(1))
                 .save(any());

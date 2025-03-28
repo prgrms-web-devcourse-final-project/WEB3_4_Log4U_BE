@@ -14,8 +14,9 @@ public record ReportCreateRequestDto(
     @Length(min = 2)
     String content
 ) {
-    public Report toEntity(Report.ReportTargetType reportTargetType, Long targetId){
+    public Report toEntity(long reporterId, Report.ReportTargetType reportTargetType, Long targetId){
         return Report.builder()
+                .reporterId(reporterId)
                 .reportTargetType(reportTargetType)
                 .reportType(reportType)
                 .reportTargetId(targetId)

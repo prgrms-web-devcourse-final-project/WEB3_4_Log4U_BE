@@ -20,6 +20,8 @@ public class Support {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private long requesterId;
+
     private SupportType supportType;
 
     private String title;

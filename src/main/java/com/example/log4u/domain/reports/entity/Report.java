@@ -24,6 +24,8 @@ public class Report {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private long reporterId;
+
     @Enumerated(EnumType.STRING)
     private ReportTargetType reportTargetType;
 

@@ -18,8 +18,9 @@ public record SupportCreateRequestDto(
         @Length(min = 2)
         String content
 ) {
-        public Support toEntity(){
+        public Support toEntity(long requesterId){
                 return Support.builder()
+                        .requesterId(requesterId)
                         .supportType(supportType)
                         .title(title)
                         .content(content)

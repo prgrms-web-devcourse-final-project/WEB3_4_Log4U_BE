@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Builder
 public record SupportGetResponseDto (
         long id,
+        long requesterId,
         SupportType supportType,
         String title,
         String content,

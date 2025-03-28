@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Builder
 public record SupportOverviewGetResponseDto(
         long id,
+        long requesterId,
         SupportType supportType,
         String title,
         LocalDateTime createdAt,
