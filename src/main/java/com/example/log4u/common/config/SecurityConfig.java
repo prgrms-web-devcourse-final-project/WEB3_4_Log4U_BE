@@ -4,7 +4,6 @@ import java.util.Collections;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,20 +12,21 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
+
 
 import com.example.log4u.common.oauth2.handler.OAuth2AuthenticationSuccessHandler;
 import com.example.log4u.common.oauth2.jwt.JwtUtil;
+import com.example.log4u.common.oauth2.service.CustomOAuth2UserService;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
-//@EnableWebSecurity
+@EnableWebSecurity
 public class SecurityConfig {
 	private final JwtUtil jwtUtil;
 	private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+	private final CustomOAuth2UserService customOAuth2UserService;
 
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws
@@ -92,7 +92,8 @@ public class SecurityConfig {
 				configuration.setAllowCredentials(true);
 				configuration.setAllowedHeaders(Collections.singletonList("*"));
 				configuration.setMaxAge(3600L);
-				configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+				configuration.setExposedHeaders(Collections.singletonList("Set-Cookie"));
+				configuration.setExposedHeaders(Collections.singletonList("access"));
 				return configuration;
 			})));
 		return http.build();
