@@ -26,6 +26,7 @@ public class SupportService {
         supportRepository.save(support);
     }
 
+    @Transactional(readOnly = true)
     public Page<SupportOverviewGetResponseDto> getSupportPage(
             Integer page,
             SupportType supportType
@@ -35,6 +36,7 @@ public class SupportService {
         return supportQuerydsl.getSupportOverviewGetResponseDtoPage(pageable, supportType);
     }
 
+    @Transactional(readOnly = true)
     public SupportGetResponseDto getSupportById(Long supportId) {
         return supportQuerydsl.getSupportGetResponseDtoById(supportId);
     }
