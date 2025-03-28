@@ -10,13 +10,16 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 
 
 import com.example.log4u.common.oauth2.handler.OAuth2AuthenticationSuccessHandler;
+import com.example.log4u.common.oauth2.jwt.JwtAuthenticationFilter;
 import com.example.log4u.common.oauth2.jwt.JwtUtil;
 import com.example.log4u.common.oauth2.service.CustomOAuth2UserService;
+import com.example.log4u.domain.user.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,11 +30,17 @@ public class SecurityConfig {
 	private final JwtUtil jwtUtil;
 	private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 	private final CustomOAuth2UserService customOAuth2UserService;
+	private final UserService userService;
 
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws
 		Exception {
 		return authenticationConfiguration.getAuthenticationManager();
+	}
+
+	@Bean
+	public JwtAuthenticationFilter jwtAuthenticationFilter() {
+		return new JwtAuthenticationFilter(jwtUtil, userService);
 	}
 
 	@Bean
@@ -48,7 +57,14 @@ public class SecurityConfig {
 				.userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
 					.userService(customOAuth2UserService))
 				.successHandler(oAuth2AuthenticationSuccessHandler)
-			);
+			)
+			.addFilterBefore(new JwtAuthenticationFilter(jwtUtil, userService), OAuth2LoginAuthenticationFilter.class);
+
+		//경로별 인가 작업
+		http
+			.authorizeHttpRequests(auth -> auth
+				.requestMatchers("/oauth2/**").permitAll()
+				.anyRequest().authenticated());
 
 		// 요청에 대한 권한 설정
 		// 	.authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests
