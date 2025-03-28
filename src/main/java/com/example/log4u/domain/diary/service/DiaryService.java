@@ -11,6 +11,7 @@ import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
+import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
 import com.example.log4u.domain.media.entity.Media;
@@ -25,16 +26,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DiaryService {
 
-	private static final int PAGE_SIZE = 6;
+	private static final int SEARCH_PAGE_SIZE = 6;
+	private static final int CURSOR_PAGE_SIZE = 12;
 
 	private final DiaryRepository diaryRepository;
 	private final UserRepository userRepository;
 	private final FollowRepository followRepository;
 	private final MediaService mediaService;
 
+	// 다이어리 생성
 	@Transactional
 	public void saveDiary(Long userId, DiaryRequestDto request) {
-		validateUser(userId);
 		String thumbnailUrl = mediaService.extractThumbnailUrl(request.mediaList());
 		Diary diary = diaryRepository.save(
 			Diary.toEntity(userId, request, thumbnailUrl)
@@ -42,6 +44,7 @@ public class DiaryService {
 		mediaService.saveMedia(diary.getDiaryId(), request.mediaList());
 	}
 
+	// 다이어리 검색
 	@Transactional(readOnly = true)
 	public List<DiaryResponseDto> searchDiaries(
 		String keyword,
@@ -54,7 +57,7 @@ public class DiaryService {
 				keyword,
 				visibilities,
 				sort,
-				PageRequest.of(page, PAGE_SIZE)
+				PageRequest.of(page, SEARCH_PAGE_SIZE)
 			).stream()
 			.map(diary -> {
 				List<Media> media = mediaService.getMedia(diary.getDiaryId());
@@ -63,6 +66,7 @@ public class DiaryService {
 			.toList();
 	}
 
+	// 다이어리 상세 조회
 	@Transactional(readOnly = true)
 	public DiaryResponseDto getDiary(Long userId, Long diaryId) {
 		Diary diary = diaryRepository.findById(diaryId)
@@ -74,6 +78,26 @@ public class DiaryService {
 		return DiaryResponseDto.of(diary, media);
 	}
 
+	@Transactional(readOnly = true)
+	public List<DiaryResponseDto> getDiariesByCursor(Long userId, Long targetUserId, Long cursorId) {
+		List<VisibilityType> visibilities = determineAccessibleVisibilities(userId, targetUserId);
+
+		List<Diary> diaries = diaryRepository.findByUserIdAndVisibilityInAndCursorId(
+			targetUserId,
+			visibilities,
+			cursorId != null ? cursorId : Long.MAX_VALUE,
+			PageRequest.of(0, CURSOR_PAGE_SIZE)
+		);
+
+		return diaries.stream()
+			.map(diary -> {
+				List<Media> media = mediaService.getMedia(diary.getDiaryId());
+				return DiaryResponseDto.of(diary, media);
+			})
+			.toList();
+	}
+
+	// 다이어리 수정
 	@Transactional
 	public void updateDiary(Long userId, Long diaryId, DiaryRequestDto request) {
 		Diary diary = diaryRepository.findById(diaryId)
@@ -89,6 +113,7 @@ public class DiaryService {
 		diary.update(request, newThumbnailUrl);
 	}
 
+	// 다이어리 삭제
 	@Transactional
 	public void deleteDiary(Long userId, Long diaryId) {
 		Diary diary = diaryRepository.findById(diaryId)
@@ -100,30 +125,59 @@ public class DiaryService {
 		diaryRepository.delete(diary);
 	}
 
+	// 다이어리 목록 조회 시 권한 체크
+	private List<VisibilityType> determineAccessibleVisibilities(Long userId, Long targetUserId) {
+		if (userId.equals(targetUserId)) {
+			return List.of(VisibilityType.PUBLIC, VisibilityType.PRIVATE, VisibilityType.FOLLOWER);
+		}
+
+		if (followRepository.existsByFollowerIdAndFollowingId(userId, targetUserId)) {
+			return List.of(VisibilityType.PUBLIC, VisibilityType.FOLLOWER);
+		}
+
+		return List.of(VisibilityType.PUBLIC);
+	}
+
+	// 다이어리 상세 조회 시 권한 체크
 	private void validateDiaryAccess(Diary diary, Long userId) {
 		if (diary.getVisibility() == VisibilityType.PRIVATE) {
 			if (!diary.getUserId().equals(userId)) {
-				throw new RuntimeException("Diary access denied");
+				throw new NotFoundDiaryException();
 			}
 		}
 
 		if (diary.getVisibility() == VisibilityType.FOLLOWER) {
 			if (!diary.getUserId().equals(userId)
 				&& !followRepository.existsByFollowerIdAndFollowingId(userId, diary.getUserId())) {
-				throw new RuntimeException("Follower access denied");
+				throw new NotFoundDiaryException();
 			}
 		}
 	}
 
+	// 다이어리 수정, 삭제 시 권한 체크
 	private void validateDiaryOwner(Diary diary, Long userId) {
 		if (!diary.getUserId().equals(userId)) {
-			throw new RuntimeException("Diary owner access denied");
+			throw new OwnerAccessDeniedException();
 		}
 	}
 
-	private void validateUser(Long userId) {
-		if (!userRepository.existsById(userId)) {
-			throw new RuntimeException("User not found");
-		}
+	public Diary getDiary(Long diaryId) {
+		return diaryRepository.findById(diaryId)
+			.orElseThrow(NotFoundDiaryException::new);
+	}
+
+	public Long incrementLikeCount(Long diaryId) {
+		Diary diary = getDiary(diaryId);
+		return diary.incrementLikeCount();
+	}
+
+	public Long decreaseLikeCount(Long diaryId) {
+		Diary diary = getDiary(diaryId);
+		return diary.decreaseLikeCount();
+	}
+
+	public Long getLikeCount(Long diaryId) {
+		Diary diary = getDiary(diaryId);
+		return diary.getLikeCount();
 	}
 }

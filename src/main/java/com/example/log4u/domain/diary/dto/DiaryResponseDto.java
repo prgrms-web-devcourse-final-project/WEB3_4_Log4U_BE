@@ -22,7 +22,7 @@ public record DiaryResponseDto(
 	LocalDateTime createdAt,
 	LocalDateTime updatedAt,
 	String thumbnailUrl,
-	Integer likesCount,
+	Long likeCount,
 	List<MediaResponseDto> mediaList
 	// TODO: isLiked 현재 로그인한 사용자의 좋아요 여부
 ) {
@@ -39,7 +39,7 @@ public record DiaryResponseDto(
 			.createdAt(diary.getCreatedAt())
 			.updatedAt(diary.getUpdatedAt())
 			.thumbnailUrl(diary.getThumbnailUrl())
-			.likesCount(diary.getLikesCount())
+			.likeCount(diary.getLikeCount())
 			.mediaList(media.stream()
 				.map(MediaResponseDto::of).toList())
 			.build();

@@ -25,4 +25,16 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
 		@Param("sort") String sort,
 		Pageable pageable
 	);
+
+	@Query("SELECT d FROM Diary d " +
+		"WHERE d.userId = :userId " +
+		"AND d.visibility IN :visibilities " +
+		"AND (:cursorId IS NULL OR d.diaryId < :cursorId) " +
+		"ORDER BY d.diaryId DESC")
+	List<Diary> findByUserIdAndVisibilityInAndCursorId(
+		@Param("userId") Long userId,
+		@Param("visibilities") List<VisibilityType> visibilities,
+		@Param("cursorId") Long cursorId,
+		Pageable pageable
+	);
 }

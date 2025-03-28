@@ -39,18 +39,18 @@ public class Diary extends BaseEntity {
 	@Column(nullable = false)
 	private String content;
 
-	@Column(nullable = false)
 	private Double latitude;
 
-	@Column(nullable = false)
 	private Double longitude;
 
 	private String weatherInfo;
 
 	@Enumerated(EnumType.STRING)
-	private VisibilityType visibility;
 	@Column(nullable = false)
-	private Long likeCount;
+	private VisibilityType visibility;
+
+	@Column(nullable = false)
+	private Long likeCount = 0L;
 
 	public static Diary toEntity(Long userId, DiaryRequestDto request, String thumbnailUrl) {
 		return Diary.builder()

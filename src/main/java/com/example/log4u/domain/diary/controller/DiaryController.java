@@ -36,7 +36,7 @@ public class DiaryController {
 		@Valid @RequestBody DiaryRequestDto request
 	) {
 		User user = mockUser();
-		diaryService.saveDiary(user.getId(), request);
+		diaryService.saveDiary(user.getUserId(), request);
 		return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 
@@ -59,7 +59,7 @@ public class DiaryController {
 		@PathVariable Long diaryId
 	) {
 		User user = mockUser();
-		DiaryResponseDto diary = diaryService.getDiary(user.getId(), diaryId);
+		DiaryResponseDto diary = diaryService.getDiary(user.getUserId(), diaryId);
 		return ResponseEntity.ok(diary);
 	}
 
@@ -69,7 +69,7 @@ public class DiaryController {
 		@Valid @RequestBody DiaryRequestDto request
 	) {
 		User user = mockUser();
-		diaryService.updateDiary(user.getId(), diaryId, request);
+		diaryService.updateDiary(user.getUserId(), diaryId, request);
 		return ResponseEntity.ok().build();
 	}
 
@@ -78,18 +78,18 @@ public class DiaryController {
 		@PathVariable Long diaryId
 	) {
 		User user = mockUser();
-		diaryService.deleteDiary(user.getId(), diaryId);
+		diaryService.deleteDiary(user.getUserId(), diaryId);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 
 	private User mockUser() {
 		return User.builder()
-			.id(1L)
+			.userId(1L)
 			.nickname("목유저")
 			.providerId(12345L)
 			.provider("MOCK")
 			.email("mock@mock.com")
-			.status_message("목유저입니다.")
+			.statusMessage("목유저입니다.")
 			.build();
 	}
 }
