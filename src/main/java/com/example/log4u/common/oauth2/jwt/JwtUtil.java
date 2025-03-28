@@ -16,7 +16,9 @@ import io.jsonwebtoken.Jwts;
 public class JwtUtil {
 
 	private final SecretKey secretKey;
-
+	private static final String USER_ID_KEY = "userId";
+	private static final String TOKEN_TYPE_KEY = "token";
+	
 	public JwtUtil(@Value("${jwt.secret}") String secret) {
 		secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8),
 			Jwts.SIG.HS256.key().build().getAlgorithm());
@@ -29,9 +31,9 @@ public class JwtUtil {
 				.build()
 				.parseSignedClaims(token)
 				.getPayload()
-				.get("userId", Long.class);
+				.get(USER_ID_KEY, Long.class);
 		} catch(ExpiredJwtException ex){
-			return ex.getClaims().get("userId", Long.class);
+			return ex.getClaims().get(USER_ID_KEY, Long.class);
 		}
 	}
 
@@ -48,16 +50,16 @@ public class JwtUtil {
 		}
 	}
 
-	public String getCategory(String token) {
+	public String getTokenType(String token) {
 		try {
 			return Jwts.parser()
 				.verifyWith(secretKey)
 				.build()
 				.parseSignedClaims(token)
 				.getPayload()
-				.get("category", String.class);
+				.get(TOKEN_TYPE_KEY, String.class);
 		}catch(ExpiredJwtException ex){
-			return ex.getClaims().get("category", String.class);
+			return ex.getClaims().get(TOKEN_TYPE_KEY, String.class);
 		}
 	}
 
@@ -71,10 +73,10 @@ public class JwtUtil {
 			.before(new Date());
 	}
 
-	public String createJwt(String category, Long userId, String role, Long expiredMs) {
+	public String createJwt(String tokenType, Long userId, String role, Long expiredMs) {
 		return Jwts.builder()
-			.claim("category", category)
-			.claim("userId", userId)
+			.claim(TOKEN_TYPE_KEY, tokenType)
+			.claim(USER_ID_KEY, userId)
 			.claim("role", role)
 			.issuedAt(new Date(System.currentTimeMillis()))
 			.expiration(new Date(System.currentTimeMillis() + expiredMs*1000))
