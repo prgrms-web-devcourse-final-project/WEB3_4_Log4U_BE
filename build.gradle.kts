@@ -44,12 +44,12 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-//    JWT 관련
+    // JWT 관련
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
-//    Swagger
+    // Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")
 }
 

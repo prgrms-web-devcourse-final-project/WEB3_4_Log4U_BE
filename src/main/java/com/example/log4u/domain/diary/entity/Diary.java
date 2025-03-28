@@ -1,9 +1,13 @@
 package com.example.log4u.domain.diary.entity;
 
 import com.example.log4u.common.entity.BaseEntity;
+import com.example.log4u.domain.diary.VisibilityType;
+import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,8 +28,6 @@ public class Diary extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long diaryId;
 
-	//JPA 연관관계 사용 X
-	// 외래키 방식을 사용 O
 	@Column(nullable = false)
 	private Long userId;
 
@@ -37,14 +39,42 @@ public class Diary extends BaseEntity {
 	@Column(nullable = false)
 	private String content;
 
-	@Column(nullable = false)
 	private Double latitude;
 
-	@Column(nullable = false)
 	private Double longitude;
 
+	private String weatherInfo;
+
+	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private Long likeCount;
+	private VisibilityType visibility;
+
+	@Column(nullable = false)
+	@Builder.Default
+	private Long likeCount = 0L;
+
+	public static Diary toEntity(Long userId, DiaryRequestDto request, String thumbnailUrl) {
+		return Diary.builder()
+			.userId(userId)
+			.title(request.title())
+			.content(request.content())
+			.latitude(request.latitude())
+			.longitude(request.longitude())
+			.weatherInfo(request.weatherInfo())
+			.visibility(VisibilityType.valueOf(request.visibility()))
+			.thumbnailUrl(thumbnailUrl)
+			.build();
+	}
+
+	public void update(DiaryRequestDto request, String newThumbnailUrl) {
+		this.title = request.title();
+		this.content = request.content();
+		this.latitude = request.latitude();
+		this.longitude = request.longitude();
+		this.weatherInfo = request.weatherInfo();
+		this.visibility = VisibilityType.valueOf(request.visibility());
+		this.thumbnailUrl = newThumbnailUrl;
+	}
 
 	public Long incrementLikeCount() {
 		this.likeCount++;

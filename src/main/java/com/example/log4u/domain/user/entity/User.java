@@ -9,6 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,6 +21,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@Table(name = "users")
 public class User extends BaseEntity {
 
 	@Id
@@ -33,6 +35,8 @@ public class User extends BaseEntity {
 	private Long providerId;
 
 	@Column(nullable = false)
+	private String provider;
+
 	private String email;
 
 	@Enumerated(EnumType.STRING)
