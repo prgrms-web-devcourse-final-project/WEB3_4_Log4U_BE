@@ -1,11 +1,24 @@
 package com.example.log4u.domain.reports.entity;
 
-import com.example.log4u.domain.reports.reportType.ReportType;
-import jakarta.persistence.*;
-import lombok.*;
+import java.time.LocalDateTime;
+
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import java.time.LocalDateTime;
+
+import com.example.log4u.domain.reports.reportType.ReportType;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Builder
 @Getter
@@ -15,27 +28,27 @@ import java.time.LocalDateTime;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 public class Report {
-    public enum ReportTargetType{
-        DIARY,
-        COMMENT
-    }
+	public enum ReportTargetType {
+		DIARY,
+		COMMENT
+	}
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    private long reporterId;
+	private long reporterId;
 
-    @Enumerated(EnumType.STRING)
-    private ReportTargetType reportTargetType;
+	@Enumerated(EnumType.STRING)
+	private ReportTargetType reportTargetType;
 
-    @Enumerated(EnumType.STRING)
-    private ReportType reportType;
+	@Enumerated(EnumType.STRING)
+	private ReportType reportType;
 
-    private Long reportTargetId;
+	private Long reportTargetId;
 
-    private String content;
+	private String content;
 
-    @CreatedDate
-    private LocalDateTime createdAt;
+	@CreatedDate
+	private LocalDateTime createdAt;
 }
