@@ -11,8 +11,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-	private UserRepository userRepository;
-
+	private final UserRepository userRepository;
 
 	public User getUserById(Long userId){
 		return userRepository.findById(userId).orElseThrow(
