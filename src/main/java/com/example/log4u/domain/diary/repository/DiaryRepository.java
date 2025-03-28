@@ -17,7 +17,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
 		"WHERE d.visibility IN :visibilities " +
 		"AND (:keyword IS NULL OR d.content LIKE %:keyword% OR d.title LIKE %:keyword%) " +
 		"ORDER BY " +
-		"CASE WHEN :sort = 'POPULAR' THEN d.likesCount " +
+		"CASE WHEN :sort = 'POPULAR' THEN d.likeCount " +
 		"ELSE d.diaryId END DESC")
 	List<Diary> searchDiaries(
 		@Param("keyword") String keyword,

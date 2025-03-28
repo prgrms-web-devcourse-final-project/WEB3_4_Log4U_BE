@@ -10,6 +10,7 @@ import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.entity.Diary;
+import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
 import com.example.log4u.domain.media.entity.Media;
@@ -65,7 +66,7 @@ public class DiaryService {
 	@Transactional(readOnly = true)
 	public DiaryResponseDto getDiary(Long userId, Long diaryId) {
 		Diary diary = diaryRepository.findById(diaryId)
-			.orElseThrow(() -> new RuntimeException("Diary not found"));
+			.orElseThrow(NotFoundDiaryException::new);
 
 		validateDiaryAccess(diary, userId);
 
@@ -76,7 +77,7 @@ public class DiaryService {
 	@Transactional
 	public void updateDiary(Long userId, Long diaryId, DiaryRequestDto request) {
 		Diary diary = diaryRepository.findById(diaryId)
-			.orElseThrow(() -> new RuntimeException("Diary not found"));
+			.orElseThrow(NotFoundDiaryException::new);
 
 		validateDiaryOwner(diary, userId);
 
@@ -91,7 +92,7 @@ public class DiaryService {
 	@Transactional
 	public void deleteDiary(Long userId, Long diaryId) {
 		Diary diary = diaryRepository.findById(diaryId)
-			.orElseThrow(() -> new RuntimeException("Diary not found"));
+			.orElseThrow(NotFoundDiaryException::new);
 
 		validateDiaryOwner(diary, userId);
 

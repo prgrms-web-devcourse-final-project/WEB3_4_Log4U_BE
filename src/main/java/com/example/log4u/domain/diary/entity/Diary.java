@@ -19,9 +19,9 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 public class Diary extends BaseEntity {
 
 	@Id
@@ -31,22 +31,26 @@ public class Diary extends BaseEntity {
 	@Column(nullable = false)
 	private Long userId;
 
+	@Column(nullable = false)
 	private String title;
 
+	private String thumbnailUrl;
+
+	@Column(nullable = false)
 	private String content;
 
+	@Column(nullable = false)
 	private Double latitude;
 
+	@Column(nullable = false)
 	private Double longitude;
 
 	private String weatherInfo;
 
 	@Enumerated(EnumType.STRING)
 	private VisibilityType visibility;
-
-	private String thumbnailUrl;
-
-	private int likesCount = 0;
+	@Column(nullable = false)
+	private Long likeCount;
 
 	public static Diary toEntity(Long userId, DiaryRequestDto request, String thumbnailUrl) {
 		return Diary.builder()
@@ -69,5 +73,15 @@ public class Diary extends BaseEntity {
 		this.weatherInfo = request.weatherInfo();
 		this.visibility = VisibilityType.valueOf(request.visibility());
 		this.thumbnailUrl = newThumbnailUrl;
+	}
+
+	public Long incrementLikeCount() {
+		this.likeCount++;
+		return this.likeCount;
+	}
+
+	public Long decreaseLikeCount() {
+		this.likeCount--;
+		return this.likeCount;
 	}
 }
