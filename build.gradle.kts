@@ -51,6 +51,12 @@ dependencies {
 
 //    Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")
+
+//    Querydsl
+    implementation("com.querydsl:querydsl-jpa:5.1.0:jakarta")
+    implementation("com.querydsl:querydsl-apt:5.1.0:jakarta")
+    annotationProcessor("com.querydsl:querydsl-apt:5.1.0:jakarta")
+    annotationProcessor("jakarta.persistence:jakarta.persistence-api:3.1.0")
 }
 
 tasks.withType<Test> {
