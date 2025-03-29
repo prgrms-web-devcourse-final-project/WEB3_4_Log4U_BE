@@ -42,7 +42,11 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 			.where(condition);
 
 		// 전체 카운트 조회
-		long total = query.fetchCount();
+		Long total = queryFactory
+			.select(diary.count())
+			.from(diary)
+			.where(condition)
+			.fetchOne();
 
 		// 데이터 조회
 		List<Diary> content = query
@@ -51,7 +55,7 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 			.limit(pageable.getPageSize())
 			.fetch();
 
-		return new PageImpl<>(content, pageable, total);
+		return new PageImpl<>(content, pageable, total != null ? total : 0);
 	}
 
 	@Override
@@ -74,6 +78,7 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 			.limit(pageable.getPageSize() + 1)
 			.fetch();
 
+		// 다음 페이지 여부를 계산하여 반환
 		return checkAndCreateSlice(content, pageable);
 	}
 
@@ -86,11 +91,13 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 	) {
 		BooleanExpression condition = diary.visibility.in(visibilities);
 
-		if (keyword != null && StringUtils.hasText(keyword)) {
+		// keyword가 있을 경우
+		if (StringUtils.hasText(keyword)) {
 			condition = condition.and(diary.title.containsIgnoreCase(keyword)
 				.or(diary.content.containsIgnoreCase(keyword)));
 		}
 
+		// userId가 있을 경우
 		if (userId != null) {
 			condition = condition.and(diary.userId.eq(userId));
 		}
@@ -116,7 +123,7 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 
 		// 다음 페이지가 있으면 마지막 항목 제거
 		if (hasNext) {
-			content.removeLast();
+			content.remove(content.size() - 1);  // removeLast() 대신 인덱스로 처리
 		}
 
 		return new SliceImpl<>(content, pageable, hasNext);
