@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.example.log4u.domain.reports.reportTargetType.ReportTargetType;
 import com.example.log4u.domain.reports.reportType.ReportType;
 
 import jakarta.persistence.Entity;
@@ -28,16 +29,11 @@ import lombok.NoArgsConstructor;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 public class Report {
-	public enum ReportTargetType {
-		DIARY,
-		COMMENT
-	}
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private long reporterId;
+	private Long reporterId;
 
 	@Enumerated(EnumType.STRING)
 	private ReportTargetType reportTargetType;

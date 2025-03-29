@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.log4u.domain.reports.dto.ReportCreateRequestDto;
 import com.example.log4u.domain.reports.entity.Report;
+import com.example.log4u.domain.reports.reportTargetType.ReportTargetType;
 import com.example.log4u.domain.reports.repository.ReportRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class ReportService {
 		long reporterId,
 		ReportCreateRequestDto reportCreateRequestDto,
 		Long diaryId) {
-		Report report = reportCreateRequestDto.toEntity(reporterId, Report.ReportTargetType.DIARY, diaryId);
+		Report report = reportCreateRequestDto.toEntity(reporterId, ReportTargetType.DIARY, diaryId);
 		reportRepository.save(report);
 	}
 
@@ -27,7 +28,7 @@ public class ReportService {
 		long reporterId,
 		ReportCreateRequestDto reportCreateRequestDto,
 		Long commentId) {
-		Report report = reportCreateRequestDto.toEntity(reporterId, Report.ReportTargetType.COMMENT, commentId);
+		Report report = reportCreateRequestDto.toEntity(reporterId, ReportTargetType.COMMENT, commentId);
 		reportRepository.save(report);
 	}
 }

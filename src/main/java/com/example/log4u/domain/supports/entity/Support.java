@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Builder
 @Getter
@@ -41,6 +42,7 @@ public class Support {
 	@CreatedDate
 	private LocalDateTime createdAt;
 
+	@Setter
 	private String answerContent;
 
 	private LocalDateTime answeredAt;
