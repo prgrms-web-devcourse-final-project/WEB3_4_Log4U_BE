@@ -3,10 +3,15 @@ package com.example.log4u.domain.diary.service;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
@@ -40,33 +45,32 @@ public class DiaryService {
 	public void saveDiary(Long userId, DiaryRequestDto request) {
 		String thumbnailUrl = mediaService.extractThumbnailUrl(request.mediaList());
 		Diary diary = diaryRepository.save(
-			Diary.toEntity(userId, request, thumbnailUrl)
+			DiaryRequestDto.toEntity(userId, request, thumbnailUrl)
 		);
 		mediaService.saveMedia(diary.getDiaryId(), request.mediaList());
 	}
 
 	// 다이어리 검색
 	@Transactional(readOnly = true)
-	public List<DiaryResponseDto> searchDiaries(
+	public PageResponse<DiaryResponseDto> searchDiaries(
 		String keyword,
 		String sort,
 		int page
 	) {
-		List<Diary> diaries = diaryRepository.searchDiaries(
+		Page<Diary> diaryPage = diaryRepository.searchDiaries(
 			keyword,
 			List.of(VisibilityType.PUBLIC),
 			sort,
 			PageRequest.of(page, SEARCH_PAGE_SIZE)
 		);
 
-		return getDiaryResponsesWithMedia(diaries);
+		return PageResponse.of(mapToDtoPage(diaryPage));
 	}
 
 	// 다이어리 상세 조회
 	@Transactional(readOnly = true)
 	public DiaryResponseDto getDiary(Long userId, Long diaryId) {
-		Diary diary = diaryRepository.findById(diaryId)
-			.orElseThrow(NotFoundDiaryException::new);
+		Diary diary = findDiaryOrThrow(diaryId);
 
 		validateDiaryAccess(diary, userId);
 
@@ -76,24 +80,27 @@ public class DiaryService {
 
 	// 다이어리 목록 (프로필 페이지)
 	@Transactional(readOnly = true)
-	public List<DiaryResponseDto> getDiariesByCursor(Long userId, Long targetUserId, Long cursorId) {
+	public PageResponse<DiaryResponseDto> getDiariesByCursor(Long userId, Long targetUserId, Long cursorId) {
 		List<VisibilityType> visibilities = determineAccessibleVisibilities(userId, targetUserId);
 
-		List<Diary> diaries = diaryRepository.findByUserIdAndVisibilityInAndCursorId(
+		Slice<Diary> diaries = diaryRepository.findByUserIdAndVisibilityInAndCursorId(
 			targetUserId,
 			visibilities,
 			cursorId != null ? cursorId : Long.MAX_VALUE,
 			PageRequest.of(0, CURSOR_PAGE_SIZE)
 		);
 
-		return getDiaryResponsesWithMedia(diaries);
+		Slice<DiaryResponseDto> dtoSlice = mapToDtoSlice(diaries);
+
+		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
+
+		return PageResponse.of(dtoSlice, nextCursor);
 	}
 
 	// 다이어리 수정
 	@Transactional
 	public void updateDiary(Long userId, Long diaryId, DiaryRequestDto request) {
-		Diary diary = diaryRepository.findById(diaryId)
-			.orElseThrow(NotFoundDiaryException::new);
+		Diary diary = findDiaryOrThrow(diaryId);
 
 		validateDiaryOwner(diary, userId);
 
@@ -108,13 +115,29 @@ public class DiaryService {
 	// 다이어리 삭제
 	@Transactional
 	public void deleteDiary(Long userId, Long diaryId) {
-		Diary diary = diaryRepository.findById(diaryId)
-			.orElseThrow(NotFoundDiaryException::new);
+		Diary diary = findDiaryOrThrow(diaryId);
 
 		validateDiaryOwner(diary, userId);
 
 		mediaService.deleteMedia(diaryId);
 		diaryRepository.delete(diary);
+	}
+
+	private Diary findDiaryOrThrow(Long diaryId) {
+		return diaryRepository.findById(diaryId)
+			.orElseThrow(NotFoundDiaryException::new);
+	}
+
+	// Page용 매핑 메서드
+	private Page<DiaryResponseDto> mapToDtoPage(Page<Diary> page) {
+		List<DiaryResponseDto> content = getDiaryResponsesWithMedia(page.getContent());
+		return new PageImpl<>(content, page.getPageable(), page.getTotalElements());
+	}
+
+	// Slice용 매핑 메서드
+	private Slice<DiaryResponseDto> mapToDtoSlice(Slice<Diary> slice) {
+		List<DiaryResponseDto> content = getDiaryResponsesWithMedia(slice.getContent());
+		return new SliceImpl<>(content, slice.getPageable(), slice.hasNext());
 	}
 
 	// 다이어리 + 미디어 같이 반환

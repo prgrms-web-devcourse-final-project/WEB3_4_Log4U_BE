@@ -53,19 +53,6 @@ public class Diary extends BaseEntity {
 	@Builder.Default
 	private Long likeCount = 0L;
 
-	public static Diary toEntity(Long userId, DiaryRequestDto request, String thumbnailUrl) {
-		return Diary.builder()
-			.userId(userId)
-			.title(request.title())
-			.content(request.content())
-			.latitude(request.latitude())
-			.longitude(request.longitude())
-			.weatherInfo(request.weatherInfo())
-			.visibility(VisibilityType.valueOf(request.visibility()))
-			.thumbnailUrl(thumbnailUrl)
-			.build();
-	}
-
 	public void update(DiaryRequestDto request, String newThumbnailUrl) {
 		this.title = request.title();
 		this.content = request.content();

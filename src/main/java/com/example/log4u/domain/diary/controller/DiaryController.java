@@ -1,7 +1,5 @@
 package com.example.log4u.domain.diary.controller;
 
-import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.service.DiaryService;
@@ -41,17 +40,14 @@ public class DiaryController {
 	}
 
 	@GetMapping
-	public ResponseEntity<List<DiaryResponseDto>> searchDiaries(
+	public ResponseEntity<PageResponse<DiaryResponseDto>> searchDiaries(
 		@RequestParam(required = false) String keyword,
 		@RequestParam(defaultValue = "LATEST") String sort,
 		@RequestParam(defaultValue = "0") int page
 	) {
-		List<DiaryResponseDto> diaries = diaryService.searchDiaries(
-			keyword,
-			sort,
-			page
+		return ResponseEntity.ok(
+			diaryService.searchDiaries(keyword, sort, page)
 		);
-		return ResponseEntity.ok(diaries);
 	}
 
 	@GetMapping("/{diaryId}")

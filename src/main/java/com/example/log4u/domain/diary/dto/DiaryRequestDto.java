@@ -2,6 +2,8 @@ package com.example.log4u.domain.diary.dto;
 
 import java.util.List;
 
+import com.example.log4u.domain.diary.VisibilityType;
+import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.media.dto.MediaRequestDto;
 
 import jakarta.validation.constraints.NotBlank;
@@ -18,4 +20,16 @@ public record DiaryRequestDto(
 	String visibility,
 	List<MediaRequestDto> mediaList
 ) {
+	public static Diary toEntity(Long userId, DiaryRequestDto diaryRequestDto, String thumbnailUrl) {
+		return Diary.builder()
+			.userId(userId)
+			.title(diaryRequestDto.title)
+			.content(diaryRequestDto.content)
+			.latitude(diaryRequestDto.latitude)
+			.longitude(diaryRequestDto.longitude)
+			.weatherInfo(diaryRequestDto.weatherInfo)
+			.visibility(VisibilityType.valueOf(diaryRequestDto.visibility))
+			.thumbnailUrl(thumbnailUrl)
+			.build();
+	}
 }

@@ -2,7 +2,9 @@ package com.example.log4u.domain.diary.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,7 +25,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
 		    CASE WHEN :sort = 'POPULAR' THEN d.likeCount 
 		    ELSE d.createdAt END DESC
 		""")
-	List<Diary> searchDiaries(
+	Page<Diary> searchDiaries(
 		@Param("keyword") String keyword,
 		@Param("visibilities") List<VisibilityType> visibilities,
 		@Param("sort") String sort,
@@ -34,10 +36,10 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
 		SELECT d FROM Diary d 
 		WHERE d.userId = :userId 
 		AND d.visibility IN :visibilities 
-		AND (:cursorId IS NULL OR d.id < :cursorId) 
-		ORDER BY d.id DESC
+		AND (:cursorId IS NULL OR d.diaryId < :cursorId) 
+		ORDER BY d.diaryId DESC
 		""")
-	List<Diary> findByUserIdAndVisibilityInAndCursorId(
+	Slice<Diary> findByUserIdAndVisibilityInAndCursorId(
 		@Param("userId") Long userId,
 		@Param("visibilities") List<VisibilityType> visibilities,
 		@Param("cursorId") Long cursorId,
