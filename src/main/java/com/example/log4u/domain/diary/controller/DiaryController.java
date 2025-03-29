@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.log4u.common.dto.PageResponse;
+import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.service.DiaryService;
@@ -42,7 +43,7 @@ public class DiaryController {
 	@GetMapping
 	public ResponseEntity<PageResponse<DiaryResponseDto>> searchDiaries(
 		@RequestParam(required = false) String keyword,
-		@RequestParam(defaultValue = "LATEST") String sort,
+		@RequestParam(defaultValue = "LATEST") SortType sort,
 		@RequestParam(defaultValue = "0") int page
 	) {
 		return ResponseEntity.ok(

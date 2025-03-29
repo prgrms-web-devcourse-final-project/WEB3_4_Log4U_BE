@@ -3,6 +3,7 @@ package com.example.log4u.domain.diary.dto;
 import java.util.List;
 
 import com.example.log4u.domain.diary.VisibilityType;
+import com.example.log4u.domain.diary.WeatherInfo;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.media.dto.MediaRequestDto;
 
@@ -15,9 +16,9 @@ public record DiaryRequestDto(
 	String content,
 	Double latitude,
 	Double longitude,
-	String weatherInfo,
+	WeatherInfo weatherInfo,
 	@NotBlank(message = "공개 범위는 필수입니다.")
-	String visibility,
+	VisibilityType visibility,
 	List<MediaRequestDto> mediaList
 ) {
 	public static Diary toEntity(Long userId, DiaryRequestDto diaryRequestDto, String thumbnailUrl) {
@@ -28,7 +29,7 @@ public record DiaryRequestDto(
 			.latitude(diaryRequestDto.latitude)
 			.longitude(diaryRequestDto.longitude)
 			.weatherInfo(diaryRequestDto.weatherInfo)
-			.visibility(VisibilityType.valueOf(diaryRequestDto.visibility))
+			.visibility(diaryRequestDto.visibility)
 			.thumbnailUrl(thumbnailUrl)
 			.build();
 	}

@@ -34,7 +34,7 @@ public record DiaryResponseDto(
 			.longitude(diary.getLongitude())
 			.title(diary.getTitle())
 			.content(diary.getContent())
-			.weatherInfo(diary.getWeatherInfo())
+			.weatherInfo(diary.getWeatherInfo().name())
 			.visibility(diary.getVisibility().name())
 			.createdAt(diary.getCreatedAt())
 			.updatedAt(diary.getUpdatedAt())

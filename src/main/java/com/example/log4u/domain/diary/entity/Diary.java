@@ -2,6 +2,7 @@ package com.example.log4u.domain.diary.entity;
 
 import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.domain.diary.VisibilityType;
+import com.example.log4u.domain.diary.WeatherInfo;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 
 import jakarta.persistence.Column;
@@ -43,7 +44,8 @@ public class Diary extends BaseEntity {
 
 	private Double longitude;
 
-	private String weatherInfo;
+	@Enumerated(EnumType.STRING)
+	private WeatherInfo weatherInfo;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
@@ -59,7 +61,7 @@ public class Diary extends BaseEntity {
 		this.latitude = request.latitude();
 		this.longitude = request.longitude();
 		this.weatherInfo = request.weatherInfo();
-		this.visibility = VisibilityType.valueOf(request.visibility());
+		this.visibility = request.visibility();
 		this.thumbnailUrl = newThumbnailUrl;
 	}
 

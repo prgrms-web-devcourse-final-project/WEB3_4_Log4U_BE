@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.log4u.common.dto.PageResponse;
+import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
@@ -54,7 +55,7 @@ public class DiaryService {
 	@Transactional(readOnly = true)
 	public PageResponse<DiaryResponseDto> searchDiaries(
 		String keyword,
-		String sort,
+		SortType sort,
 		int page
 	) {
 		Page<Diary> diaryPage = diaryRepository.searchDiaries(
