@@ -74,7 +74,7 @@ public class DiaryService {
 
 		validateDiaryAccess(diary, userId);
 
-		List<Media> media = mediaService.getMedia(diary.getDiaryId());
+		List<Media> media = mediaService.getMediaByDiaryId(diary.getDiaryId());
 		return DiaryResponseDto.of(diary, media);
 	}
 
@@ -102,9 +102,9 @@ public class DiaryService {
 	public void updateDiary(Long userId, Long diaryId, DiaryRequestDto request) {
 		Diary diary = findDiaryOrThrow(diaryId);
 		diary.validateOwner(userId);
-		
+
 		if (request.mediaList() != null) {
-			mediaService.updateMedia(diary.getDiaryId(), request.mediaList());
+			mediaService.updateMediaByDiaryId(diary.getDiaryId(), request.mediaList());
 		}
 
 		String newThumbnailUrl = mediaService.extractThumbnailUrl(request.mediaList());
@@ -116,7 +116,7 @@ public class DiaryService {
 	public void deleteDiary(Long userId, Long diaryId) {
 		Diary diary = findDiaryOrThrow(diaryId);
 		diary.validateOwner(userId);
-		mediaService.deleteMedia(diaryId);
+		mediaService.deleteMediaByDiaryId(diaryId);
 		diaryRepository.delete(diary);
 	}
 

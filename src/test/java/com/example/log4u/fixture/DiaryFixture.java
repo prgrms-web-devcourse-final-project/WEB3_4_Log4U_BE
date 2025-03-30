@@ -5,7 +5,9 @@ import java.util.List;
 
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.WeatherInfo;
+import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.entity.Diary;
+import com.example.log4u.domain.media.dto.MediaRequestDto;
 
 public class DiaryFixture {
 
@@ -77,5 +79,117 @@ public class DiaryFixture {
 		));
 
 		return diaries;
+	}
+
+	public static List<Diary> createDiariesWithIdsFixture(int count) {
+		List<Diary> diaries = new ArrayList<>();
+		for (int i = 1; i <= count; i++) {
+			diaries.add(createCustomDiaryFixture(
+				(long)i, 1L, "제목 " + i, "내용 " + i, "https://example.com/thumb" + i + ".jpg",
+				VisibilityType.PUBLIC, 37.5665, 126.9780, WeatherInfo.SUNNY, (long)i
+			));
+		}
+		return diaries;
+	}
+
+	public static List<Diary> createUserDiariesFixture(Long userId, int count) {
+		List<Diary> diaries = new ArrayList<>();
+		for (int i = 1; i <= count; i++) {
+			diaries.add(createCustomDiaryFixture(
+				(long)i, userId, "사용자 " + userId + "의 일기 " + i, "내용 " + i,
+				"https://example.com/user" + userId + "/thumb" + i + ".jpg",
+				VisibilityType.PUBLIC, 37.5665, 126.9780, WeatherInfo.SUNNY, (long)i
+			));
+		}
+		return diaries;
+	}
+
+	public static Diary createPublicDiaryFixture(Long diaryId, Long userId) {
+		return createCustomDiaryFixture(
+			diaryId, userId, "공개 일기", "누구나 볼 수 있는 내용", "https://example.com/public.jpg",
+			VisibilityType.PUBLIC, 37.5665, 126.9780, WeatherInfo.SUNNY, 5L
+		);
+	}
+
+	public static Diary createPrivateDiaryFixture(Long diaryId, Long userId) {
+		return createCustomDiaryFixture(
+			diaryId, userId, "비공개 일기", "나만 볼 수 있는 내용", "https://example.com/private.jpg",
+			VisibilityType.PRIVATE, 37.5665, 126.9780, WeatherInfo.CLOUDY, 0L
+		);
+	}
+
+	public static Diary createFollowerDiaryFixture(Long diaryId, Long userId) {
+		return createCustomDiaryFixture(
+			diaryId, userId, "팔로워 일기", "팔로워만 볼 수 있는 내용", "https://example.com/follower.jpg",
+			VisibilityType.FOLLOWER, 37.5665, 126.9780, WeatherInfo.RAINY, 3L
+		);
+	}
+
+	public static DiaryRequestDto createDiaryRequestDtoFixture() {
+		List<MediaRequestDto> mediaList = List.of(
+			new MediaRequestDto("image1.jpg", "stored1.jpg", "https://example.com/image1.jpg", "image/jpeg", 1000L),
+			new MediaRequestDto("image2.jpg", "stored2.jpg", "https://example.com/image2.jpg", "image/jpeg", 2000L)
+		);
+
+		return new DiaryRequestDto(
+			"테스트 제목",
+			"테스트 내용",
+			37.5665,
+			126.9780,
+			WeatherInfo.SUNNY,
+			VisibilityType.PUBLIC,
+			mediaList
+		);
+	}
+
+	public static DiaryRequestDto createPublicDiaryRequestDtoFixture() {
+		List<MediaRequestDto> mediaList = List.of(
+			new MediaRequestDto("public.jpg", "public_stored.jpg", "https://example.com/public.jpg", "image/jpeg",
+				1000L)
+		);
+
+		return new DiaryRequestDto(
+			"공개 테스트 제목",
+			"공개 테스트 내용",
+			37.5665,
+			126.9780,
+			WeatherInfo.SUNNY,
+			VisibilityType.PUBLIC,
+			mediaList
+		);
+	}
+
+	public static DiaryRequestDto createPrivateDiaryRequestDtoFixture() {
+		List<MediaRequestDto> mediaList = List.of(
+			new MediaRequestDto("private.jpg", "private_stored.jpg", "https://example.com/private.jpg", "image/jpeg",
+				1000L)
+		);
+
+		return new DiaryRequestDto(
+			"비공개 테스트 제목",
+			"비공개 테스트 내용",
+			37.5665,
+			126.9780,
+			WeatherInfo.CLOUDY,
+			VisibilityType.PRIVATE,
+			mediaList
+		);
+	}
+
+	public static DiaryRequestDto createFollowerDiaryRequestDtoFixture() {
+		List<MediaRequestDto> mediaList = List.of(
+			new MediaRequestDto("follower.jpg", "follower_stored.jpg", "https://example.com/follower.jpg", "image/jpeg",
+				1000L)
+		);
+
+		return new DiaryRequestDto(
+			"팔로워 테스트 제목",
+			"팔로워 테스트 내용",
+			37.5665,
+			126.9780,
+			WeatherInfo.RAINY,
+			VisibilityType.FOLLOWER,
+			mediaList
+		);
 	}
 }
