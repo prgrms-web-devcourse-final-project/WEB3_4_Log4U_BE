@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.log4u.common.oauth2.dto.CustomOAuth2User;
 import com.example.log4u.common.oauth2.dto.GoogleResponseDto;
+import com.example.log4u.common.oauth2.dto.KakaoResponseDto;
 import com.example.log4u.common.oauth2.dto.NaverResponseDto;
 import com.example.log4u.common.oauth2.dto.OAuth2Response;
 import com.example.log4u.common.oauth2.dto.UserCreateRequestDto;
@@ -36,9 +37,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		String registrationId = userRequest.getClientRegistration().getRegistrationId();
 
 		// 정보 가공
-		OAuth2Response oAuth2Response = switch(registrationId) {
+		OAuth2Response oAuth2Response = switch (registrationId) {
 			case "naver" -> new NaverResponseDto(oAuth2User.getAttributes());
 			case "google" -> new GoogleResponseDto(oAuth2User.getAttributes());
+			case "kakao" -> new KakaoResponseDto(oAuth2User.getAttributes());
 			default -> throw new OAuth2AuthenticationException("지원하지 않는 소셜 로그인");
 		};
 
@@ -46,38 +48,41 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		String providerId = oAuth2Response.getProviderId();
 		Optional<User> dbUser = userRepository.findByProviderId(providerId);
 
-		UserCreateRequestDto userCreateRequestDto;
-		// 첫 로그이면 이면 프로필 없으므로 우선 GUEST 설정
+		// 첫 로그인이면 프로필 없으므로 우선 GUEST 설정
 		if (dbUser.isEmpty()) {
-			userCreateRequestDto = UserCreateRequestDto.fromOAuth2Response(
-				oAuth2Response,
-				null,
-				"ROLE_GUEST"
-			);
-			User user = UserCreateRequestDto.toEntity(userCreateRequestDto);
-			userRepository.save(user);
-
-
-			UserCreateRequestDto afterSaveDto = UserCreateRequestDto.fromOAuth2Response(
-				oAuth2Response,
-				user.getUserId(),
-				"ROLE_GUEST"
-			);
-
-			return new CustomOAuth2User(afterSaveDto);
+			return createUser(oAuth2Response);
+		} else { // DB의 유저 정보 갱신
+			return updateUser(oAuth2Response, dbUser.get());
 		}
-		// DB의 유저 정보 갱신
-		else {
-			User user = dbUser.get();
-			user.updateOauth2Profile(oAuth2Response);
-			userRepository.save(user);
+	}
 
-			 userCreateRequestDto = UserCreateRequestDto.fromOAuth2Response(
-				oAuth2Response,
-				user.getUserId(),
-				user.getRole()
-			);
-			return new CustomOAuth2User(userCreateRequestDto);
-		}
+	public CustomOAuth2User createUser(OAuth2Response oAuth2Response) {
+		UserCreateRequestDto userCreateRequestDto = UserCreateRequestDto.fromOAuth2Response(
+			oAuth2Response,
+			null,
+			"ROLE_GUEST"
+		);
+		User user = UserCreateRequestDto.toEntity(userCreateRequestDto);
+		userRepository.save(user);
+
+		UserCreateRequestDto afterSaveDto = UserCreateRequestDto.fromOAuth2Response(
+			oAuth2Response,
+			user.getUserId(),
+			"ROLE_GUEST"
+		);
+
+		return new CustomOAuth2User(afterSaveDto);
+	}
+
+	public CustomOAuth2User updateUser(OAuth2Response oAuth2Response, User user) {
+		user.updateOauth2Profile(oAuth2Response);
+		userRepository.save(user);
+
+		UserCreateRequestDto userCreateRequestDto = UserCreateRequestDto.fromOAuth2Response(
+			oAuth2Response,
+			user.getUserId(),
+			user.getRole()
+		);
+		return new CustomOAuth2User(userCreateRequestDto);
 	}
 }
