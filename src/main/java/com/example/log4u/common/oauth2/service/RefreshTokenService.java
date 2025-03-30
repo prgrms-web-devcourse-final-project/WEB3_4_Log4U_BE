@@ -19,7 +19,7 @@ public class RefreshTokenService {
 	@Value("${jwt.refresh-token-expire-time-seconds}")
 	private long refreshTokenValidityInSeconds;
 
-	public void saveRefreshToken(Long userId, String refresh, String name) {
+	public void saveRefreshToken(Long userId, String name, String refresh) {
 		Date date = new Date(System.currentTimeMillis() + refreshTokenValidityInSeconds);
 
 		RefreshToken refreshToken = new RefreshToken(
