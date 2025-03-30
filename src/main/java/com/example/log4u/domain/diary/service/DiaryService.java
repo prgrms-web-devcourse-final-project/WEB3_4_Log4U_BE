@@ -18,7 +18,6 @@ import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
-import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
 import com.example.log4u.domain.media.entity.Media;
@@ -102,9 +101,8 @@ public class DiaryService {
 	@Transactional
 	public void updateDiary(Long userId, Long diaryId, DiaryRequestDto request) {
 		Diary diary = findDiaryOrThrow(diaryId);
-
-		validateDiaryOwner(diary, userId);
-
+		diary.validateOwner(userId);
+		
 		if (request.mediaList() != null) {
 			mediaService.updateMedia(diary.getDiaryId(), request.mediaList());
 		}
@@ -117,9 +115,7 @@ public class DiaryService {
 	@Transactional
 	public void deleteDiary(Long userId, Long diaryId) {
 		Diary diary = findDiaryOrThrow(diaryId);
-
-		validateDiaryOwner(diary, userId);
-
+		diary.validateOwner(userId);
 		mediaService.deleteMedia(diaryId);
 		diaryRepository.delete(diary);
 	}
@@ -190,13 +186,6 @@ public class DiaryService {
 		}
 	}
 
-	// 다이어리 수정, 삭제 시 권한 체크
-	private void validateDiaryOwner(Diary diary, Long userId) {
-		if (!diary.getUserId().equals(userId)) {
-			throw new OwnerAccessDeniedException();
-		}
-	}
-
 	public Diary getDiary(Long diaryId) {
 		return diaryRepository.findById(diaryId)
 			.orElseThrow(NotFoundDiaryException::new);
@@ -222,5 +211,4 @@ public class DiaryService {
 			throw new NotFoundDiaryException();
 		}
 	}
-
 }
