@@ -2,7 +2,6 @@ package com.example.log4u.common.oauth2.handler;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Optional;
 
@@ -14,9 +13,8 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import com.example.log4u.common.oauth2.dto.CustomOAuth2User;
-import com.example.log4u.common.oauth2.entity.RefreshToken;
 import com.example.log4u.common.oauth2.jwt.JwtUtil;
-import com.example.log4u.common.oauth2.repository.RefreshTokenRepository;
+import com.example.log4u.common.oauth2.service.RefreshTokenService;
 import com.example.log4u.domain.user.entity.User;
 import com.example.log4u.domain.user.repository.UserRepository;
 
@@ -30,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
 	private final UserRepository userRepository;
-	private final RefreshTokenRepository refreshTokenRepository;
+	private final RefreshTokenService refreshTokenService;
 	private final JwtUtil jwtUtil;
 
 	private static final String MAIN_PAGE = "http://localhost:3000/";
@@ -80,17 +78,17 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		String role = auth.getAuthority();
 
 		// 쿠키 생성
-		String access = jwtUtil.createJwt(ACCESS_TOKEN_KEY, userId, role, accessTokenValidityInSeconds);
-		String refresh = jwtUtil.createJwt(REFRESH_TOKEN_KEY, userId, role, refreshTokenValidityInSeconds);
+		String access = jwtUtil.createJwt(ACCESS_TOKEN_KEY, userId, name, role, accessTokenValidityInSeconds);
+		String refresh = jwtUtil.createJwt(REFRESH_TOKEN_KEY, userId, name, role, refreshTokenValidityInSeconds);
 		// 저장
-		saveRefreshToken(refresh, name);
+		refreshTokenService.saveRefreshToken(null, name, refresh);
 
 		response.addCookie(createCookie(ACCESS_TOKEN_KEY, access));
 		response.addCookie(createCookie(REFRESH_TOKEN_KEY, refresh));
 		response.setStatus(HttpStatus.OK.value());
 	}
 
-	public void redirectTo(HttpServletResponse response, String redirectUrl) throws IOException {
+	private void redirectTo(HttpServletResponse response, String redirectUrl) throws IOException {
 		response.sendRedirect(redirectUrl);
 	}
 
@@ -103,15 +101,4 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		return cookie;
 	}
 
-	public void saveRefreshToken(String refresh, String name) {
-		Date date = new Date(System.currentTimeMillis() + refreshTokenValidityInSeconds);
-
-		RefreshToken refreshToken = new RefreshToken(
-			null,
-			name,
-			refresh,
-			date.toString()
-		);
-		refreshTokenRepository.save(refreshToken);
-	}
 }

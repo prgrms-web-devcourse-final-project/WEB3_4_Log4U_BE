@@ -18,7 +18,9 @@ public class JwtUtil {
 	private final SecretKey secretKey;
 	private static final String USER_ID_KEY = "userId";
 	private static final String TOKEN_TYPE_KEY = "token";
-	
+	private static final String USER_NAME_KEY = "name";
+	private static final String USER_ROLE_KEY = "role";
+
 	public JwtUtil(@Value("${jwt.secret}") String secret) {
 		secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8),
 			Jwts.SIG.HS256.key().build().getAlgorithm());
@@ -32,8 +34,21 @@ public class JwtUtil {
 				.parseSignedClaims(token)
 				.getPayload()
 				.get(USER_ID_KEY, Long.class);
-		} catch(ExpiredJwtException ex){
+		} catch (ExpiredJwtException ex) {
 			return ex.getClaims().get(USER_ID_KEY, Long.class);
+		}
+	}
+
+	public String getName(String token) {
+		try {
+			return Jwts.parser()
+				.verifyWith(secretKey)
+				.build()
+				.parseSignedClaims(token)
+				.getPayload()
+				.get(USER_NAME_KEY, String.class);
+		} catch (ExpiredJwtException ex) {
+			return ex.getClaims().get(USER_NAME_KEY, String.class);
 		}
 	}
 
@@ -45,8 +60,8 @@ public class JwtUtil {
 				.parseSignedClaims(token)
 				.getPayload()
 				.get("role", String.class);
-		}catch(ExpiredJwtException ex){
-			return ex.getClaims().get("role", String.class);
+		} catch (ExpiredJwtException ex) {
+			return ex.getClaims().get(USER_ROLE_KEY, String.class);
 		}
 	}
 
@@ -58,7 +73,7 @@ public class JwtUtil {
 				.parseSignedClaims(token)
 				.getPayload()
 				.get(TOKEN_TYPE_KEY, String.class);
-		}catch(ExpiredJwtException ex){
+		} catch (ExpiredJwtException ex) {
 			return ex.getClaims().get(TOKEN_TYPE_KEY, String.class);
 		}
 	}
@@ -73,13 +88,14 @@ public class JwtUtil {
 			.before(new Date());
 	}
 
-	public String createJwt(String tokenType, Long userId, String role, Long expiredMs) {
+	public String createJwt(String tokenType, Long userId, String name, String role, Long expiredMs) {
 		return Jwts.builder()
 			.claim(TOKEN_TYPE_KEY, tokenType)
 			.claim(USER_ID_KEY, userId)
+			.claim(USER_NAME_KEY, name)
 			.claim("role", role)
 			.issuedAt(new Date(System.currentTimeMillis()))
-			.expiration(new Date(System.currentTimeMillis() + expiredMs*1000))
+			.expiration(new Date(System.currentTimeMillis() + expiredMs * 1000))
 			.signWith(secretKey)
 			.compact();
 	}
