@@ -77,7 +77,7 @@ public class JwtLogoutFilter extends GenericFilterBean {
 		}
 
 		//DB에 저장되어 있는지 확인
-		Boolean isExist = refreshTokenRepository.existsByRefreshToken(refresh);
+		Boolean isExist = refreshTokenRepository.existsByRefresh(refresh);
 		if (Boolean.FALSE.equals(isExist)) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			return;
@@ -89,7 +89,7 @@ public class JwtLogoutFilter extends GenericFilterBean {
 
 	public void logout(HttpServletResponse response, String refresh) {
 		// DB 에서 리프레시 토큰 제거
-		refreshTokenRepository.deleteByRefreshToken(refresh);
+		refreshTokenRepository.deleteByRefresh(refresh);
 		// 쿠키 제거
 		deleteCookie(response);
 	}
