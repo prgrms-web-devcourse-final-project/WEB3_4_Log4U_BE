@@ -42,9 +42,10 @@ jobs:
           mkdir -p ./src/main/resources
           cd ./src/main/resources
           touch ./application.yml
-          touch ./application-secrets.yml
+          touch ./application-secret.yml
           echo "${{ secrets.APPLICATION }}" > ./application.yml
           echo "${{ secrets.SECRET }}" > ./application-secret.yml
+
       # Gradle cache 설정
       - name: Cache Gradle packages
         uses: actions/cache@v4
