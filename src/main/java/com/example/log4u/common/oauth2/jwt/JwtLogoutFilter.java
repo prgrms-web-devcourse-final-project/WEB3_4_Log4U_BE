@@ -29,10 +29,11 @@ public class JwtLogoutFilter extends GenericFilterBean {
 		doFilter((HttpServletRequest)request, (HttpServletResponse)response, chain);
 	}
 
-	private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws
-		IOException,
-		ServletException {
-
+	private void doFilter(
+		HttpServletRequest request,
+		HttpServletResponse response,
+		FilterChain filterChain
+	) throws IOException, ServletException {
 		// 경로 확인
 		String requestUri = request.getRequestURI();
 		if (!requestUri.matches("^\\/logout$")) {
@@ -76,14 +77,13 @@ public class JwtLogoutFilter extends GenericFilterBean {
 			return;
 		}
 
-		//DB에 저장되어 있는지 확인
 		Boolean isExist = refreshTokenRepository.existsByRefresh(refresh);
 		if (Boolean.FALSE.equals(isExist)) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			return;
 		}
 
-		// 로그아웃
+		// 로그아웃 진행
 		logout(response, refresh);
 	}
 
