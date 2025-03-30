@@ -1,0 +1,28 @@
+name: Archive dev branch daily
+
+on:
+  schedule:
+    - cron: "59 14 * * *"  # 한국 시간(KST) 23:59 (UTC+14:59)
+  workflow_dispatch:  # 수동 실행 가능
+
+jobs:
+  archive:
+    name: Archive dev branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 모든 브랜치 가져오기
+
+      - name: Set archive branch name
+        id: date
+        run: echo "BRANCH_NAME=archive-$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+      - name: Create new archive branch
+        run: |
+          git checkout develop
+          git pull origin develop
+          git checkout -b ${{ env.BRANCH_NAME }}
+          git push origin ${{ env.BRANCH_NAME }}
