@@ -1,15 +1,11 @@
 package com.example.log4u.domain.supports.entity;
 
-import java.time.LocalDateTime;
-
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
+import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.domain.supports.supportType.SupportType;
 
+import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -28,8 +24,8 @@ import lombok.Setter;
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 
 @Entity
-@EntityListeners(AuditingEntityListener.class)
-public class Support {
+@AttributeOverride(name = "updatedAt", column = @Column(name = "ANSWERED_AT"))
+public class Support extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -47,13 +43,7 @@ public class Support {
 	@Column(nullable = false)
 	private String content;
 
-	@CreatedDate
-	private LocalDateTime createdAt;
-
 	@Setter
 	@Column(nullable = true)
 	private String answerContent;
-
-	@Column(nullable = true)
-	private LocalDateTime answeredAt;
 }
