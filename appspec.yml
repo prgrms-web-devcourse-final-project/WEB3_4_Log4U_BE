@@ -14,11 +14,6 @@ permissions:
 
 hooks:
   AfterInstall:
-    - location: scripts/stop.sh
-      timeout: 2000
-      runas: ubuntu
-
-  AfterInstall:
     - location: scripts/docker-start.sh
       timeout: 2000
       runas: ubuntu
