@@ -14,7 +14,7 @@ permissions:
 
 hooks:
   AfterInstall:
-    - location: scripts/stop
+    - location: scripts/stop.sh
       timeout: 2000
       runas: ubuntu
 
