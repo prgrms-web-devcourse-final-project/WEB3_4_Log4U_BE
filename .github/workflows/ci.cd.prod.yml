@@ -44,8 +44,8 @@ jobs:
           touch ./application.yml
           touch ./application-secret.yml
           
-          echo "${{ secrets.APPLICATION }}" | base64 --decode > ./src/main/resources/application.yml
-          echo "${{ secrets.SECRET }}" | base64 --decode > ./src/main/resources/application-secret.yml
+          echo "${{ secrets.APPLICATION }}" | base64 --decode > ./application.yml
+          echo "${{ secrets.SECRET }}" | base64 --decode > ./application-secret.yml
 
       # Gradle cache 설정
       - name: Cache Gradle packages
