@@ -3,14 +3,16 @@ spring:
     include: secret
 
   datasource:
-    url: ${mysql.url}
-    username: ${mysql.username}
-    password: ${mysql.password}
+    url: ${aws-mysql.url}
+    username: ${aws-mysql.username}
+    password: ${aws-mysql.password}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: create
+
 
   security:
     oauth2:
