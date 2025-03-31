@@ -43,3 +43,9 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew build jacocoTestReport sonar --info -Dsonar.branch.name=${{ github.ref_name }}
+
+      - name: 테스트 결과 레포트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: problems-report
+          path: build/reports/problems/problems-report.html
