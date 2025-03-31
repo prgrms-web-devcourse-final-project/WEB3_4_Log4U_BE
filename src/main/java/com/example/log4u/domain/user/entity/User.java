@@ -5,8 +5,6 @@ import com.example.log4u.common.oauth2.dto.OAuth2Response;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -42,9 +40,6 @@ public class User extends BaseEntity {
 
 	@Column(nullable = false)
 	private String providerId;
-
-	@Column(nullable = false)
-	private String provider;
 
 	private String profileImageUrl;
 

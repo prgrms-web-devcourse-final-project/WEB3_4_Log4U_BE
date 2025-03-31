@@ -83,7 +83,7 @@ public class DiaryController {
 		return User.builder()
 			.userId(1L)
 			.nickname("목유저")
-			.providerId(12345L)
+			.providerId("12345")
 			.provider("MOCK")
 			.email("mock@mock.com")
 			.statusMessage("목유저입니다.")
