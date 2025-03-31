@@ -78,8 +78,8 @@ checkstyle {
 
 sonar {
     properties {
-        property("sonar.projectKey", "sapiens2000-dev_simple-sns")
-        property("sonar.organization", "sapiens2000-dev")
+        property("sonar.projectKey", "WEB3_4_Log4U_BE")
+        property("sonar.organization", "prgrms-web-devcourse-final-project")
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
         property("sonar.java.checkstyle.reportPaths", "build/reports/checkstyle/main.xml")
