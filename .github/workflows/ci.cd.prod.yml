@@ -7,11 +7,9 @@ on:
     types:
       - closed
   workflow_dispatch: # 수동 실행 가능
-
-
 # 병합됐을 때 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       # 체크아웃
@@ -61,17 +59,22 @@ jobs:
         with:
           arguments: clean build -x test
 
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
 
       # 빌드 결과물을 S3 버킷에 업로드
       - name: Upload to AWS S3
         run: |
           echo "S3 Location: s3://${{ secrets.S3_BUCKET_NAME }}/$GITHUB_SHA.zip"
           aws deploy push \
-            --application-name ${{ secrets.CODE_DEPLOY_APP_NAME }} \
-            --ignore-hidden-files \
-            --s3-location s3://${{ secrets.S3_BUCKET_NAME }}/prod/${{ github.sha }}.zip \
-            --source .
-
+          --application-name ${{ secrets.CODE_DEPLOY_APP_NAME }} \
+          --ignore-hidden-files \
+          --s3-location s3://${{ secrets.S3_BUCKET_NAME }}/prod/${{ github.sha }}.zip \
+          --source .
       # S3 버킷에 있는 파일을 대상으로 CodeDeploy 실행
       - name: Deploy to AWS EC2 from S3g
         run: |
@@ -79,6 +82,4 @@ jobs:
             --application-name ${{ secrets.CODE_DEPLOY_APP_NAME }} \
             --deployment-config-name CodeDeployDefault.AllAtOnce \
             --deployment-group-name ${{ secrets.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \
-            --s3-location bucket=${{ secrets.S3_BUCKET_NAME }},key=prod/${{ github.sha }}.zip,bundleType=zip
-          
-          
+            --s3-location bucket=${{ secrets.S3_BUCKET_NAME }},key=prod/${{ github.sha }}.zip,bundleType=zip      
