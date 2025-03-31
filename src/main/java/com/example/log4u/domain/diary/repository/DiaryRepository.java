@@ -7,5 +7,4 @@ import com.example.log4u.domain.diary.entity.Diary;
 
 @Repository
 public interface DiaryRepository extends JpaRepository<Diary, Long>, CustomDiaryRepository {
-	Long userId(Long userId);
 }
