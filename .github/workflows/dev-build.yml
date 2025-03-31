@@ -37,7 +37,7 @@ jobs:
 
       - name: MySQL 컨테이너 실행
         run: |
-          docker run --name test-mysql \
+          docker run --name log4u-mysql \
             -e MYSQL_ROOT_PASSWORD=root \
             -e MYSQL_DATABASE=log4u \
             -e MYSQL_USER=dev \
