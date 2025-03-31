@@ -33,18 +33,37 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+
+      - name: MySQL 컨테이너 실행
+        run: |
+          docker run --name test-mysql \
+            -e MYSQL_ROOT_PASSWORD=root \
+            -e MYSQL_DATABASE=log4u \
+            -e MYSQL_USER=dev \
+            -e MYSQL_PASSWORD=devcos4-team08 \
+            -d \
+            -p 3307:3306 \
+            mysql:8.0.33
+
       - name: Build and analyze
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          DB_URL: ${{ secrets.DB_URL }}             # Database URL
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}   # Database username
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}   # Database password
+          DB_URL: jdbc:mysql://localhost:3307/log4u
+          DB_USERNAME: dev
+          DB_PASSWORD: devcos4-team08
+
+        # dev 프로필 사용
         run: |
           chmod +x ./gradlew
-          ./gradlew build jacocoTestReport sonar --info -Dsonar.branch.name=${{ github.ref_name }}
+          ./gradlew build jacocoTestReport sonar --info -Pprofile=dev -Dsonar.branch.name=${{ github.ref_name }}
 
-      - name: 테스트 결과 레포트 업로드
+      - name: Docker MySQL 종료 및 제거
+        run: |
+          docker stop log4u-mysql
+          docker rm log4u-mysql
+
+      - name: Upload Test Report
         uses: actions/upload-artifact@v4
         with:
           name: problems-report
