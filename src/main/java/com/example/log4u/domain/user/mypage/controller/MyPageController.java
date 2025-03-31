@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.log4u.common.dto.PageResponse;
+import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 
 import lombok.RequiredArgsConstructor;
 
@@ -12,8 +13,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MyPageController {
 
+	@GetMapping("/users/me/diaries")
+	public ResponseEntity<PageResponse<DiaryResponseDto>> getMyDiaryPage() {
+	}
+
 	@GetMapping("/users/me/likes")
-	public ResponseEntity<?> getMyLikesPage() {
+	public ResponseEntity<PageResponse<DiaryResponseDto>> getMyLikesPage() {
 	}
 
 	@GetMapping("/users/me/followings")
@@ -22,10 +27,6 @@ public class MyPageController {
 
 	@GetMapping("/users/me/followers")
 	public ResponseEntity<PageResponse<String>> getMyFollowerPage() {
-	}
-
-	@GetMapping("/users/me/diaries")
-	public ResponseEntity<PageResponse<String>> getMyDiaryPage() {
 	}
 
 	@GetMapping("/users/me/subscriptions")
