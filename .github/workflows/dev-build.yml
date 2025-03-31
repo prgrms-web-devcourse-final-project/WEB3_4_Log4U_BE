@@ -37,7 +37,7 @@ jobs:
 
       - name: MySQL 컨테이너 실행
         run: |
-          docker run --name test-mysql \
+          docker run --name log4u-mysql \
             -e MYSQL_ROOT_PASSWORD=root \
             -e MYSQL_DATABASE=log4u \
             -e MYSQL_USER=dev \
@@ -57,7 +57,8 @@ jobs:
         # dev 프로필 사용
         run: |
           chmod +x ./gradlew
-          ./gradlew build jacocoTestReport sonar --info -Pprofile=dev -Dsonar.branch.name=${{ github.ref_name }}
+          # 소나클라우드 임시 비활성화 ./gradlew build jacocoTestReport sonar --info -Pprofile=dev -Dsonar.branch.name=${{ github.ref_name }}
+          ./gradlew build jacocoTestReport -Pprofile=dev 
 
       - name: Docker MySQL 종료 및 제거
         run: |
