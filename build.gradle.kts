@@ -78,11 +78,24 @@ checkstyle {
 
 sonar {
     properties {
-        property("sonar.projectKey", "WEB3_4_Log4U_BE")
+        property("sonar.projectKey", "prgrms-web-devcourse-final-project_WEB3_4_Log4U_BE")
         property("sonar.organization", "prgrms-web-devcourse-final-project")
         property("sonar.host.url", "https://sonarcloud.io")
-        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
-        property("sonar.java.checkstyle.reportPaths", "build/reports/checkstyle/main.xml")
-        property("sonar.branch.name", System.getenv("BRANCH_NAME") ?: "main")
+
+        // Jacoco 리포트가 존재하는지 확인 후 적용
+        val jacocoReportPath = file("build/reports/jacoco/test/jacocoTestReport.xml")
+        if (jacocoReportPath.exists()) {
+            property("sonar.coverage.jacoco.xmlReportPaths", jacocoReportPath.absolutePath)
+        }
+
+        // Checkstyle 리포트가 존재하는지 확인 후 적용
+        val checkstyleReportPath = file("build/reports/checkstyle/main.xml")
+        if (checkstyleReportPath.exists()) {
+            property("sonar.java.checkstyle.reportPaths", checkstyleReportPath.absolutePath)
+        }
+
+        // 환경 변수 `BRANCH_NAME`이 없을 경우 "main"으로 설정
+        val branchName = System.getenv("BRANCH_NAME") ?: "main"
+        property("sonar.branch.name", branchName)
     }
 }
