@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -12,8 +13,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 
+import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.comment.dto.request.CommentCreateRequestDto;
+import com.example.log4u.domain.comment.dto.response.CommentListResponseDto;
+import com.example.log4u.domain.comment.dto.response.CommentResponseDto;
 import com.example.log4u.domain.comment.entity.Comment;
 import com.example.log4u.domain.comment.exception.NotFoundCommentException;
 import com.example.log4u.domain.comment.exception.UnauthorizedAccessException;
@@ -134,6 +142,34 @@ public class CommonServiceTest {
 		verify(commentRepository, never()).delete(any());
 	}
 
+	@DisplayName("성공 테스트: 특정 다이어리 댓글 전체 조회 (커서 기반)")
+	@Test
+	void getCommentsList_In_DiaryDetail_Success() {
+		// given
+		Long diaryId = 1L;
+		int size = 5;
+		Long cursorCommentId = null;
+
+		List<Comment> commentList = CommentFixture.createCommentsListFixture(size + 1); // hasNext 판별 위해 +1
+		Pageable pageable = PageRequest.of(0, size);
+		boolean hasNext = commentList.size() > size;
+
+		List<Comment> sliced = hasNext ? commentList.subList(0, size) : commentList;
+
+		Slice<Comment> slice = new SliceImpl<>(sliced, pageable, hasNext);
+		given(commentRepository.findByDiaryIdWithCursor(diaryId, cursorCommentId, pageable))
+			.willReturn(slice);
+
+		// when
+		PageResponse<CommentResponseDto> response = commentService.getCommentListByDiary(diaryId, cursorCommentId, size);
+
+		// then
+		assertThat(response.content()).hasSize(sliced.size());
+		assertThat(response.pageInfo().hasNext()).isEqualTo(hasNext);
+		assertThat(response.pageInfo().nextCursor()).isEqualTo(hasNext ? sliced.getLast().getCommentId() : null);
+
+		verify(commentRepository).findByDiaryIdWithCursor(diaryId, cursorCommentId, pageable);
+	}
 
 
 }
