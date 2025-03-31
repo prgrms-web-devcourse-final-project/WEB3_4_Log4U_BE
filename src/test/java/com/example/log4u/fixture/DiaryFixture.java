@@ -85,7 +85,7 @@ public class DiaryFixture {
 		List<Diary> diaries = new ArrayList<>();
 		for (int i = 1; i <= count; i++) {
 			diaries.add(createCustomDiaryFixture(
-				(long)i, 1L, "제목 " + i, "내용 " + i, "https://example.com/thumb" + i + ".jpg",
+				(long)i, 1L, "제목 테스트 " + i, "내용 테스트" + i, "https://example.com/thumb" + i + ".jpg",
 				VisibilityType.PUBLIC, 37.5665, 126.9780, WeatherInfo.SUNNY, (long)i
 			));
 		}

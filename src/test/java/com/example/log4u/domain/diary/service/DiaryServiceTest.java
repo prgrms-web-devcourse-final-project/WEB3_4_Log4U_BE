@@ -55,6 +55,10 @@ public class DiaryServiceTest {
 	@InjectMocks
 	private DiaryService diaryService;
 
+	private static final int CURSOR_PAGE_SIZE = 12;
+
+	private static final int SEARCH_PAGE_SIZE = 6;
+
 	@Test
 	@DisplayName("다이어리 생성 성공")
 	void saveDiary() {
@@ -84,7 +88,7 @@ public class DiaryServiceTest {
 		int page = 0;
 
 		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
-		Page<Diary> diaryPage = new PageImpl<>(diaries, PageRequest.of(0, 6), 3);
+		Page<Diary> diaryPage = new PageImpl<>(diaries, PageRequest.of(0, SEARCH_PAGE_SIZE), 3);
 
 		given(diaryRepository.searchDiaries(
 			eq(keyword),
@@ -109,6 +113,21 @@ public class DiaryServiceTest {
 		assertThat(result.content()).hasSize(3);
 		assertThat(result.pageInfo().totalPages()).isEqualTo(1);
 		assertThat(result.pageInfo().totalElements()).isEqualTo(3);
+
+		assertThat(result.content()).allSatisfy(diary -> {
+			assertThat(diary.title().contains(keyword) || diary.content().contains(keyword))
+				.as("다이어리 제목 또는 내용에 키워드 '%s'가 포함되어야 합니다.", keyword)
+				.isTrue();
+		});
+
+		DiaryResponseDto firstDiary = result.content().get(0);
+		assertThat(firstDiary.diaryId()).isEqualTo(diaries.get(0).getDiaryId());
+		assertThat(firstDiary.title()).isEqualTo(diaries.get(0).getTitle());
+		assertThat(firstDiary.content()).isEqualTo(diaries.get(0).getContent());
+		assertThat(firstDiary.userId()).isEqualTo(diaries.get(0).getUserId());
+		assertThat(firstDiary.visibility()).isEqualTo(diaries.get(0).getVisibility().name());
+		assertThat(firstDiary.weatherInfo()).isEqualTo(diaries.get(0).getWeatherInfo().name());
+		assertThat(firstDiary.mediaList()).hasSize(1);
 	}
 
 	@Test
@@ -221,10 +240,9 @@ public class DiaryServiceTest {
 		Long userId = 1L;
 		Long targetUserId = 2L;
 		Long cursorId = 5L;
-		int size = 12;
 
 		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
-		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), false);
+		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, CURSOR_PAGE_SIZE), false);
 
 		given(diaryRepository.findByUserIdAndVisibilityInAndCursorId(
 			eq(targetUserId),
