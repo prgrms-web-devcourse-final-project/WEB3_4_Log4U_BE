@@ -32,9 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DiaryService {
 
-	private static final int SEARCH_PAGE_SIZE = 6;
-	private static final int CURSOR_PAGE_SIZE = 12;
-
 	private final DiaryRepository diaryRepository;
 	private final UserRepository userRepository;
 	private final FollowRepository followRepository;
@@ -55,13 +52,14 @@ public class DiaryService {
 	public PageResponse<DiaryResponseDto> searchDiaries(
 		String keyword,
 		SortType sort,
-		int page
+		int page,
+		int size
 	) {
 		Page<Diary> diaryPage = diaryRepository.searchDiaries(
 			keyword,
 			List.of(VisibilityType.PUBLIC),
 			sort,
-			PageRequest.of(page, SEARCH_PAGE_SIZE)
+			PageRequest.of(page, size)
 		);
 
 		return PageResponse.of(mapToDtoPage(diaryPage));
@@ -80,14 +78,14 @@ public class DiaryService {
 
 	// 다이어리 목록 (프로필 페이지)
 	@Transactional(readOnly = true)
-	public PageResponse<DiaryResponseDto> getDiariesByCursor(Long userId, Long targetUserId, Long cursorId) {
+	public PageResponse<DiaryResponseDto> getDiariesByCursor(Long userId, Long targetUserId, Long cursorId, int size) {
 		List<VisibilityType> visibilities = determineAccessibleVisibilities(userId, targetUserId);
 
 		Slice<Diary> diaries = diaryRepository.findByUserIdAndVisibilityInAndCursorId(
 			targetUserId,
 			visibilities,
 			cursorId != null ? cursorId : Long.MAX_VALUE,
-			PageRequest.of(0, CURSOR_PAGE_SIZE)
+			PageRequest.of(0, size)
 		);
 
 		Slice<DiaryResponseDto> dtoSlice = mapToDtoSlice(diaries);

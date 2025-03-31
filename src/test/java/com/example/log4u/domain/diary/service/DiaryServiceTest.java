@@ -86,6 +86,7 @@ public class DiaryServiceTest {
 		String keyword = "테스트";
 		SortType sort = SortType.LATEST;
 		int page = 0;
+		int size = 6;
 
 		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
 		Page<Diary> diaryPage = new PageImpl<>(diaries, PageRequest.of(0, SEARCH_PAGE_SIZE), 3);
@@ -107,7 +108,7 @@ public class DiaryServiceTest {
 		given(mediaService.getMediaMapByDiaryIds(anyList())).willReturn(mediaMap);
 
 		// when
-		PageResponse<DiaryResponseDto> result = diaryService.searchDiaries(keyword, sort, page);
+		PageResponse<DiaryResponseDto> result = diaryService.searchDiaries(keyword, sort, page, size);
 
 		// then
 		assertThat(result.content()).hasSize(3);
@@ -240,6 +241,7 @@ public class DiaryServiceTest {
 		Long userId = 1L;
 		Long targetUserId = 2L;
 		Long cursorId = 5L;
+		int size = 12;
 
 		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
 		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, CURSOR_PAGE_SIZE), false);
@@ -261,7 +263,7 @@ public class DiaryServiceTest {
 		given(mediaService.getMediaMapByDiaryIds(anyList())).willReturn(mediaMap);
 
 		// when
-		PageResponse<DiaryResponseDto> result = diaryService.getDiariesByCursor(userId, targetUserId, cursorId);
+		PageResponse<DiaryResponseDto> result = diaryService.getDiariesByCursor(userId, targetUserId, cursorId, size);
 
 		// then
 		assertThat(result.content()).hasSize(3);

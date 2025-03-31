@@ -44,10 +44,11 @@ public class DiaryController {
 	public ResponseEntity<PageResponse<DiaryResponseDto>> searchDiaries(
 		@RequestParam(required = false) String keyword,
 		@RequestParam(defaultValue = "LATEST") SortType sort,
-		@RequestParam(defaultValue = "0") int page
+		@RequestParam(defaultValue = "0") int page,
+		@RequestParam(defaultValue = "6") int size
 	) {
 		return ResponseEntity.ok(
-			diaryService.searchDiaries(keyword, sort, page)
+			diaryService.searchDiaries(keyword, sort, page, size)
 		);
 	}
 
