@@ -4,6 +4,7 @@ on:
     branches:
       - develop # develop pr
     types: [ opened, synchronize, reopened ]
+  workflow_dispatch:
 jobs:
   build:
     name: Build and analyze
