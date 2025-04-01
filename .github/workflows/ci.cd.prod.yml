@@ -87,25 +87,19 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: 필요한 파일 수동 생성
+      - name: Secret 파일 수동 생성
         run: |
+          mkdir -p ./src/main/resources
+          echo "${{ secrets.PROD_SECRET }}" | base64 --decode > ./src/main/resources/application-prod-secret.yml
+          
           mkdir -p ./deploy-package/src/main/resources
-          
-          # appspec.yml 복사
-          cp ./appspec.yml ./deploy-package/
-          
-          # scripts 디렉토리 및 내부 .sh 파일 복사
-          cp -r ./scripts/*.sh ./deploy-package/scripts/
-          
-          # yml 복사
-          cp ./src/main/resources/application*.yml ./deploy-package/
-          
-          # jar 복사
-          cp ./build/libs/Log4U-0.0.1-SNAPSHOT.jar ./deploy-package/
-      #          rsync -av --exclude='deploy-package' ./ ./deploy-package
+          rsync -av --exclude='deploy-package' ./ ./deploy-package
+          cp ./src/main/resources/application-prod-secret.yml ./deploy-package/src/main/resources/application-prod-secret.yml
 
-      #           echo "${{ secrets.PROD_SECRET }}" | base64 --decode > ./src/main/resources/application-prod-secret.yml
-      #           cp ./src/main/resources/application-prod-secret.yml ./deploy-package/src/main/resources/application-prod-secret.yml
+      - name: 빌드 결과 수동 생성
+        run: |
+          mkdir -p ./deploy-package/build/libs
+          cp build/libs/Log4U-0.0.1-SNAPSHOT.jar ./deploy-package/build/libs/
 
       # 빌드 결과물을 S3 버킷에 업로드
       - name: Upload to AWS S3
@@ -123,4 +117,22 @@ jobs:
             --application-name ${{ secrets.CODE_DEPLOY_APP_NAME }} \
             --deployment-config-name CodeDeployDefault.AllAtOnce \
             --deployment-group-name ${{ secrets.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \
-            --s3-location bucket=${{ secrets.S3_BUCKET_NAME }},key=prod/${{ github.sha }}.zip,bundleType=zip      
+            --s3-location bucket=${{ secrets.S3_BUCKET_NAME }},key=prod/${{ github.sha }}.zip,bundleType=zip 
+
+# 향후 빌드 파일 개선용 주석
+# - name: 필요한 파일 수동 생성
+#  run: |
+#    mkdir -p ./deploy-package/src/main/resources
+#
+#    # appspec.yml 복사
+#    cp ./appspec.yml ./deploy-package/
+#    
+#    # scripts 디렉토리 및 내부 .sh 파일 복사
+#    cp -r ./scripts/*.sh ./deploy-package/
+#    
+#    # yml 복사
+#    cp ./src/main/resources/application*.yml ./deploy-package/
+#    
+#    # jar 복사
+#    cp ./build/libs/Log4U-0.0.1-SNAPSHOT.jar ./deploy-package/
+
