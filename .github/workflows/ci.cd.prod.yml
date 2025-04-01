@@ -29,10 +29,6 @@ jobs:
       # application.yml 운영 환경 용 생성
       - name: Make application.yml
         run: |
-          echo "PROD_COMMON: ${{ secrets.PROD_COMMON }}"
-          echo "PROD: ${{ secrets.PROD }}"
-          echo "PROD_SECRET: ${{ secrets.PROD_SECRET }}"
-          
           mkdir -p ./src/main/resources
           chmod -R 777 ./src/main/resources
           cd ./src/main/resources
@@ -40,8 +36,6 @@ jobs:
           touch ./application.yml
           touch ./application-prod.yml
           touch ./application-prod-secret.yml          
-
-          ls -l
 
           echo "${{ secrets.PROD_COMMON }}" | base64 --decode > ./application.yml
           echo "${{ secrets.PROD }}" | base64 --decode > ./application-prod.yml
@@ -99,15 +93,21 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Secret 파일 수동 생성
+        run: |
+          mkdir -p ./deploy-package
+          cp -r ./* ./deploy-package
+          cp ./src/main/resources/application-prod-secret.yml ./deploy-package/src/main/resources/application-prod-secret.yml
+
       # 빌드 결과물을 S3 버킷에 업로드
       - name: Upload to AWS S3
         run: |
-          echo "S3 Location: s3://${{ secrets.S3_BUCKET_NAME }}/$GITHUB_SHA.zip"
           aws deploy push \
-          --application-name ${{ secrets.CODE_DEPLOY_APP_NAME }} \
-          --ignore-hidden-files \
-          --s3-location s3://${{ secrets.S3_BUCKET_NAME }}/prod/${{ github.sha }}.zip \
-          --source .
+            --application-name ${{ secrets.CODE_DEPLOY_APP_NAME }} \
+            --ignore-hidden-files \
+            --s3-location s3://${{ secrets.S3_BUCKET_NAME }}/prod/${{ github.sha }}.zip \
+            --source ./deploy-package
+
       # S3 버킷에 있는 파일을 대상으로 CodeDeploy 실행
       - name: Deploy to AWS EC2 from S3g
         run: |
