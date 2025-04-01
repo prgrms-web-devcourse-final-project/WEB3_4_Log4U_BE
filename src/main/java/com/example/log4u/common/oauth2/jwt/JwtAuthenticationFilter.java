@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private final JwtUtil jwtUtil;
 	private final UserService userService;
+	private static final String TOKEN_EXPIRED_JSON_MSG = "{\"message\": \"토큰이 존재하지 않습니다.\"}";
 
 	@Override
 	protected void doFilterInternal(
@@ -33,17 +34,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		@NonNull HttpServletResponse response,
 		@NonNull FilterChain filterChain
 	) throws ServletException, IOException {
-		String requestUri = request.getRequestURI();
-		if (requestUri.matches("^/login(/.*)?$")) {
-			filterChain.doFilter(request, response);
-			return;
-		}
-		if (requestUri.matches("^/oauth2(/.*)?$")) {
+
+		// 필터 스킵이 필요한지 확인
+		if (shouldSkipFilter(request.getRequestURI())) {
 			filterChain.doFilter(request, response);
 			return;
 		}
 
-		// 쿠키에서 access키에 담긴 토큰 추출
+		String accessToken = extractAccessTokenFromCookie(request);
+		// 엑세스 토큰이 없을 경우 통과해서 발급 절차
+		if (accessToken == null) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+
+		log.debug("필터에서 추출한 엑세스 토큰: " + accessToken + "\n");
+
+		// 토큰 유효성 검사(실패 시 바로 리턴
+		if (!validateTokenExpiration(response, accessToken)) {
+			return;
+		}
+
+		addUserToContextHolder(accessToken);
+		filterChain.doFilter(request, response);
+	}
+
+	private boolean shouldSkipFilter(String requestUri) {
+		return requestUri.matches("^/login(/.*)?$") || requestUri.matches("^/oauth2(/.*)?$");
+	}
+
+	private String extractAccessTokenFromCookie(HttpServletRequest request) {
+		// 쿠키에서 access 토큰 추출
 		String accessToken = null;
 		Cookie[] cookies = request.getCookies();
 		for (Cookie cookie : cookies) {
@@ -51,19 +72,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				accessToken = cookie.getValue();
 			}
 		}
+		return accessToken;
+	}
 
-		// 토큰이 없다면 다음 필터로 넘겨서 발급 받아야함
-		if (accessToken == null) {
-			filterChain.doFilter(request, response);
-			return;
-		}
-
-		log.debug("필터에서 추출한 access: " + accessToken + "\n");
-
+	private boolean validateTokenExpiration(
+		HttpServletResponse response,
+		String accessToken
+	) throws IOException {
 		// 토큰 만료 확인 , 만료 시 다음 필터로 넘기지 않음(재발급 필요)
 		try {
 			log.debug("만료확인체크" + "\n");
-			log.debug("토큰타입 : " + jwtUtil.getTokenType(accessToken) + "\n");
 			log.debug("유저 ID : " + jwtUtil.getUserId(accessToken) + "\n");
 			log.debug("role : " + jwtUtil.getRole(accessToken) + "\n");
 			jwtUtil.isExpired(accessToken);
@@ -71,26 +89,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			PrintWriter writer = response.getWriter();
 			writer.print("토큰이 만료되었습니다.");
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			return;
+			return false;
 		}
 
-		// 토큰이 access인지 확인 (발급 시 페이로드에 명시)
-		String tokenType = jwtUtil.getTokenType(accessToken);
-
-		// 이상한 값일 경우
-		if (!tokenType.equals("access")) {
+		// access 토큰 인지 확인 (발급 시 페이로드에 명시)
+		if (!jwtUtil.getTokenType(accessToken).equals("access")) {
 			PrintWriter writer = response.getWriter();
-			writer.print("토큰이 만료되었습니다.");
+			writer.print(TOKEN_EXPIRED_JSON_MSG);
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			return;
+			return false;
 		}
 
-		// userId, role
-		Long userId = jwtUtil.getUserId(accessToken);
+		// 유효성 검사 성공
+		return true;
+	}
 
+	private void addUserToContextHolder(String accessToken) {
+		// 토큰에서 id 추출
+		Long userId = jwtUtil.getUserId(accessToken);
 		CustomOAuth2User customOAuth2User = new CustomOAuth2User(userService.getUserById(userId));
-		log.info("필터에서 추출한 userId: " + userId);
-		log.info("생성된 CustomOAuth2User ID: " + customOAuth2User.getUserId());
+		log.debug("필터에서 추출한 userId: " + userId);
+		log.debug("생성된 CustomOAuth2User ID: " + customOAuth2User.getUserId());
 
 		// security context holder 에 추가해줌
 		Authentication oAuth2Token = new UsernamePasswordAuthenticationToken(
@@ -98,6 +117,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			null,
 			customOAuth2User.getAuthorities());
 		SecurityContextHolder.getContext().setAuthentication(oAuth2Token);
-		filterChain.doFilter(request, response);
 	}
+
 }
