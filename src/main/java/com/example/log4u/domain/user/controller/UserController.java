@@ -65,9 +65,9 @@ public class UserController {
 
 	@GetMapping("/validation/{nickname}")
 	public ResponseEntity<NicknameValidationResponseDto> validateNickname(
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
 		@PathVariable String nickname
 	) {
-		Boolean available = userService.validateNickname(nickname);
-		return ResponseEntity.ok(new NicknameValidationResponseDto(available));
+		return ResponseEntity.ok(userService.validateNickname(nickname));
 	}
 }

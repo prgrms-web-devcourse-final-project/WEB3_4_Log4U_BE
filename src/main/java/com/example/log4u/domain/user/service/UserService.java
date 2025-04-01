@@ -3,6 +3,7 @@ package com.example.log4u.domain.user.service;
 import org.springframework.stereotype.Service;
 
 import com.example.log4u.domain.diary.repository.DiaryRepository;
+import com.example.log4u.domain.user.dto.NicknameValidationResponseDto;
 import com.example.log4u.domain.user.dto.UserProfileResponseDto;
 import com.example.log4u.domain.user.dto.UserProfileUpdateRequestDto;
 import com.example.log4u.domain.user.entity.User;
@@ -28,7 +29,10 @@ public class UserService {
 		User me = userRepository.findById(userId).orElseThrow(
 			UserNotFoundException::new
 		);
-		return
+
+		return new UserProfileResponseDto.Builder()
+			.fromUser(me)
+			.build();
 	}
 
 	public UserProfileResponseDto getUserProfile(Long userId) {
@@ -39,8 +43,9 @@ public class UserService {
 	}
 
 
-	public Boolean validateNickname(String nickname) {
-
+	public NicknameValidationResponseDto validateNickname(String nickname) {
+		return new NicknameValidationResponseDto(
+			userRepository.findByNickname(nickname).isPresent());
 	}
 
 	public UserProfileResponseDto updateMyProfile(Long userId, UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
