@@ -1,5 +1,7 @@
 package com.example.log4u.common.oauth2.jwt;
 
+import static com.example.log4u.common.constants.TokenConstants.*;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
@@ -16,10 +18,6 @@ import io.jsonwebtoken.Jwts;
 public class JwtUtil {
 
 	private final SecretKey secretKey;
-	private static final String USER_ID_KEY = "userId";
-	private static final String TOKEN_TYPE_KEY = "token";
-	private static final String USER_NAME_KEY = "name";
-	private static final String USER_ROLE_KEY = "role";
 
 	public JwtUtil(@Value("${jwt.secret}") String secret) {
 		secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8),

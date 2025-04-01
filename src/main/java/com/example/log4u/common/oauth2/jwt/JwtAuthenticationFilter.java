@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private final JwtUtil jwtUtil;
 	private final UserService userService;
-	private static final String TOKEN_EXPIRED_JSON_MSG = "{\"message\": \"토큰이 존재하지 않습니다.\"}";
+	private static final String ACCESS_TOKEN_EXPIRED_JSON_MSG = "{\"message\": \"토큰이 존재하지 않습니다.\"}";
 
 	@Override
 	protected void doFilterInternal(
@@ -87,7 +87,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			jwtUtil.isExpired(accessToken);
 		} catch (ExpiredJwtException e) {
 			PrintWriter writer = response.getWriter();
-			writer.print("토큰이 만료되었습니다.");
+			writer.print(ACCESS_TOKEN_EXPIRED_JSON_MSG);
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			return false;
 		}
@@ -95,7 +95,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		// access 토큰 인지 확인 (발급 시 페이로드에 명시)
 		if (!jwtUtil.getTokenType(accessToken).equals("access")) {
 			PrintWriter writer = response.getWriter();
-			writer.print(TOKEN_EXPIRED_JSON_MSG);
+			writer.print(ACCESS_TOKEN_EXPIRED_JSON_MSG);
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			return false;
 		}
