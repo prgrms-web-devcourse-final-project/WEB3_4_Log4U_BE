@@ -89,6 +89,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Configure AWS Region
+        run: |
+          aws configure set region ${{ secrets.AWS_REGION }}
+
       # 빌드 결과물을 S3 버킷에 업로드
       - name: Upload to AWS S3
         run: |
