@@ -34,7 +34,7 @@ jobs:
           java-version: 21
           distribution: 'temurin'
 
-      # application.yml 생성
+      # application.yml 운영 환경 용 생성
       - name: Make application.yml
         run: |
           mkdir -p ./src/main/resources
@@ -42,8 +42,9 @@ jobs:
           touch ./application.yml
           touch ./application-secret.yml
           
-          echo "${{ secrets.APPLICATION }}" | base64 --decode > ./application.yml
-          echo "${{ secrets.SECRET }}" | base64 --decode > ./application-secret.yml
+          echo "${{ secrets.production_COMMON }}" | base64 --decode > ./application.yml
+          echo "${{ secrets.production_PROD }}" | base64 --decode > ./application-prod.yml
+          echo "${{ secrets.production_SECRET }}" | base64 --decode > ./application-prod-secret.yml
 
       # Gradle cache 설정
       - name: Cache Gradle packages
@@ -53,11 +54,34 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
-      # Gradle build (우선 Test 제외)
-      - name: Build with Gradle
-        uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
-        with:
-          arguments: clean build -x test
+      - name: MySQL 컨테이너 실행
+        run: |
+          docker run --name log4u-mysql \
+            -e MYSQL_ROOT_PASSWORD=root \
+            -e MYSQL_DATABASE=log4u \
+            -e MYSQL_USER=dev \
+            -e MYSQL_PASSWORD=devcos4-team08 \
+            -d \
+            -p 3307:3306 \
+            mysql:8.0.33
+
+      - name: Build and analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          DB_URL: jdbc:mysql://localhost:3307/log4u
+          DB_USERNAME: dev
+          DB_PASSWORD: devcos4-team08
+
+        # 테스트용으로 dev 프로필 사용(시크릿 제외하고 prod 와 동일)
+        run: |
+          chmod +x ./gradlew        
+          ./gradlew build jacocoTestReport -Pprofile=dev 
+
+      - name: Docker MySQL 종료 및 제거
+        run: |
+          docker stop log4u-mysql
+          docker rm log4u-mysql
 
   deploy:
     runs-on: ubuntu-latest
