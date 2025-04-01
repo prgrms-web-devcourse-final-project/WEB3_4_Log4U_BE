@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.log4u.domain.media.dto.MediaRequestDto;
 import com.example.log4u.domain.media.entity.Media;
+import com.example.log4u.domain.media.exception.NotFoundMediaException;
 import com.example.log4u.domain.media.repository.MediaRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -59,7 +60,7 @@ public class MediaService {
 
 		// 미디어 삭제 상태로 변경
 		for (Media media : mediaList) {
-			media.markAsDeleted();
+			markMediaAsDeleted(media);
 		}
 
 		mediaRepository.saveAll(mediaList);
@@ -82,7 +83,7 @@ public class MediaService {
 
 		// 미디어 삭제 상태로 변경
 		for (Media media : mediaToDelete) {
-			media.markAsDeleted();
+			markMediaAsDeleted(media);
 		}
 
 		mediaRepository.saveAll(mediaToDelete);
@@ -112,12 +113,16 @@ public class MediaService {
 
 	public Media getMediaById(Long mediaId) {
 		return mediaRepository.findById(mediaId)
-			.orElseThrow();
+			.orElseThrow(NotFoundMediaException::new);
 	}
 
 	public void deleteMediaById(Long mediaId) {
 		Media media = mediaRepository.findById(mediaId)
-			.orElseThrow();
+			.orElseThrow(NotFoundMediaException::new);
+		markMediaAsDeleted(media);
+	}
+
+	private void markMediaAsDeleted(Media media) {
 		media.markAsDeleted();
 		mediaRepository.save(media);
 	}
