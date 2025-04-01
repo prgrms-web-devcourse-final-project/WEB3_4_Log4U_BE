@@ -60,7 +60,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	}
 
 	private boolean shouldSkipFilter(String requestUri) {
-		return requestUri.matches("^/login(/.*)?$") || requestUri.matches("^/oauth2(/.*)?$");
+		return requestUri.matches("^/login(/.*)?$")
+			|| requestUri.matches("^/oauth2(/.*)?$")
+			|| requestUri.matches("^/swagger-ui(/.*)?$");
 	}
 
 	private String extractAccessTokenFromCookie(HttpServletRequest request) {

@@ -65,7 +65,8 @@ public class JwtLogoutFilter extends GenericFilterBean {
 
 	private boolean shouldSkipFilter(String requestUri) {
 		// logout 검사
-		return !requestUri.matches("^\\/logout$");
+		return !requestUri.matches("^\\/logout$")
+			|| requestUri.matches("^/swagger-ui(/.*)?$");
 	}
 
 	private boolean validateTokenExpiration(
