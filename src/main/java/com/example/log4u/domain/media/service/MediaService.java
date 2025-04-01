@@ -55,14 +55,39 @@ public class MediaService {
 
 	@Transactional
 	public void deleteMediaByDiaryId(Long diaryId) {
-		mediaRepository.deleteByDiaryId(diaryId);
+		List<Media> mediaList = mediaRepository.findByDiaryId(diaryId);
+
+		// 미디어 삭제 상태로 변경
+		for (Media media : mediaList) {
+			media.markAsDeleted();
+		}
+
+		mediaRepository.saveAll(mediaList);
 	}
 
 	@Transactional
-	public void updateMediaByDiaryId(Long diaryId, List<MediaRequestDto> mediaList) {
-		deleteMediaByDiaryId(diaryId);
-		saveMedia(diaryId, mediaList);
-		// TODO: 기존꺼 다 삭제하는게 아닌 변경된 이미지만 반영되도록 수정해야함
+	public void updateMediaByDiaryId(Long diaryId, List<MediaRequestDto> newMediaList) {
+		// 기존 미디어 조회
+		List<Media> existingMedia = mediaRepository.findByDiaryId(diaryId);
+
+		// 새 미디어 ID 목록
+		List<Long> newMediaIds = newMediaList.stream()
+			.map(MediaRequestDto::mediaId)
+			.toList();
+
+		// 삭제할 미디어(기존에 있지만 새 목록에 없는 것)
+		List<Media> mediaToDelete = existingMedia.stream()
+			.filter(media -> !newMediaIds.contains(media.getMediaId()))
+			.toList();
+
+		// 미디어 삭제 상태로 변경
+		for (Media media : mediaToDelete) {
+			media.markAsDeleted();
+		}
+
+		mediaRepository.saveAll(mediaToDelete);
+
+		saveMedia(diaryId, newMediaList);
 	}
 
 	public String extractThumbnailUrl(List<MediaRequestDto> mediaList) {
