@@ -91,6 +91,12 @@ jobs:
         run: |
           mkdir -p ./deploy-package/src/main/resources
           
+          # appspec.yml 복사
+          cp ./appspec.yml ./deploy-package/
+          
+          # scripts 디렉토리 및 내부 .sh 파일 복사
+          cp -r ./scripts/*.sh ./deploy-package/scripts/
+          
           # yml 복사
           cp ./src/main/resources/application*.yml ./deploy-package/
           
