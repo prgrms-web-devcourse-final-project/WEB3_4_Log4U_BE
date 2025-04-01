@@ -25,7 +25,14 @@ public class MyPageService {
 
 	@Transactional(readOnly = true)
 	public PageResponse<DiaryResponseDto> getMyDiariesByCursor(Long userId, Long cursorId) {
-		return diaryService.getDiariesByCursor(userId, userId, cursorId);
+		return diaryService.getDiariesByCursor(userId, userId,
+			cursorId); // 일단 로직 자체가 구현 그대로 돼있길래 그대로 갖다 썼는데 이래도 구조가 괜찮을 지 모르겠습니다.
+	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<DiaryResponseDto> getLikeDiariesByCursor(Long userId, Long cursorId) {
+		return diaryService.getLikeDiariesByCursor(userId, userId,
+			cursorId);
 	}
 
 	@Transactional(readOnly = true)

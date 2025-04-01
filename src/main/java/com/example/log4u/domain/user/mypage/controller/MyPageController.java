@@ -26,7 +26,11 @@ public class MyPageController {
 	}
 
 	@GetMapping("/users/me/likes")
-	public ResponseEntity<PageResponse<DiaryResponseDto>> getMyLikesPage() {
+	public ResponseEntity<PageResponse<DiaryResponseDto>> getMyLikesPage(
+		@RequestParam(required = false) Long cursorId
+	) {
+		Long userId = 1L;
+		return ResponseEntity.ok(myPageService.getLikeDiariesByCursor(userId, cursorId));
 	}
 
 	@GetMapping("/users/me/followings")
@@ -45,7 +49,7 @@ public class MyPageController {
 		return ResponseEntity.ok(myPageService.getMyFollowers(userId, cursorId));
 	}
 
-	@GetMapping("/users/me/subscriptions")
-	public ResponseEntity<PageResponse<String>> getMySubscriptionsPage() {
-	}
+	// @GetMapping("/users/me/subscriptions")
+	// public ResponseEntity<PageResponse<String>> getMySubscriptionsPage() {
+	// }
 }
