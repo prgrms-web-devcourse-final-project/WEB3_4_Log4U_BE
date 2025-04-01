@@ -9,19 +9,12 @@ on:
   workflow_dispatch: # 수동 실행 가능
 # 병합됐을 때 
 jobs:
-  build:
+  Build:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       # 체크아웃
       - uses: actions/checkout@v4
-
-      # AWS 인증 (IAM 사용자 Access Key, Secret Key 활용)
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
 
       # Gradle 권한 설정
       - name: Grant execute permission for gradlew
@@ -43,9 +36,9 @@ jobs:
           touch ./application-prod.yml
           touch ./application-prod-secret.yml          
           
-          echo "${{ secrets.production_COMMON }}" | base64 --decode > ./application.yml
-          echo "${{ secrets.production_PROD }}" | base64 --decode > ./application-prod.yml
-          echo "${{ secrets.production_SECRET }}" | base64 --decode > ./application-prod-secret.yml
+          echo "${{ secrets.PROD_COMMON }}" | base64 --decode > ./application.yml
+          echo "${{ secrets.PROD }}" | base64 --decode > ./application-prod.yml
+          echo "${{ secrets.SECRET }}" | base64 --decode > ./application-prod-secret.yml
 
       # Gradle cache 설정
       - name: Cache Gradle packages
@@ -86,10 +79,11 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    needs: Build
     steps:
       - uses: actions/checkout@v4
 
+      # AWS 인증 (IAM 사용자 Access Key, Secret Key 활용)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
