@@ -2,7 +2,10 @@ name: Code Review from Claude
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    # dev에 pr 할때만 리뷰
+    branches:
+      - develop
+    types: [ opened, synchronize ]
 
 permissions:
   contents: read
