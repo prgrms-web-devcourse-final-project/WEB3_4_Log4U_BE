@@ -28,8 +28,8 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-//    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-//    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
@@ -44,19 +44,22 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-//    JWT 관련
+    // JWT 관련
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
-//    Swagger
+    // Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")
 
-//    Querydsl
-    implementation("com.querydsl:querydsl-jpa:5.1.0:jakarta")
-    implementation("com.querydsl:querydsl-apt:5.1.0:jakarta")
-    annotationProcessor("com.querydsl:querydsl-apt:5.1.0:jakarta")
-    annotationProcessor("jakarta.persistence:jakarta.persistence-api:3.1.0")
+    // QueryDSL
+    implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+    annotationProcessor("com.querydsl:querydsl-apt:5.0.0:jakarta")
+    annotationProcessor("jakarta.annotation:jakarta.annotation-api")
+    annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+
+    // mysql
+    runtimeOnly("com.mysql:mysql-connector-j")
 }
 
 tasks.withType<Test> {
@@ -78,11 +81,24 @@ checkstyle {
 
 sonar {
     properties {
-        property("sonar.projectKey", "sapiens2000-dev_simple-sns")
-        property("sonar.organization", "sapiens2000-dev")
+        property("sonar.projectKey", "prgrms-web-devcourse-final-project_WEB3_4_Log4U_BE")
+        property("sonar.organization", "prgrms-web-devcourse-final-project")
         property("sonar.host.url", "https://sonarcloud.io")
-        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
-        property("sonar.java.checkstyle.reportPaths", "build/reports/checkstyle/main.xml")
-        property("sonar.branch.name", System.getenv("BRANCH_NAME") ?: "main")
+
+        // Jacoco 리포트가 존재하는지 확인 후 적용
+        val jacocoReportPath = file("build/reports/jacoco/test/jacocoTestReport.xml")
+        if (jacocoReportPath.exists()) {
+            property("sonar.coverage.jacoco.xmlReportPaths", jacocoReportPath.absolutePath)
+        }
+
+        // Checkstyle 리포트가 존재하는지 확인 후 적용
+        val checkstyleReportPath = file("build/reports/checkstyle/main.xml")
+        if (checkstyleReportPath.exists()) {
+            property("sonar.java.checkstyle.reportPaths", checkstyleReportPath.absolutePath)
+        }
+
+        // 환경 변수 `BRANCH_NAME`이 없을 경우 "main"으로 설정
+        val branchName = System.getenv("BRANCH_NAME") ?: "main"
+        property("sonar.branch.name", branchName)
     }
 }

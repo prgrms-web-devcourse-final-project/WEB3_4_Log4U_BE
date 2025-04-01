@@ -37,7 +37,7 @@ public class SupportController {
 
 	@GetMapping
 	public ResponseEntity<Page<SupportOverviewGetResponseDto>> getSupportOverviewPage(
-		@RequestParam(required = false) Integer page,
+		@RequestParam(defaultValue = "1") int page,
 		@RequestParam(required = false) SupportType supportType
 	) {
 		long requesterId = 1L;
