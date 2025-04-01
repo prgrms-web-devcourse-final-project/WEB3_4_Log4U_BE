@@ -40,7 +40,7 @@ public class User extends BaseEntity {
 	@Column(nullable = false)
 	private String providerId;
 
-	private String profileImageUrl;
+	private String profileImage;
 
 	@Column(nullable = false)
 	private String role;
@@ -51,13 +51,13 @@ public class User extends BaseEntity {
 
 	private String statusMessage;
 
-	// @Column(nullable = false)
-	// private boolean isPremium;
+	@Column(nullable = false)
+	private boolean isPremium = false;
 
 	public void updateOauth2Profile(OAuth2Response oAuth2Response) {
 		this.email = oAuth2Response.getEmail();
 		this.name = oAuth2Response.getName();
 		this.nickname = oAuth2Response.getNickname();
-		this.profileImageUrl = oAuth2Response.getProfileImageUrl();
+		this.profileImage = oAuth2Response.getProfileImage();
 	}
 }

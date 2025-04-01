@@ -1,51 +1,53 @@
-package com.example.log4u.common.oauth2.dto;
+package com.example.log4u.domain.user.dto;
 
+import com.example.log4u.common.oauth2.dto.OAuth2Response;
+import com.example.log4u.domain.user.entity.SocialType;
 import com.example.log4u.domain.user.entity.User;
 
-public record UserCreateRequestDto (
-	String provider,
+public record UserCreateRequestDto(
+	SocialType socialType,
 	String providerId,
 	Long userId,
 	String name,
 	String email,
 	String nickname,
-	String profileImageUrl,
+	String profileImage,
 	String role
-){
-	public static User toEntity(UserCreateRequestDto userCreateRequestDto){
+) {
+	public static User toEntity(UserCreateRequestDto userCreateRequestDto) {
 		return User.builder()
-			.provider(userCreateRequestDto.provider)
+			.socialType(userCreateRequestDto.socialType)
 			.providerId(userCreateRequestDto.providerId)
 			.name(userCreateRequestDto.name)
 			.email(userCreateRequestDto.email)
 			.nickname(userCreateRequestDto.nickname)
-			.profileImageUrl(userCreateRequestDto.profileImageUrl)
+			.profileImage(userCreateRequestDto.profileImage)
 			.role(userCreateRequestDto.role)
 			.build();
 	}
 
-	public static UserCreateRequestDto fromOAuth2Response(OAuth2Response oAuth2Response, Long userId, String role){
+	public static UserCreateRequestDto fromOAuth2Response(OAuth2Response oAuth2Response, Long userId, String role) {
 		return new UserCreateRequestDto(
-			oAuth2Response.getProvider(),
+			oAuth2Response.getSocialType(),
 			oAuth2Response.getProviderId(),
 			userId,
 			oAuth2Response.getName(),
 			oAuth2Response.getEmail(),
 			oAuth2Response.getNickname(),
-			oAuth2Response.getProfileImageUrl(),
+			oAuth2Response.getProfileImage(),
 			role
 		);
 	}
 
-	public static UserCreateRequestDto fromEntity(User user){
+	public static UserCreateRequestDto fromEntity(User user) {
 		return new UserCreateRequestDto(
-			user.getProvider(),
+			user.getSocialType(),
 			user.getProviderId(),
 			user.getUserId(),
 			user.getName(),
 			user.getEmail(),
 			user.getNickname(),
-			user.getProfileImageUrl(),
+			user.getProfileImage(),
 			user.getRole()
 		);
 	}

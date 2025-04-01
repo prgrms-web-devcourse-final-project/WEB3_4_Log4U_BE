@@ -13,5 +13,5 @@ public interface OAuth2Response {
 
 	String getNickname();
 
-	String getProfileImageUrl();
+	String getProfileImage();
 }
