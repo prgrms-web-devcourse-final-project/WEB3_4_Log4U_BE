@@ -34,14 +34,12 @@ jobs:
           touch ./application.yml
           touch ./application-prod.yml
           touch ./application-prod-secret.yml          
-          
-      - name: Debug secret decoding
-        run: |
-          echo "${{ secrets.PROD_SECRET }}" | base64 --decode
 
           echo "${{ secrets.PROD_COMMON }}" | base64 --decode > ./application.yml
           echo "${{ secrets.PROD }}" | base64 --decode > ./application-prod.yml
           echo "${{ secrets.PROD_SECRET }}" | base64 --decode > ./application-prod-secret.yml
+
+          cat ./src/main/resources/application-prod-secret.yml  # 생성된 파일 확인
 
       # Gradle cache 설정
       - name: Cache Gradle packages
