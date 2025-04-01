@@ -40,7 +40,8 @@ jobs:
           mkdir -p ./src/main/resources
           cd ./src/main/resources
           touch ./application.yml
-          touch ./application-secret.yml
+          touch ./application-prod.yml
+          touch ./application-prod-secret.yml          
           
           echo "${{ secrets.production_COMMON }}" | base64 --decode > ./application.yml
           echo "${{ secrets.production_PROD }}" | base64 --decode > ./application-prod.yml
