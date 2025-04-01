@@ -2,20 +2,48 @@ package com.example.log4u.domain.user.service;
 
 import org.springframework.stereotype.Service;
 
+import com.example.log4u.domain.diary.repository.DiaryRepository;
+import com.example.log4u.domain.user.dto.UserProfileResponseDto;
+import com.example.log4u.domain.user.dto.UserProfileUpdateRequestDto;
 import com.example.log4u.domain.user.entity.User;
 import com.example.log4u.domain.user.exception.UserNotFoundException;
 import com.example.log4u.domain.user.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 	private final UserRepository userRepository;
+	private final DiaryRepository diaryRepository;
 
-	public User getUserById(Long userId){
+	public User getUserById(Long userId) {
 		return userRepository.findById(userId).orElseThrow(
 			UserNotFoundException::new
 		);
+	}
+
+	public UserProfileResponseDto getMyProfile(Long userId) {
+		User me = userRepository.findById(userId).orElseThrow(
+			UserNotFoundException::new
+		);
+		return
+	}
+
+	public UserProfileResponseDto getUserProfile(Long userId) {
+		User me = userRepository.findById(userId).orElseThrow(
+			UserNotFoundException::new
+		);
+		return
+	}
+
+
+	public Boolean validateNickname(String nickname) {
+
+	}
+
+	public UserProfileResponseDto updateMyProfile(Long userId, UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
+
 	}
 }
