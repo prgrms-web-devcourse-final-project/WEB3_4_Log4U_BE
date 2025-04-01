@@ -57,6 +57,10 @@ dependencies {
     annotationProcessor("com.querydsl:querydsl-apt:5.0.0:jakarta")
     annotationProcessor("jakarta.annotation:jakarta.annotation-api")
     annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+
+    // AWS
+    implementation(platform("software.amazon.awssdk:bom:2.31.11"))
+    implementation("software.amazon.awssdk:s3")
 }
 
 tasks.withType<Test> {
