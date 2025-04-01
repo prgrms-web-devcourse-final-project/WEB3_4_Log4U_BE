@@ -87,20 +87,19 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Secret 파일 수동 생성
+      - name: 필요한 파일 수동 생성
         run: |
-          chmod -R 777 ./src/main/resources
-          mkdir -p ./src/main/resources
-          echo "${{ secrets.PROD_SECRET }}" | base64 --decode > ./src/main/resources/application-prod-secret.yml
-          
           mkdir -p ./deploy-package/src/main/resources
-          rsync -av --exclude='deploy-package' ./ ./deploy-package
-          cp ./src/main/resources/application-prod-secret.yml ./deploy-package/src/main/resources/application-prod-secret.yml
+          
+          # yml 복사
+          cp ./src/main/resources/application*.yml ./deploy-package/
+          
+          # jar 복사
+          cp ./build/libs/Log4U-0.0.1-SNAPSHOT.jar ./deploy-package/
+      #          rsync -av --exclude='deploy-package' ./ ./deploy-package
 
-      - name: 빌드 결과 수동 생성
-        run: |
-          mkdir -p ./deploy-package/build/libs
-          cp build/libs/Log4U-0.0.1-SNAPSHOT.jar ./deploy-package/build/libs/
+      #           echo "${{ secrets.PROD_SECRET }}" | base64 --decode > ./src/main/resources/application-prod-secret.yml
+      #           cp ./src/main/resources/application-prod-secret.yml ./deploy-package/src/main/resources/application-prod-secret.yml
 
       # 빌드 결과물을 S3 버킷에 업로드
       - name: Upload to AWS S3

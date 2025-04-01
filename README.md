@@ -1,8 +1,9 @@
 ## 개발 환경 설정
 
+[AWS API SERVER](http://ec2-13-209-127-186.ap-northeast-2.compute.amazonaws.com)
+---
+
 * 루트 디렉토리(WEB3_4_Log4U_BE)에서 다음 명령 실행
-
-
 * 개발용 MYSQL 빌드
 
 ```
