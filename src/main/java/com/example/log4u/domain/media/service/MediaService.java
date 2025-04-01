@@ -109,4 +109,16 @@ public class MediaService {
 			return Map.of();
 		}
 	}
+
+	public Media getMediaById(Long mediaId) {
+		return mediaRepository.findById(mediaId)
+			.orElseThrow();
+	}
+
+	public void deleteMediaById(Long mediaId) {
+		Media media = mediaRepository.findById(mediaId)
+			.orElseThrow();
+		media.markAsDeleted();
+		mediaRepository.save(media);
+	}
 }
