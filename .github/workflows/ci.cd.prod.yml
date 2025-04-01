@@ -26,6 +26,9 @@ jobs:
           java-version: 21
           distribution: 'temurin'
 
+      - name: 파일 생성 권한 부여
+        run: chmod -R 777 ./src/main/resources
+              
       # application.yml 운영 환경 용 생성
       - name: Make application.yml
         run: |
@@ -39,7 +42,6 @@ jobs:
           echo "${{ secrets.PROD }}" | base64 --decode > ./application-prod.yml
           echo "${{ secrets.PROD_SECRET }}" | base64 --decode > ./application-prod-secret.yml
 
-          cat ./src/main/resources/application-prod.yml  # 생성된 파일 확인
 
       # Gradle cache 설정
       - name: Cache Gradle packages
