@@ -5,7 +5,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class KakaoResponseDto implements OAuth2Response{
+public class KakaoResponseDto implements OAuth2Response {
 	@Override
 	public String getNickname() {
 		return "";
@@ -18,7 +18,6 @@ public class KakaoResponseDto implements OAuth2Response{
 
 	private final Map<String, Object> attribute;
 
-
 	@Override
 	public String getProvider() {
 		return "kakao";
@@ -26,7 +25,7 @@ public class KakaoResponseDto implements OAuth2Response{
 
 	@Override
 	public String getProviderId() {
-		return attribute.get("sub").toString();
+		return attribute.get("id").toString();
 	}
 
 	@Override
