@@ -118,7 +118,7 @@ spring:
             scope:
               - profile
               - email
-              -
+
           kakao:
             client-name: kakao
             client-id: ${kakao.client-id}
@@ -130,6 +130,7 @@ spring:
               - profile_nickname
               - profile_image
               - account_email
+              -
         provider:
           naver:
             authorization-uri: https://nid.naver.com/oauth2.0/authorize
