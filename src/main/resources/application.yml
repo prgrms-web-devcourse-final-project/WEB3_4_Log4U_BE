@@ -86,14 +86,14 @@ spring:
       on-profile: dev
 
   datasource:
-    url: ${mysql.url}
-    username: ${mysql.username}
-    password: ${mysql.password}
+    url: jdbc:mysql://localhost:3307/log4u
+    username: dev
+    password: devcos4-team08
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
 
   security:
     oauth2:
