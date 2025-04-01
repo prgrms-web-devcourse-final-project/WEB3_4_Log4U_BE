@@ -127,8 +127,8 @@ public class DiaryFixture {
 
 	public static DiaryRequestDto createDiaryRequestDtoFixture() {
 		List<MediaRequestDto> mediaList = List.of(
-			new MediaRequestDto("image1.jpg", "stored1.jpg", "https://example.com/image1.jpg", "image/jpeg", 1000L),
-			new MediaRequestDto("image2.jpg", "stored2.jpg", "https://example.com/image2.jpg", "image/jpeg", 2000L)
+			new MediaRequestDto(1L, "image1.jpg", "stored1.jpg", "https://example.com/image1.jpg", "image/jpeg", 1000L),
+			new MediaRequestDto(2L, "image2.jpg", "stored2.jpg", "https://example.com/image2.jpg", "image/jpeg", 2000L)
 		);
 
 		return new DiaryRequestDto(
@@ -144,7 +144,7 @@ public class DiaryFixture {
 
 	public static DiaryRequestDto createPublicDiaryRequestDtoFixture() {
 		List<MediaRequestDto> mediaList = List.of(
-			new MediaRequestDto("public.jpg", "public_stored.jpg", "https://example.com/public.jpg", "image/jpeg",
+			new MediaRequestDto(3L, "public.jpg", "public_stored.jpg", "https://example.com/public.jpg", "image/jpeg",
 				1000L)
 		);
 
@@ -161,7 +161,8 @@ public class DiaryFixture {
 
 	public static DiaryRequestDto createPrivateDiaryRequestDtoFixture() {
 		List<MediaRequestDto> mediaList = List.of(
-			new MediaRequestDto("private.jpg", "private_stored.jpg", "https://example.com/private.jpg", "image/jpeg",
+			new MediaRequestDto(4L, "private.jpg", "private_stored.jpg", "https://example.com/private.jpg",
+				"image/jpeg",
 				1000L)
 		);
 
@@ -178,7 +179,8 @@ public class DiaryFixture {
 
 	public static DiaryRequestDto createFollowerDiaryRequestDtoFixture() {
 		List<MediaRequestDto> mediaList = List.of(
-			new MediaRequestDto("follower.jpg", "follower_stored.jpg", "https://example.com/follower.jpg", "image/jpeg",
+			new MediaRequestDto(5L, "follower.jpg", "follower_stored.jpg", "https://example.com/follower.jpg",
+				"image/jpeg",
 				1000L)
 		);
 

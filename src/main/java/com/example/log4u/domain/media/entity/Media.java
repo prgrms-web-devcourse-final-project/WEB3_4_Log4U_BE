@@ -2,7 +2,6 @@ package com.example.log4u.domain.media.entity;
 
 import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.domain.media.MediaStatus;
-import com.example.log4u.domain.media.dto.MediaRequestDto;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -24,7 +23,7 @@ import lombok.NoArgsConstructor;
 public class Media extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private Long mediaId;
 
 	private Long diaryId; // 임시 상태에서 null 허용
 
@@ -42,17 +41,6 @@ public class Media extends BaseEntity {
 	@Builder.Default
 	private MediaStatus status = MediaStatus.TEMPORARY;
 
-	public static Media toEntity(Long diaryId, MediaRequestDto request) {
-		return Media.builder()
-			.diaryId(diaryId)
-			.originalName(request.originalName())
-			.storedName(request.storedName())
-			.url(request.url())
-			.contentType(request.contentType())
-			.size(request.size())
-			.build();
-	}
-
 	public void connectToDiary(Long diaryId) {
 		this.diaryId = diaryId;
 		this.status = MediaStatus.PERMANENT;
@@ -61,5 +49,4 @@ public class Media extends BaseEntity {
 	public void markAsDeleted() {
 		this.status = MediaStatus.DELETED;
 	}
-
 }

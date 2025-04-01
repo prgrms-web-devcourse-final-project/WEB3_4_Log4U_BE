@@ -6,7 +6,7 @@ public class MediaFixture {
 
 	public static Media createMediaFixture(Long mediaId, Long diaryId) {
 		return Media.builder()
-			.id(mediaId)
+			.mediaId(mediaId)
 			.diaryId(diaryId)
 			.originalName("image.jpg")
 			.storedName("stored.jpg")

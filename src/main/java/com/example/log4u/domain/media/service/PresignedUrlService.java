@@ -70,7 +70,7 @@ public class PresignedUrlService {
 		Media savedMedia = mediaRepository.save(media);
 
 		return new PresignedUrlResponseDto(
-			savedMedia.getId(),
+			savedMedia.getMediaId(),
 			presignedUrl,
 			accessUrl
 		);

@@ -12,7 +12,7 @@ public record MediaResponseDto(
 ) {
 	public static MediaResponseDto of(Media media) {
 		return MediaResponseDto.builder()
-			.mediaId(media.getId())
+			.mediaId(media.getMediaId())
 			.fileUrl(media.getUrl())
 			.contentType(media.getContentType())
 			.build();
