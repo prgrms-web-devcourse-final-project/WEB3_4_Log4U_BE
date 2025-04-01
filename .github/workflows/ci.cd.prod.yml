@@ -79,12 +79,6 @@ jobs:
           docker stop log4u-mysql
           docker rm log4u-mysql
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: Build
-    steps:
-      - uses: actions/checkout@v4
-
       # AWS 인증 (IAM 사용자 Access Key, Secret Key 활용)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
