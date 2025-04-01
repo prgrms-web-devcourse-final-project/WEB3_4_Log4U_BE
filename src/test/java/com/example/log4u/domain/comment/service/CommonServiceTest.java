@@ -20,7 +20,6 @@ import org.springframework.data.domain.SliceImpl;
 
 import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.comment.dto.request.CommentCreateRequestDto;
-import com.example.log4u.domain.comment.dto.response.CommentListResponseDto;
 import com.example.log4u.domain.comment.dto.response.CommentResponseDto;
 import com.example.log4u.domain.comment.entity.Comment;
 import com.example.log4u.domain.comment.exception.NotFoundCommentException;
