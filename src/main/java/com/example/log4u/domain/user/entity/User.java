@@ -5,6 +5,8 @@ import com.example.log4u.common.oauth2.dto.OAuth2Response;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,32 +35,29 @@ public class User extends BaseEntity {
 	@Column(nullable = false)
 	private String nickname;
 
-	@Column(nullable = false)
-	private String provider;
-
 	private String email;
 
 	@Column(nullable = false)
 	private String providerId;
 
-	private String profileImageUrl;
+	private String profileImage;
 
 	@Column(nullable = false)
 	private String role;
 
-	// @Enumerated(EnumType.STRING)
-	// @Column(nullable = false)
-	// private SocialType socialType;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private SocialType socialType;
 
 	private String statusMessage;
 
-	// @Column(nullable = false)
-	// private boolean isPremium;
+	@Column(nullable = false)
+	private boolean isPremium = false;
 
 	public void updateOauth2Profile(OAuth2Response oAuth2Response) {
 		this.email = oAuth2Response.getEmail();
 		this.name = oAuth2Response.getName();
 		this.nickname = oAuth2Response.getNickname();
-		this.profileImageUrl = oAuth2Response.getProfileImageUrl();
+		this.profileImage = oAuth2Response.getProfileImage();
 	}
 }

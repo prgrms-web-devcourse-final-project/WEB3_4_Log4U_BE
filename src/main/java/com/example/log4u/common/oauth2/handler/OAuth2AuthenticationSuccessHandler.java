@@ -56,14 +56,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		Long userId = existUser.map(User::getUserId).orElse(null);
 		String name = customOAuth2User.getName();
 
-		String redirectUrl = switch (customOAuth2User.getRole()) {
-			case "ROLE_GUEST" -> PROFILE_CREATE_PAGE;
-			case "ROLE_USER" -> MAIN_PAGE;
-			default -> LOGIN_PAGE;
-		};
-
 		setCookieAndSaveRefreshToken(response, userId, authentication, name);
-		redirectTo(response, redirectUrl);
+		redirectTo(response, customOAuth2User);
 	}
 
 	private void setCookieAndSaveRefreshToken(
@@ -80,7 +74,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		// 쿠키 생성
 		String access = jwtUtil.createJwt(ACCESS_TOKEN_KEY, userId, name, role, accessTokenValidityInSeconds);
 		String refresh = jwtUtil.createJwt(REFRESH_TOKEN_KEY, userId, name, role, refreshTokenValidityInSeconds);
-		// 저장
+
+		// 리프레시 토큰 DB 저장
 		refreshTokenService.saveRefreshToken(null, name, refresh);
 
 		response.addCookie(createCookie(ACCESS_TOKEN_KEY, access));
@@ -88,7 +83,12 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		response.setStatus(HttpStatus.OK.value());
 	}
 
-	private void redirectTo(HttpServletResponse response, String redirectUrl) throws IOException {
+	private void redirectTo(HttpServletResponse response, CustomOAuth2User customOAuth2User) throws IOException {
+		String redirectUrl = switch (customOAuth2User.getRole()) {
+			case "ROLE_GUEST" -> PROFILE_CREATE_PAGE;
+			case "ROLE_USER" -> MAIN_PAGE;
+			default -> LOGIN_PAGE;
+		};
 		response.sendRedirect(redirectUrl);
 	}
 

@@ -13,7 +13,7 @@ import com.example.log4u.common.oauth2.dto.GoogleResponseDto;
 import com.example.log4u.common.oauth2.dto.KakaoResponseDto;
 import com.example.log4u.common.oauth2.dto.NaverResponseDto;
 import com.example.log4u.common.oauth2.dto.OAuth2Response;
-import com.example.log4u.common.oauth2.dto.UserCreateRequestDto;
+import com.example.log4u.domain.user.dto.UserCreateRequestDto;
 import com.example.log4u.domain.user.entity.User;
 import com.example.log4u.domain.user.repository.UserRepository;
 
@@ -34,6 +34,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 	@Override
 	public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 		OAuth2User oAuth2User = super.loadUser(userRequest);
+		// registrationId = 소셜 로그인 타입
 		String registrationId = userRequest.getClientRegistration().getRegistrationId();
 
 		// 정보 가공

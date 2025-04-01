@@ -17,6 +17,7 @@ import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.service.DiaryService;
+import com.example.log4u.domain.user.entity.SocialType;
 import com.example.log4u.domain.user.entity.User;
 
 import jakarta.validation.Valid;
@@ -84,7 +85,7 @@ public class DiaryController {
 			.userId(1L)
 			.nickname("목유저")
 			.providerId("12345")
-			.provider("MOCK")
+			.socialType(SocialType.NAVER)
 			.email("mock@mock.com")
 			.statusMessage("목유저입니다.")
 			.build();
