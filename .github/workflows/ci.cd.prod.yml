@@ -85,7 +85,6 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
     needs: build
     steps:
       - uses: actions/checkout@v4
