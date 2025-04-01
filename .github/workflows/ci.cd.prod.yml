@@ -95,9 +95,10 @@ jobs:
 
       - name: Secret 파일 수동 생성
         run: |
-          mkdir -p ./deploy-package
-          cp -r ./* ./deploy-package
+          mkdir -p ./deploy-package/src/main/resources
+          rsync -av --exclude='deploy-package' ./ ./deploy-package
           cp ./src/main/resources/application-prod-secret.yml ./deploy-package/src/main/resources/application-prod-secret.yml
+      
 
       # 빌드 결과물을 S3 버킷에 업로드
       - name: Upload to AWS S3
