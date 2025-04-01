@@ -2,18 +2,18 @@ package com.example.log4u.common.oauth2.dto;
 
 import java.util.Map;
 
+import com.example.log4u.domain.user.entity.SocialType;
+
 import lombok.RequiredArgsConstructor;
 
-
 @RequiredArgsConstructor
-public class GoogleResponseDto implements OAuth2Response{
+public class GoogleResponseDto implements OAuth2Response {
 
 	private final Map<String, Object> attribute;
 
-
 	@Override
-	public String getProvider() {
-		return "google";
+	public SocialType getSocialType() {
+		return SocialType.GOOGLE;
 	}
 
 	@Override
@@ -25,7 +25,7 @@ public class GoogleResponseDto implements OAuth2Response{
 	public String getEmail() {
 		return attribute.get("email").toString();
 	}
-	
+
 	// 구글은 이름이 닉네임
 	@Override
 	public String getName() {

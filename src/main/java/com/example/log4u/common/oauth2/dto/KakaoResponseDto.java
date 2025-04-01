@@ -2,6 +2,8 @@ package com.example.log4u.common.oauth2.dto;
 
 import java.util.Map;
 
+import com.example.log4u.domain.user.entity.SocialType;
+
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -19,8 +21,8 @@ public class KakaoResponseDto implements OAuth2Response {
 	private final Map<String, Object> attribute;
 
 	@Override
-	public String getProvider() {
-		return "kakao";
+	public SocialType getSocialType() {
+		return SocialType.KAKAO;
 	}
 
 	@Override

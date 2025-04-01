@@ -2,7 +2,9 @@ package com.example.log4u.common.oauth2.dto;
 
 import java.util.Map;
 
-public class NaverResponseDto implements OAuth2Response{
+import com.example.log4u.domain.user.entity.SocialType;
+
+public class NaverResponseDto implements OAuth2Response {
 
 	private final Map<String, Object> attribute;
 
@@ -11,8 +13,8 @@ public class NaverResponseDto implements OAuth2Response{
 	}
 
 	@Override
-	public String getProvider() {
-		return "naver";
+	public SocialType getSocialType() {
+		return SocialType.NAVER;
 	}
 
 	@Override
