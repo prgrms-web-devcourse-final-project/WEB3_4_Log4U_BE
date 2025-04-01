@@ -33,11 +33,10 @@ public class SupportService {
 	@Transactional(readOnly = true)
 	public Page<SupportOverviewGetResponseDto> getSupportPage(
 		long requesterId,
-		Integer page,
+		int page,
 		SupportType supportType
 	) {
-		int primitivePage = page == null ? 0 : page - 1;
-		Pageable pageable = PageRequest.of(primitivePage, 10);
+		Pageable pageable = PageRequest.of(page - 1, 10);
 		return supportQuerydsl.getSupportOverviewGetResponseDtoPage(requesterId, pageable, supportType);
 	}
 
