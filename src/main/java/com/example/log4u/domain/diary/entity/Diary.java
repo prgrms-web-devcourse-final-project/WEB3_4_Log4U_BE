@@ -4,7 +4,6 @@ import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.WeatherInfo;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
-import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -76,9 +75,7 @@ public class Diary extends BaseEntity {
 		return this.likeCount;
 	}
 
-	public void validateOwner(Long userId) {
-		if (!this.userId.equals(userId)) {
-			throw new OwnerAccessDeniedException();
-		}
+	public boolean isOwner(Long userId) {
+		return this.userId.equals(userId);
 	}
 }
