@@ -95,6 +95,10 @@ jobs:
 
       - name: Secret 파일 수동 생성
         run: |
+          chmod -R 777 ./src/main/resources
+          mkdir -p ./src/main/resources
+          echo "${{ secrets.PROD_SECRET }}" | base64 --decode > ./src/main/resources/application-prod-secret.yml
+          
           mkdir -p ./deploy-package/src/main/resources
           rsync -av --exclude='deploy-package' ./ ./deploy-package
           cp ./src/main/resources/application-prod-secret.yml ./deploy-package/src/main/resources/application-prod-secret.yml
