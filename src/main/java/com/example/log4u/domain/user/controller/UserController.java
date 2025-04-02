@@ -44,12 +44,13 @@ public class UserController {
 		return ResponseEntity.ok(userProfileResponseDto);
 	}
 
-	@GetMapping("/{}")
+	@GetMapping("/{nickname}")
 	public ResponseEntity<UserProfileResponseDto> getUserProfile(
-		@AuthenticationPrincipal CustomOAuth2User customOAuth2User
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
+		@PathVariable String nickname
 	) {
 		UserProfileResponseDto userProfileResponseDto =
-			userService.getUserProfile(customOAuth2User.getUserId());
+			userService.getUserProfile(nickname);
 		return ResponseEntity.ok(userProfileResponseDto);
 	}
 
