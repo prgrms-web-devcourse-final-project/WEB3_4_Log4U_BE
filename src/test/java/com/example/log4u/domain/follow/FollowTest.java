@@ -6,7 +6,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 
 import com.example.log4u.domain.follow.entitiy.Follow;
 import com.example.log4u.domain.follow.exception.FollowNotFoundException;
@@ -21,7 +20,6 @@ import jakarta.transaction.Transactional;
 
 @DisplayName("팔로우 통합 테스트(시큐리티 제외)")
 @SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class FollowTest {
 
 	@Autowired

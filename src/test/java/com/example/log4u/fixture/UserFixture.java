@@ -1,5 +1,7 @@
 package com.example.log4u.fixture;
 
+import java.time.LocalDateTime;
+
 import com.example.log4u.domain.user.entity.SocialType;
 import com.example.log4u.domain.user.entity.User;
 
@@ -7,13 +9,13 @@ public class UserFixture {
 
 	public static User createUserFixture() {
 		return User.builder()
-			.name("test")
+			.name("test" + LocalDateTime.now())
 			.nickname("testUser")
 			.providerId("123")
 			.email("test@example.com")
 			.socialType(SocialType.KAKAO)
 			.role("ROLE_USER")
-			.statusMessage("상태 메시지")
+			.statusMessage(LocalDateTime.now().toString())
 			.isPremium(false)
 			.build();
 	}
