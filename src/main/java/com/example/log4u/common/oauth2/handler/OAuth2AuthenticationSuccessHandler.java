@@ -76,7 +76,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		String refresh = jwtUtil.createJwt(REFRESH_TOKEN_KEY, userId, name, role, refreshTokenValidityInSeconds);
 
 		// 리프레시 토큰 DB 저장
-		refreshTokenService.saveRefreshToken(null, name, refresh);
+		refreshTokenService.saveRefreshToken(name, refresh);
 
 		response.addCookie(createCookie(ACCESS_TOKEN_KEY, access));
 		response.addCookie(createCookie(REFRESH_TOKEN_KEY, refresh));
