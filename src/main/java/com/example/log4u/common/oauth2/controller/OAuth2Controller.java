@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.log4u.common.constants.TokenConstants;
 import com.example.log4u.common.oauth2.jwt.JwtUtil;
-import com.example.log4u.common.oauth2.repository.RefreshTokenRepository;
 import com.example.log4u.common.oauth2.service.RefreshTokenService;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -23,7 +23,6 @@ public class OAuth2Controller {
 
 	private final JwtUtil jwtUtil;
 	private final RefreshTokenService refreshTokenService;
-	private final RefreshTokenRepository refreshTokenRepository;
 
 	@GetMapping("/token/reissue")
 	public ResponseEntity<?> reissue(
@@ -35,10 +34,10 @@ public class OAuth2Controller {
 		String access = null;
 		Cookie[] cookies = request.getCookies();
 		for (Cookie cookie : cookies) {
-			if (cookie.getName().equals("refresh")) {
+			if (cookie.getName().equals(TokenConstants.REFRESH_TOKEN)) {
 				refresh = cookie.getValue();
 			}
-			if (cookie.getName().equals("access")) {
+			if (cookie.getName().equals(TokenConstants.ACCESS_TOKEN)) {
 				access = cookie.getValue();
 			}
 		}
@@ -57,7 +56,7 @@ public class OAuth2Controller {
 
 		// 토큰이 refresh인지 확인 (발급시 페이로드에 명시)
 		String category = jwtUtil.getTokenType(refresh);
-		if (!category.equals("refresh")) {
+		if (!category.equals(TokenConstants.REFRESH_TOKEN)) {
 			return new ResponseEntity<>("잘못된 토큰입니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -67,21 +66,20 @@ public class OAuth2Controller {
 
 	private void createNewTokens(HttpServletResponse response, String access, String refresh) {
 		// 기존 리프레시 토큰 삭제
-		refreshTokenRepository.deleteByRefresh(refresh);
+		refreshTokenService.deleteRefreshToken(refresh);
 
 		Long userId = jwtUtil.getUserId(access);
 		String role = jwtUtil.getRole(access);
 		String name = jwtUtil.getName(access);
 
-		String newAccessToken = jwtUtil.createJwt("access", userId, name, role, 600000L);
-		String newRefreshToken = jwtUtil.createJwt("refresh", userId, name, role, 600000L);
+		String newAccessToken = jwtUtil.createJwt(TokenConstants.ACCESS_TOKEN, userId, name, role, 600000L);
+		String newRefreshToken = jwtUtil.createJwt(TokenConstants.REFRESH_TOKEN, userId, name, role, 600000L);
 
-		response.addCookie(createCookie("refresh", newRefreshToken));
-		response.addCookie(createCookie("access", newAccessToken));
+		response.addCookie(createCookie(TokenConstants.REFRESH_TOKEN, newRefreshToken));
+		response.addCookie(createCookie(TokenConstants.ACCESS_TOKEN, newAccessToken));
 
 		// 새 리프레시 토큰 저장
 		refreshTokenService.saveRefreshToken(
-			userId,
 			name,
 			refresh
 		);
