@@ -43,7 +43,7 @@ public class SupportQuerydsl extends QuerydslRepositorySupport {
 				support.supportType,
 				support.title,
 				support.createdAt,
-				support.answeredAt.isNotNull() // answered 필드는 answeredAt이 null 이 아니면 true
+				support.updatedAt.isNotNull() // answered 필드는 answeredAt이 null 이 아니면 true
 			))
 			.where(builder)
 			.orderBy(support.createdAt.desc())
@@ -67,7 +67,7 @@ public class SupportQuerydsl extends QuerydslRepositorySupport {
 				support.content,
 				support.createdAt,
 				support.answerContent,
-				support.answeredAt))
+				support.updatedAt))
 			.where(support.id.eq(supportId)
 				.and(support.requesterId.eq(requesterId)))
 			.fetchOne();
