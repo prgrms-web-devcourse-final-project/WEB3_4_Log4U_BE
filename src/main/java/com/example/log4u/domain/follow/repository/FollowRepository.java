@@ -8,4 +8,6 @@ import com.example.log4u.domain.follow.entitiy.Follow;
 @Repository
 public interface FollowRepository extends JpaRepository<Follow, Long> {
 	boolean existsByInitiatorIdAndTargetId(Long initiatorId, Long targetId);
+
+	void deleteByInitiatorIdAndTargetId(Long initiatorId, Long targetId);
 }
