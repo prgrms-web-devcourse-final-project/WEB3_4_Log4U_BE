@@ -1,7 +1,5 @@
 package com.example.log4u.domain.user.mypage.service;
 
-import static com.example.log4u.domain.diary.service.DiaryService.*;
-
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -19,20 +17,20 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 @RequiredArgsConstructor
 public class MyPageService {
-
+	private final int defaultPageSize = 6;
 	private final DiaryService diaryService;
 	private final FollowQuerydsl followQuerydsl;
 
 	@Transactional(readOnly = true)
 	public PageResponse<DiaryResponseDto> getMyDiariesByCursor(Long userId, Long cursorId) {
 		return diaryService.getDiariesByCursor(userId, userId,
-			cursorId); // 일단 로직 자체가 구현 그대로 돼있길래 그대로 갖다 썼는데 이래도 구조가 괜찮을 지 모르겠습니다.
+			cursorId, defaultPageSize); // 일단 로직 자체가 구현 그대로 돼있길래 그대로 갖다 썼는데 이래도 구조가 괜찮을 지 모르겠습니다.
 	}
 
 	@Transactional(readOnly = true)
 	public PageResponse<DiaryResponseDto> getLikeDiariesByCursor(Long userId, Long cursorId) {
 		return diaryService.getLikeDiariesByCursor(userId, userId,
-			cursorId);
+			cursorId, defaultPageSize);
 	}
 
 	@Transactional(readOnly = true)
@@ -40,7 +38,7 @@ public class MyPageService {
 		Slice<UserThumbnailResponseDto> slice = followQuerydsl.getFollowerSliceByUserId(
 			userId,
 			cursorId,
-			PageRequest.of(0, CURSOR_PAGE_SIZE));
+			PageRequest.of(0, defaultPageSize));
 
 		Long nextCursor = !slice.isEmpty() ? slice.getContent().getLast().userId() : null;
 
@@ -52,7 +50,7 @@ public class MyPageService {
 		Slice<UserThumbnailResponseDto> slice = followQuerydsl.getFollowingSliceByUserId(
 			userId,
 			cursorId,
-			PageRequest.of(0, CURSOR_PAGE_SIZE));
+			PageRequest.of(0, defaultPageSize));
 
 		Long nextCursor = !slice.isEmpty() ? slice.getContent().getLast().userId() : null;
 
