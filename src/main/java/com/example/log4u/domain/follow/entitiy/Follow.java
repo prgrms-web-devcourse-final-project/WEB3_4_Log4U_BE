@@ -22,7 +22,9 @@ public class Follow extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private Long followerId;
+	// 팔로우를 누른 주체
+	private Long initiatorId;
 
-	private Long followingId;
+	// 팔로우를 받은 대상
+	private Long targetId;
 }
