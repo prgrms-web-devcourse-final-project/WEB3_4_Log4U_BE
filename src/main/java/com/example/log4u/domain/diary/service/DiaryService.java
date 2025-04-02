@@ -33,9 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DiaryService {
 
-	private static final int SEARCH_PAGE_SIZE = 6;
-	private static final int CURSOR_PAGE_SIZE = 12;
-
 	private final DiaryRepository diaryRepository;
 	private final UserRepository userRepository;
 	private final FollowRepository followRepository;
@@ -56,13 +53,14 @@ public class DiaryService {
 	public PageResponse<DiaryResponseDto> searchDiaries(
 		String keyword,
 		SortType sort,
-		int page
+		int page,
+		int size
 	) {
 		Page<Diary> diaryPage = diaryRepository.searchDiaries(
 			keyword,
 			List.of(VisibilityType.PUBLIC),
 			sort,
-			PageRequest.of(page, SEARCH_PAGE_SIZE)
+			PageRequest.of(page, size)
 		);
 
 		return PageResponse.of(mapToDtoPage(diaryPage));
@@ -75,20 +73,20 @@ public class DiaryService {
 
 		validateDiaryAccess(diary, userId);
 
-		List<Media> media = mediaService.getMedia(diary.getDiaryId());
+		List<Media> media = mediaService.getMediaByDiaryId(diary.getDiaryId());
 		return DiaryResponseDto.of(diary, media);
 	}
 
 	// 다이어리 목록 (프로필 페이지)
 	@Transactional(readOnly = true)
-	public PageResponse<DiaryResponseDto> getDiariesByCursor(Long userId, Long targetUserId, Long cursorId) {
+	public PageResponse<DiaryResponseDto> getDiariesByCursor(Long userId, Long targetUserId, Long cursorId, int size) {
 		List<VisibilityType> visibilities = determineAccessibleVisibilities(userId, targetUserId);
 
 		Slice<Diary> diaries = diaryRepository.findByUserIdAndVisibilityInAndCursorId(
 			targetUserId,
 			visibilities,
 			cursorId != null ? cursorId : Long.MAX_VALUE,
-			PageRequest.of(0, CURSOR_PAGE_SIZE)
+			PageRequest.of(0, size)
 		);
 
 		Slice<DiaryResponseDto> dtoSlice = mapToDtoSlice(diaries);
@@ -102,11 +100,10 @@ public class DiaryService {
 	@Transactional
 	public void updateDiary(Long userId, Long diaryId, DiaryRequestDto request) {
 		Diary diary = findDiaryOrThrow(diaryId);
-
-		validateDiaryOwner(diary, userId);
+		validateOwner(diary, userId);
 
 		if (request.mediaList() != null) {
-			mediaService.updateMedia(diary.getDiaryId(), request.mediaList());
+			mediaService.updateMediaByDiaryId(diary.getDiaryId(), request.mediaList());
 		}
 
 		String newThumbnailUrl = mediaService.extractThumbnailUrl(request.mediaList());
@@ -117,10 +114,8 @@ public class DiaryService {
 	@Transactional
 	public void deleteDiary(Long userId, Long diaryId) {
 		Diary diary = findDiaryOrThrow(diaryId);
-
-		validateDiaryOwner(diary, userId);
-
-		mediaService.deleteMedia(diaryId);
+		validateOwner(diary, userId);
+		mediaService.deleteMediaByDiaryId(diaryId);
 		diaryRepository.delete(diary);
 	}
 
@@ -161,6 +156,13 @@ public class DiaryService {
 			.toList();
 	}
 
+	// 다이어리 작성자 본인 체크
+	private void validateOwner(Diary diary, Long userId) {
+		if (!diary.isOwner(userId)) {
+			throw new OwnerAccessDeniedException();
+		}
+	}
+
 	// 다이어리 목록 조회 시 권한 체크
 	private List<VisibilityType> determineAccessibleVisibilities(Long userId, Long targetUserId) {
 		if (userId.equals(targetUserId)) {
@@ -190,13 +192,6 @@ public class DiaryService {
 		}
 	}
 
-	// 다이어리 수정, 삭제 시 권한 체크
-	private void validateDiaryOwner(Diary diary, Long userId) {
-		if (!diary.getUserId().equals(userId)) {
-			throw new OwnerAccessDeniedException();
-		}
-	}
-
 	public Diary getDiary(Long diaryId) {
 		return diaryRepository.findById(diaryId)
 			.orElseThrow(NotFoundDiaryException::new);
@@ -222,5 +217,4 @@ public class DiaryService {
 			throw new NotFoundDiaryException();
 		}
 	}
-
 }

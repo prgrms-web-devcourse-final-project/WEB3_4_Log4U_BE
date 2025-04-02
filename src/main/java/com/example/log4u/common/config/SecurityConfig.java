@@ -15,6 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
+import com.example.log4u.common.constants.UrlConstants;
 import com.example.log4u.common.oauth2.handler.OAuth2AuthenticationSuccessHandler;
 import com.example.log4u.common.oauth2.jwt.JwtAuthenticationFilter;
 import com.example.log4u.common.oauth2.jwt.JwtLogoutFilter;
@@ -71,36 +72,11 @@ public class SecurityConfig {
 		//경로별 인가 작업
 		http
 			.authorizeHttpRequests(auth -> auth
+				// 소셜 로그인 경로
 				.requestMatchers("/oauth2/**").permitAll()
+				// Swagger UI 관련 경로 (swagger-ui.html 추가)
+				.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
 				.anyRequest().authenticated());
-
-		// 요청에 대한 권한 설정
-		// 	.authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests
-		// 	// H2 콘솔 관련 경로
-		// 	.requestMatchers("/h2-console/**").permitAll()
-		//
-		// 	// Swagger UI 관련 경로 (swagger-ui.html 추가)
-		// 	.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**").permitAll()
-		// 	// 채팅 관련 경로
-		// 	.requestMatchers("/chat-test.html", "/chat/**").permitAll()
-		// 	.requestMatchers("/", "/auth/**", "/oauth2/**").permitAll()
-		// 	.requestMatchers("/", "login/auth/**", "login/oauth2/**").permitAll()
-		//
-		// 	.requestMatchers(HttpMethod.GET, "/travels/*").permitAll()
-		// 	.requestMatchers(HttpMethod.GET, "/travels/**").permitAll()
-		// 	.requestMatchers(HttpMethod.GET, "/guides/*").permitAll()
-		// 	.requestMatchers(HttpMethod.GET, "/guides/**").permitAll()
-		//
-		// 	.requestMatchers("/guide-requests/**").permitAll()
-		// 	.requestMatchers("/auth/signup", "/auth/login").permitAll()
-		// 	.anyRequest().authenticated())
-		//
-		// 	.userDetailsService(customUserDetailsService)
-		// 	.formLogin(formLogin -> formLogin
-		// 		.loginProcessingUrl("/auth/login")
-		// 		.usernameParameter("email")
-		// 		.passwordParameter("password")
-		// 		.disable())
 
 		//세션 설정 : STATELESS
 		http
@@ -111,13 +87,14 @@ public class SecurityConfig {
 
 				CorsConfiguration configuration = new CorsConfiguration();
 
-				configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+				configuration.setAllowedOrigins(Collections.singletonList(UrlConstants.FRONT_URL));
 				configuration.setAllowedMethods(Collections.singletonList("*"));
 				configuration.setAllowCredentials(true);
 				configuration.setAllowedHeaders(Collections.singletonList("*"));
 				configuration.setMaxAge(3600L);
 				configuration.setExposedHeaders(Collections.singletonList("Set-Cookie"));
 				configuration.setExposedHeaders(Collections.singletonList("access"));
+				configuration.setExposedHeaders(Collections.singletonList("refresh"));
 				return configuration;
 			})));
 		return http.build();

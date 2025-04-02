@@ -70,6 +70,10 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 		// 조건 생성
 		BooleanExpression condition = createCondition(diary, null, visibilities, userId);
 
+		if (cursorId != null) {
+			condition = condition.and(diary.diaryId.lt(cursorId)); // 커서 ID보다 작은 ID만 조회
+		}
+
 		// limit + 1로 다음 페이지 존재 여부 확인
 		List<Diary> content = queryFactory
 			.selectFrom(diary)

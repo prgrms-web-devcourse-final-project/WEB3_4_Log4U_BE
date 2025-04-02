@@ -74,4 +74,8 @@ public class Diary extends BaseEntity {
 		this.likeCount--;
 		return this.likeCount;
 	}
+
+	public boolean isOwner(Long userId) {
+		return this.userId.equals(userId);
+	}
 }

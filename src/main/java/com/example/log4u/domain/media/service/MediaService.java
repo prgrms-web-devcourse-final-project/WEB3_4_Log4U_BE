@@ -34,18 +34,18 @@ public class MediaService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<Media> getMedia(Long diaryId) {
+	public List<Media> getMediaByDiaryId(Long diaryId) {
 		return mediaRepository.findByDiaryId(diaryId);
 	}
 
 	@Transactional
-	public void deleteMedia(Long diaryId) {
+	public void deleteMediaByDiaryId(Long diaryId) {
 		mediaRepository.deleteByDiaryId(diaryId);
 	}
 
 	@Transactional
-	public void updateMedia(Long diaryId, List<MediaRequestDto> mediaList) {
-		deleteMedia(diaryId);
+	public void updateMediaByDiaryId(Long diaryId, List<MediaRequestDto> mediaList) {
+		deleteMediaByDiaryId(diaryId);
 		saveMedia(diaryId, mediaList);
 		// TODO: 기존꺼 다 삭제하는게 아닌 변경된 이미지만 반영되도록 수정해야함
 	}
