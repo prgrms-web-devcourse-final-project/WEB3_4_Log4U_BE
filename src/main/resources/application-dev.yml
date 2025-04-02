@@ -14,6 +14,10 @@ spring:
     username: dev
     password: devcos4-team08
     driver-class-name: com.mysql.cj.jdbc.Driver
+  aws:
+    s3:
+      bucket: ${S3_BUCKET_NAME}  # S3 버킷 이름을 GitHub Secrets에서 참조
+    region: ${AWS_REGION:ap-northeast-2}  # 기본값 서울 리전(ap-northeast-2)
 
   security:
     oauth2:

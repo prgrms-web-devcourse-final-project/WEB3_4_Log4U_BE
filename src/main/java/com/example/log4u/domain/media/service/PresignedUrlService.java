@@ -30,23 +30,28 @@ public class PresignedUrlService {
 	@Value("${S3_BUCKET_NAME}")
 	private String bucketName;
 
+	@Value("${AWS_REGION}")
+	private String s3Region;
+
 	@Transactional
 	public PresignedUrlResponseDto generatePresignedUrl(PresignedUrlRequestDto request) {
 		// 파일명 생성
 		String originalFilename = request.filename();
 		String fileExtension = getFileExtension(originalFilename);
-		String storedFilename = UUID.randomUUID() + fileExtension;
+		String storedFilename = "images/" + UUID.randomUUID() + fileExtension;
 
 		// S3 접근 URL 생성
-		String accessUrl = String.format("https://%s.s3.amazonaws.com/%s", bucketName, storedFilename);
+		String accessUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, s3Region, storedFilename);
 
 		// Presigned URL 생성 (5분 유효)
 		Duration signatureDuration = Duration.ofMinutes(5);
 
+		String contentType = request.contentType() != null ? request.contentType() : "application/octet-stream";
+
 		PutObjectRequest objectRequest = PutObjectRequest.builder()
 			.bucket(bucketName)
 			.key(storedFilename)
-			.contentType(request.contentType())
+			.contentType(contentType)
 			.build();
 
 		PresignedPutObjectRequest presignedRequest = s3Presigner
@@ -56,13 +61,14 @@ public class PresignedUrlService {
 				.build());
 
 		String presignedUrl = presignedRequest.url().toString();
+		log.info("Generated presigned URL: {}", presignedUrl);
 
 		// 임시 미디어 엔티티 저장
 		Media media = Media.builder()
 			.originalName(originalFilename)
 			.storedName(storedFilename)
 			.url(accessUrl)
-			.contentType(request.contentType())
+			.contentType(contentType)
 			.size(request.size())
 			.status(MediaStatus.TEMPORARY)
 			.build();
