@@ -1,13 +1,13 @@
 package com.example.log4u.domain.follow.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.log4u.domain.follow.entitiy.Follow;
 import com.example.log4u.domain.follow.exception.FollowNotFoundException;
 import com.example.log4u.domain.follow.repository.FollowRepository;
 import com.example.log4u.domain.user.service.UserService;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -42,13 +42,19 @@ public class FollowService {
 		}
 	}
 
-	public Long getFollowerCount() {
-		//TODO: 구현
-		return 0L;
+	/**
+	 * 나를 팔로우 하는 사람 수 조회
+	 * */
+	@Transactional(readOnly = true)
+	public Long getFollowerCount(Long userId) {
+		return followRepository.countByTargetId(userId);
 	}
 
-	public Long getFollowingCount() {
-		//TODO: 구현
-		return 0L;
+	/**
+	 * 내가 팔로우하는 사람 수 조회
+	 * */
+	@Transactional(readOnly = true)
+	public Long getFollowingCount(Long userId) {
+		return followRepository.countByInitiatorId(userId);
 	}
 }
