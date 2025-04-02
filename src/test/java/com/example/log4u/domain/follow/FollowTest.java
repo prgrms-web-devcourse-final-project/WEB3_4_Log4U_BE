@@ -68,7 +68,7 @@ class FollowTest {
 		Long userId = saveOneFollow();
 
 		followService.deleteFollow(userId, TARGET);
-		
+
 		assertThrows(FollowNotFoundException.class,
 			() -> followService.deleteFollow(userId, TARGET));
 	}
@@ -81,8 +81,11 @@ class FollowTest {
 		user = userRepository.save(user);
 		final Long userId = user.getUserId();
 
+		User target = UserFixture.createUserFixtureWithNickname(TARGET);
+		userRepository.save(target);
+
 		assertThrows(FollowNotFoundException.class,
-			() -> followService.deleteFollow(userId, WRONG_TARGET));
+			() -> followService.deleteFollow(userId, TARGET));
 	}
 
 	private Long saveOneFollow() {
