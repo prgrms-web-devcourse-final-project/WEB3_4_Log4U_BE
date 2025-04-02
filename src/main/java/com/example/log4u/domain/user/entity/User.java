@@ -52,6 +52,7 @@ public class User extends BaseEntity {
 	private String statusMessage;
 
 	@Column(nullable = false)
+	@Builder.Default
 	private boolean isPremium = false;
 
 	public void updateOauth2Profile(OAuth2Response oAuth2Response) {
