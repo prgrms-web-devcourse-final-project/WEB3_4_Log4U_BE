@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.example.log4u.common.oauth2.entity.RefreshToken;
 import com.example.log4u.common.oauth2.repository.RefreshTokenRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -19,15 +20,20 @@ public class RefreshTokenService {
 	@Value("${jwt.refresh-token-expire-time-seconds}")
 	private long refreshTokenValidityInSeconds;
 
-	public void saveRefreshToken(Long userId, String name, String refresh) {
+	public void saveRefreshToken(String name, String refresh) {
 		Date date = new Date(System.currentTimeMillis() + refreshTokenValidityInSeconds);
 
 		RefreshToken refreshToken = new RefreshToken(
-			userId,
+			null,
 			name,
 			refresh,
 			date.toString()
 		);
 		refreshTokenRepository.save(refreshToken);
+	}
+
+	@Transactional
+	public void deleteRefreshToken(String refresh) {
+		refreshTokenRepository.deleteByRefresh(refresh);
 	}
 }

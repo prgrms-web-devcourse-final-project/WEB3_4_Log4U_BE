@@ -22,7 +22,7 @@ public class RefreshToken {
 	@Setter
 	private String name;
 
-	@Column(nullable = false)
+	@Column(nullable = false, unique = true)
 	@Setter
 	private String refresh;
 
