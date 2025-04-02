@@ -27,8 +27,7 @@ public class UserService {
 			me,
 			0L,
 			0L,
-			0L,
-			null
+			0L
 		);
 	}
 
@@ -39,8 +38,7 @@ public class UserService {
 			user,
 			0L,
 			0L,
-			0L,
-			null
+			0L
 		);
 	}
 
