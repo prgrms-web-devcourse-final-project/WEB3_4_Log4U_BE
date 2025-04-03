@@ -2,6 +2,9 @@ package com.example.log4u.domain.follow;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -37,6 +40,19 @@ class FollowTest {
 
 	private static final String WRONG_TARGET = "nonExistUser";
 	private static final String TARGET = "targetUser";
+
+	@Test
+	@DisplayName("테스트용 DB 연결 확인")
+	void checkDatabaseConnection() {
+		try (Connection connection = DriverManager.getConnection(
+			"jdbc:mysql://localhost:3307/log4u",
+			"dev",
+			"devcos4-team08")) {
+			assertFalse(connection.isClosed());
+		} catch (SQLException e) {
+			fail("데이터베이스 연결 실패: " + e.getMessage());
+		}
+	}
 
 	@Test
 	@Transactional
