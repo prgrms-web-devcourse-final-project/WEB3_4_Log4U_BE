@@ -2,6 +2,7 @@ package com.example.log4u.domain.user.entity;
 
 import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.common.oauth2.dto.OAuth2Response;
+import com.example.log4u.domain.user.dto.UserProfileUpdateRequestDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -60,5 +61,10 @@ public class User extends BaseEntity {
 		this.name = oAuth2Response.getName();
 		this.nickname = oAuth2Response.getNickname();
 		this.profileImage = oAuth2Response.getProfileImage();
+	}
+
+	public void updateProfile(UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
+		this.profileImage = userProfileUpdateRequestDto.profileImage();
+		this.statusMessage = userProfileUpdateRequestDto.statusMessage();
 	}
 }

@@ -3,7 +3,7 @@ package com.example.log4u.domain.user.service;
 import org.springframework.stereotype.Service;
 
 import com.example.log4u.domain.diary.repository.DiaryRepository;
-import com.example.log4u.domain.follow.repository.FollowRepository;
+import com.example.log4u.domain.follow.service.FollowService;
 import com.example.log4u.domain.user.dto.NicknameValidationResponseDto;
 import com.example.log4u.domain.user.dto.UserProfileResponseDto;
 import com.example.log4u.domain.user.dto.UserProfileUpdateRequestDto;
@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
 	private final UserRepository userRepository;
 	private final DiaryRepository diaryRepository;
-	private final FollowRepository followRepository;
+	private final FollowService followService;
 
 	public UserProfileResponseDto getMyProfile(Long userId) {
 		User me = getUserById(userId);
@@ -26,8 +26,8 @@ public class UserService {
 		return UserProfileResponseDto.fromUser(
 			me,
 			0L,
-			0L,
-			0L
+			followService.getFollowerCount(userId),
+			followService.getFollowingCount(userId)
 		);
 	}
 
@@ -37,8 +37,8 @@ public class UserService {
 		return UserProfileResponseDto.fromUser(
 			user,
 			0L,
-			0L,
-			0L
+			followService.getFollowerCount(user.getUserId()),
+			followService.getFollowingCount(user.getUserId())
 		);
 	}
 
@@ -51,8 +51,12 @@ public class UserService {
 		Long userId,
 		UserProfileUpdateRequestDto userProfileUpdateRequestDto
 	) {
+		// 업데이트
 		User user = getUserById(userId);
-		return null;
+		user.updateProfile(userProfileUpdateRequestDto);
+		userRepository.save(user);
+
+		return getMyProfile(userId);
 	}
 
 	public User getUserById(Long userId) {
