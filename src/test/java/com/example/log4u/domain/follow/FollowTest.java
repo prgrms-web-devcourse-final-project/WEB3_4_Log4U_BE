@@ -69,10 +69,10 @@ class FollowTest {
 			.isPremium(false)
 			.build();
 
-		userRepository.save(user);
+		final Long userId = userRepository.save(user).getUserId();
 
 		assertThrows(UserNotFoundException.class,
-			() -> followService.createFollow(user.getUserId(), WRONG_TARGET));
+			() -> followService.createFollow(userId, WRONG_TARGET));
 	}
 
 	@Test

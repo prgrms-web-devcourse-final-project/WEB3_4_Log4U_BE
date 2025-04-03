@@ -1,4 +1,4 @@
-name: log4u-dev-build
+name: dev-build
 on:
   pull_request:
     branches:
@@ -45,6 +45,21 @@ jobs:
             -d \
             -p 3307:3306 \
             mysql:8.0.33
+
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..10}; do
+            if docker exec log4u-mysql mysqladmin ping -h "127.0.0.1" --silent; then
+              echo "MySQL is ready!"
+              break
+            fi
+            echo "Waiting for MySQL to start..."
+            sleep 1
+          done
+          if ! docker exec log4u-mysql mysqladmin ping -h "127.0.0.1" --silent; then
+            echo "MySQL did not start in time!"
+            exit 1
+          fi
 
       - name: Build and analyze
         env:
