@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
+import com.example.log4u.domain.subscription.dto.SubscriptionResponseDto;
 import com.example.log4u.domain.user.dto.UserThumbnailResponseDto;
 import com.example.log4u.domain.user.mypage.service.MyPageService;
 
@@ -49,7 +50,9 @@ public class MyPageController {
 		return ResponseEntity.ok(myPageService.getMyFollowers(userId, cursorId));
 	}
 
-	// @GetMapping("/users/me/subscriptions")
-	// public ResponseEntity<PageResponse<String>> getMySubscriptionsPage() {
-	// }
+	@GetMapping("/users/me/subscriptions")
+	public ResponseEntity<SubscriptionResponseDto> getMySubscriptions() {
+		Long userId = 1L;
+		return ResponseEntity.ok(myPageService.getMySubscription(userId));
+	}
 }

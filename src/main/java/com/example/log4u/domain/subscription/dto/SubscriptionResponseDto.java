@@ -1,4 +1,4 @@
-package com.example.log4u.domain.user.mypage.dto;
+package com.example.log4u.domain.subscription.dto;
 
 import java.time.LocalDateTime;
 

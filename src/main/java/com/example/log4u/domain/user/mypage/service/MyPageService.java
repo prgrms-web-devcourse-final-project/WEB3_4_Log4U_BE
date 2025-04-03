@@ -1,5 +1,8 @@
 package com.example.log4u.domain.user.mypage.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -9,8 +12,10 @@ import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.follow.repository.FollowQuerydsl;
+import com.example.log4u.domain.subscription.dto.SubscriptionResponseDto;
+import com.example.log4u.domain.subscription.entity.Subscription;
+import com.example.log4u.domain.subscription.repository.SubscriptionRepository;
 import com.example.log4u.domain.user.dto.UserThumbnailResponseDto;
-import com.example.log4u.domain.user.mypage.dto.SubscriptionResponseDto;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +26,7 @@ public class MyPageService {
 	private final int defaultPageSize = 6;
 	private final DiaryService diaryService;
 	private final FollowQuerydsl followQuerydsl;
+	private final SubscriptionRepository subscriptionRepository;
 
 	@Transactional(readOnly = true)
 	public PageResponse<DiaryResponseDto> getMyDiariesByCursor(Long userId, Long cursorId) {
@@ -60,6 +66,19 @@ public class MyPageService {
 
 	@Transactional(readOnly = true)
 	public SubscriptionResponseDto getMySubscription(Long userId) {
-		
+		List<Subscription> subscriptions = subscriptionRepository.findByUserIdAndEndTimeAfter(userId,
+			LocalDateTime.now());
+		if (subscriptions.isEmpty()) {
+			return SubscriptionResponseDto.builder()
+				.isSubscriptionActive(false)
+				.build();
+		} else {
+			Subscription subscription = subscriptions.getFirst();
+			return SubscriptionResponseDto.builder()
+				.isSubscriptionActive(true)
+				.startDate(subscription.getCreatedAt())
+				.endDate(subscription.getEndTime())
+				.build();
+		}
 	}
 }
