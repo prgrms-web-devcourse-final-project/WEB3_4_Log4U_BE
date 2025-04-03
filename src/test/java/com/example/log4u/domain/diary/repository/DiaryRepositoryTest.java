@@ -107,14 +107,14 @@ public class DiaryRepositoryTest {
 		// given
 		List<VisibilityType> visibilities = List.of(VisibilityType.PUBLIC, VisibilityType.PRIVATE,
 			VisibilityType.FOLLOWER);
-		PageRequest pageable = PageRequest.of(0, 10);
+		PageRequest pageable = PageRequest.of(0, 12);
 
 		// when
 		Slice<Diary> result = diaryRepository.findByUserIdAndVisibilityInAndCursorId(
 			userId1, visibilities, Long.MAX_VALUE, pageable);
 
 		// then
-		assertThat(result.getContent()).hasSize(3);
+		assertThat(result.getContent()).hasSize(4);
 		assertThat(result.getContent().stream().allMatch(d -> d.getUserId().equals(userId1))).isTrue();
 	}
 
@@ -192,7 +192,7 @@ public class DiaryRepositoryTest {
 		// given
 		List<VisibilityType> visibilities = List.of(VisibilityType.PUBLIC, VisibilityType.PRIVATE,
 			VisibilityType.FOLLOWER);
-		PageRequest pageable = PageRequest.of(0, 3); // 페이지 크기가 3, 결과도 3개
+		PageRequest pageable = PageRequest.of(0, 4); // 페이지 크기가 4, 결과도 4개
 
 		// when
 		Slice<Diary> result = diaryRepository.findByUserIdAndVisibilityInAndCursorId(

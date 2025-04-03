@@ -40,11 +40,11 @@ public class MediaRepositoryTest {
 		mediaRepository.deleteAll();
 		em.createNativeQuery("ALTER TABLE media ALTER COLUMN media_id RESTART WITH 1").executeUpdate();
 
-		Media media1 = MediaFixture.createMediaFixture(null, diaryId1, MediaStatus.PERMANENT);
-		Media media2 = MediaFixture.createMediaFixture(null, diaryId1, MediaStatus.PERMANENT);
-		Media media3 = MediaFixture.createMediaFixture(null, diaryId2, MediaStatus.PERMANENT);
-		Media media4 = MediaFixture.createMediaFixture(null, diaryId2, MediaStatus.TEMPORARY);
-		Media media5 = MediaFixture.createMediaFixture(null, diaryId1, MediaStatus.DELETED);
+		Media media1 = MediaFixture.createMediaFixture(null, diaryId1, MediaStatus.PERMANENT, 2);
+		Media media2 = MediaFixture.createMediaFixture(null, diaryId1, MediaStatus.PERMANENT, 0);
+		Media media3 = MediaFixture.createMediaFixture(null, diaryId2, MediaStatus.PERMANENT, 1);
+		Media media4 = MediaFixture.createMediaFixture(null, diaryId2, MediaStatus.TEMPORARY, 0);
+		Media media5 = MediaFixture.createMediaFixture(null, diaryId1, MediaStatus.DELETED, 1);
 
 		mediaRepository.saveAll(List.of(media1, media2, media3, media4, media5));
 	}
@@ -57,12 +57,12 @@ public class MediaRepositoryTest {
 
 		// then
 		assertThat(result).hasSize(3);
-		assertThat(result).extracting("diaryId").contains(diaryId1);
+		assertThat(result).extracting("diaryId").containsOnly(diaryId1);
 	}
 
 	@Test
 	@DisplayName("다이어리 상태로 미디어 조회")
-	void findByDiaryIdAndStatus() {
+	void findByStatus() {
 		// when
 		List<Media> result = mediaRepository.findByStatus(MediaStatus.PERMANENT);
 
@@ -75,7 +75,7 @@ public class MediaRepositoryTest {
 	@DisplayName("미디어 저장(기존 5개)")
 	void save() {
 		// given
-		Media newMedia = MediaFixture.createMediaFixture(null, diaryId1, MediaStatus.TEMPORARY);
+		Media newMedia = MediaFixture.createMediaFixture(null, diaryId1, MediaStatus.TEMPORARY, 3);
 
 		// when
 		mediaRepository.save(newMedia);
@@ -85,6 +85,7 @@ public class MediaRepositoryTest {
 		assertThat(newMedia.getMediaId()).isEqualTo(6L);
 		assertThat(newMedia.getStatus()).isEqualTo(MediaStatus.TEMPORARY);
 		assertThat(newMedia.getDiaryId()).isEqualTo(diaryId1);
+		assertThat(newMedia.getOrderIndex()).isEqualTo(3);
 	}
 
 	@Test
@@ -125,5 +126,69 @@ public class MediaRepositoryTest {
 
 		List<Media> otherDiaryMedia = mediaRepository.findByDiaryId(diaryId2);
 		assertThat(otherDiaryMedia).hasSize(2);
+	}
+
+	@Test
+	@DisplayName("다이어리 ID로 미디어 조회 - 순서대로 정렬")
+	void findByDiaryIdOrderByOrderIndexAsc() {
+		// when
+		List<Media> result = mediaRepository.findByDiaryIdOrderByOrderIndexAsc(diaryId1);
+
+		// then
+		assertThat(result).hasSize(3);
+		assertThat(result).extracting("diaryId").containsOnly(diaryId1);
+
+		// 순서 확인 (0, 1, 2 순서로 정렬되어야 함)
+		assertThat(result.get(0).getOrderIndex()).isEqualTo(0);
+		assertThat(result.get(1).getOrderIndex()).isEqualTo(1);
+		assertThat(result.get(2).getOrderIndex()).isEqualTo(2);
+	}
+
+	@Test
+	@DisplayName("다이어리 ID 목록으로 미디어 조회 - 다이어리별로 순서대로 정렬")
+	void findByDiaryIdInOrderByDiaryIdAscOrderIndexAsc() {
+		// when
+		List<Media> result = mediaRepository.findByDiaryIdInOrderByDiaryIdAscOrderIndexAsc(List.of(diaryId1, diaryId2));
+
+		// then
+		assertThat(result).hasSize(5);
+
+		// 다이어리 ID별로 그룹화
+		List<Media> diary1Media = result.stream()
+			.filter(media -> media.getDiaryId().equals(diaryId1))
+			.toList();
+
+		List<Media> diary2Media = result.stream()
+			.filter(media -> media.getDiaryId().equals(diaryId2))
+			.toList();
+
+		// 다이어리1 미디어 순서 확인
+		assertThat(diary1Media).hasSize(3);
+		assertThat(diary1Media.get(0).getOrderIndex()).isEqualTo(0);
+		assertThat(diary1Media.get(1).getOrderIndex()).isEqualTo(1);
+		assertThat(diary1Media.get(2).getOrderIndex()).isEqualTo(2);
+
+		// 다이어리2 미디어 순서 확인
+		assertThat(diary2Media).hasSize(2);
+		assertThat(diary2Media.get(0).getOrderIndex()).isEqualTo(0);
+		assertThat(diary2Media.get(1).getOrderIndex()).isEqualTo(1);
+	}
+
+	@Test
+	@DisplayName("미디어 순서 업데이트")
+	void updateMediaOrder() {
+		// given
+		Long mediaId = 1L;
+		Media media = mediaRepository.findById(mediaId).orElseThrow();
+		Integer originalOrder = media.getOrderIndex();
+
+		// when
+		media.setOrderIndex(5);
+		mediaRepository.save(media);
+
+		// then
+		Media updatedMedia = mediaRepository.findById(mediaId).orElseThrow();
+		assertThat(updatedMedia.getOrderIndex()).isEqualTo(5);
+		assertThat(updatedMedia.getOrderIndex()).isNotEqualTo(originalOrder);
 	}
 }
