@@ -1,5 +1,7 @@
 package com.example.log4u.domain.user.entity;
 
+import java.util.Objects;
+
 import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.common.oauth2.dto.OAuth2Response;
 import com.example.log4u.domain.user.dto.UserProfileUpdateRequestDto;
@@ -66,5 +68,25 @@ public class User extends BaseEntity {
 	public void updateProfile(UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
 		this.profileImage = userProfileUpdateRequestDto.profileImage();
 		this.statusMessage = userProfileUpdateRequestDto.statusMessage();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
+		User user = (User)obj;
+		return isPremium() == user.isPremium() && Objects.equals(getName(), user.getName())
+			&& Objects.equals(getNickname(), user.getNickname()) && Objects.equals(getEmail(),
+			user.getEmail()) && Objects.equals(getProviderId(), user.getProviderId()) && Objects.equals(
+			getProfileImage(), user.getProfileImage()) && Objects.equals(getRole(), user.getRole())
+			&& getSocialType() == user.getSocialType() && Objects.equals(getStatusMessage(),
+			user.getStatusMessage());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(getName(), getNickname(), getEmail(), getProviderId(), getProfileImage(), getRole(),
+			getSocialType(), getStatusMessage(), isPremium());
 	}
 }
