@@ -2,7 +2,9 @@ package com.example.log4u.domain.user.service;
 
 import org.springframework.stereotype.Service;
 
-import com.example.log4u.domain.diary.repository.DiaryRepository;
+import com.example.log4u.common.dto.PageResponse;
+import com.example.log4u.domain.diary.dto.DiaryResponseDto;
+import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.follow.service.FollowService;
 import com.example.log4u.domain.user.dto.NicknameValidationResponseDto;
 import com.example.log4u.domain.user.dto.UserProfileResponseDto;
@@ -17,34 +19,50 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserService {
 	private final UserRepository userRepository;
-	private final DiaryRepository diaryRepository;
 	private final FollowService followService;
+	private final DiaryService diaryService;
+
+	private static final int DEFAULT_DIARIES_SIZE = 9;
 
 	public UserProfileResponseDto getMyProfile(Long userId) {
 		User me = getUserById(userId);
+		PageResponse<DiaryResponseDto> diaries =
+			diaryService.getDiariesByCursor(
+				userId,
+				userId,
+				null,
+				DEFAULT_DIARIES_SIZE);
 
 		return UserProfileResponseDto.fromUser(
 			me,
-			0L,
 			followService.getFollowerCount(userId),
-			followService.getFollowingCount(userId)
+			followService.getFollowingCount(userId),
+			diaries
 		);
 	}
 
-	public UserProfileResponseDto getUserProfile(String nickname) {
-		User user = getUserByNickname(nickname);
+	public UserProfileResponseDto getUserProfile(Long userId, String nickname) {
+		User target = getUserByNickname(nickname);
+		final Long targetId = target.getUserId();
+
+		PageResponse<DiaryResponseDto> diaries =
+			diaryService.getDiariesByCursor(
+				userId,
+				targetId,
+				null,
+				DEFAULT_DIARIES_SIZE);
 
 		return UserProfileResponseDto.fromUser(
-			user,
-			0L,
-			followService.getFollowerCount(user.getUserId()),
-			followService.getFollowingCount(user.getUserId())
+			target,
+			followService.getFollowerCount(targetId),
+			followService.getFollowingCount(targetId),
+			diaries
 		);
 	}
 
 	public NicknameValidationResponseDto validateNickname(String nickname) {
 		return new NicknameValidationResponseDto(
-			userRepository.findByNickname(nickname).isPresent());
+			userRepository.existsByNickname(nickname));
 	}
 
 	public UserProfileResponseDto updateMyProfile(

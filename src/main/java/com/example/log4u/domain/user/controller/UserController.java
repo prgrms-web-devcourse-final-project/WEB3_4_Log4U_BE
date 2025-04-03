@@ -27,14 +27,6 @@ public class UserController {
 		this.userService = userService;
 	}
 
-	@GetMapping("")
-	public String modifyUserProfile(
-		@AuthenticationPrincipal CustomOAuth2User customOAuth2User
-	) {
-		log.info("테스트 GET DATA user = " + customOAuth2User.getUserId());
-		return "test";
-	}
-
 	@GetMapping("/me")
 	public ResponseEntity<UserProfileResponseDto> getMyProfile(
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User
@@ -50,7 +42,7 @@ public class UserController {
 		@PathVariable String nickname
 	) {
 		UserProfileResponseDto userProfileResponseDto =
-			userService.getUserProfile(nickname);
+			userService.getUserProfile(customOAuth2User.getUserId(), nickname);
 		return ResponseEntity.ok(userProfileResponseDto);
 	}
 
