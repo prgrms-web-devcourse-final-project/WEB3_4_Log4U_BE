@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -36,6 +37,10 @@ public class Media extends BaseEntity {
 	private String contentType;
 
 	private Long size;
+
+	@Builder.Default
+	@Setter
+	private Integer orderIndex = 0; // 순서 필드
 
 	@Enumerated(EnumType.STRING)
 	@Builder.Default

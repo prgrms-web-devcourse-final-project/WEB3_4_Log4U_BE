@@ -22,4 +22,8 @@ public interface MediaRepository extends JpaRepository<Media, Long> {
 	List<Media> findByStatusAndCreatedAtBefore(MediaStatus status, LocalDateTime dateTime);
 
 	List<Media> findByStatus(MediaStatus status);
+
+	List<Media> findByDiaryIdOrderByOrderIndexAsc(Long diaryId);
+
+	List<Media> findByDiaryIdInOrderByDiaryIdAscOrderIndexAsc(List<Long> diaryIds);
 }

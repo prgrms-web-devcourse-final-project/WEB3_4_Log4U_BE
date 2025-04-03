@@ -1,5 +1,6 @@
 package com.example.log4u.domain.media.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,17 +42,23 @@ public class MediaService {
 
 		List<Media> existingMedia = mediaRepository.findAllById(mediaIds);
 
-		// 다이어리와 연결
-		for (Media media : existingMedia) {
-			media.connectToDiary(diaryId);
+		// 다이어리와 연결 및 순서 설정
+		for (MediaRequestDto request : mediaList) {
+			existingMedia.stream()
+				.filter(media -> media.getMediaId().equals(request.mediaId()))
+				.findFirst()
+				.ifPresent(media -> {
+					media.connectToDiary(diaryId);
+					media.setOrderIndex(request.orderIndex());
+				});
 		}
-
 		mediaRepository.saveAll(existingMedia);
 	}
 
+	// 사진 순서대로 조회
 	@Transactional(readOnly = true)
 	public List<Media> getMediaByDiaryId(Long diaryId) {
-		return mediaRepository.findByDiaryId(diaryId);
+		return mediaRepository.findByDiaryIdOrderByOrderIndexAsc(diaryId);
 	}
 
 	@Transactional
@@ -60,7 +67,7 @@ public class MediaService {
 
 		// 미디어 삭제 상태로 변경
 		for (Media media : mediaList) {
-			markMediaAsDeleted(media);
+			media.markAsDeleted();
 		}
 
 		mediaRepository.saveAll(mediaList);
@@ -68,6 +75,9 @@ public class MediaService {
 
 	@Transactional
 	public void updateMediaByDiaryId(Long diaryId, List<MediaRequestDto> newMediaList) {
+		// 모든 변경사항을 저장할 리스트
+		List<Media> allMediaToSave = new ArrayList<>();
+
 		// 기존 미디어 조회
 		List<Media> existingMedia = mediaRepository.findByDiaryId(diaryId);
 
@@ -77,18 +87,33 @@ public class MediaService {
 			.toList();
 
 		// 삭제할 미디어(기존에 있지만 새 목록에 없는 것)
-		List<Media> mediaToDelete = existingMedia.stream()
-			.filter(media -> !newMediaIds.contains(media.getMediaId()))
-			.toList();
-
-		// 미디어 삭제 상태로 변경
-		for (Media media : mediaToDelete) {
-			markMediaAsDeleted(media);
+		for (Media media : existingMedia) {
+			if (!newMediaIds.contains(media.getMediaId())) {
+				media.markAsDeleted();
+				allMediaToSave.add(media);
+			}
 		}
 
-		mediaRepository.saveAll(mediaToDelete);
+		// 새 미디어 연결
+		if (!newMediaList.isEmpty()) {
+			List<Media> newMedia = mediaRepository.findAllById(newMediaIds);
+			for (MediaRequestDto request : newMediaList) {
+				newMedia.stream()
+					.filter(media -> media.getMediaId().equals(request.mediaId()))
+					.findFirst()
+					.ifPresent(media -> {
+						if (media.getDiaryId() == null || !media.getDiaryId().equals(diaryId)) {
+							media.connectToDiary(diaryId);
+						}
+						media.setOrderIndex(request.orderIndex());
+						allMediaToSave.add(media);
+					});
+			}
+		}
 
-		saveMedia(diaryId, newMediaList);
+		if (!allMediaToSave.isEmpty()) {
+			mediaRepository.saveAll(allMediaToSave);
+		}
 	}
 
 	public String extractThumbnailUrl(List<MediaRequestDto> mediaList) {
@@ -103,7 +128,7 @@ public class MediaService {
 			return Map.of();
 		}
 		try {
-			return mediaRepository.findByDiaryIdIn(diaryIds)
+			return mediaRepository.findByDiaryIdInOrderByDiaryIdAscOrderIndexAsc(diaryIds)
 				.stream()
 				.collect(Collectors.groupingBy(Media::getDiaryId));
 		} catch (Exception e) {
@@ -116,13 +141,10 @@ public class MediaService {
 			.orElseThrow(NotFoundMediaException::new);
 	}
 
+	@Transactional
 	public void deleteMediaById(Long mediaId) {
 		Media media = mediaRepository.findById(mediaId)
 			.orElseThrow(NotFoundMediaException::new);
-		markMediaAsDeleted(media);
-	}
-
-	private void markMediaAsDeleted(Media media) {
 		media.markAsDeleted();
 		mediaRepository.save(media);
 	}

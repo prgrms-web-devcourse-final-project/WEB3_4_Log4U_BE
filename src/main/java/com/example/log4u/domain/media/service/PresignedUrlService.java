@@ -71,6 +71,7 @@ public class PresignedUrlService {
 			.contentType(contentType)
 			.size(request.size())
 			.status(MediaStatus.TEMPORARY)
+			.orderIndex(0)
 			.build();
 
 		Media savedMedia = mediaRepository.save(media);

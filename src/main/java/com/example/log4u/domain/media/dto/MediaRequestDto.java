@@ -8,7 +8,8 @@ public record MediaRequestDto(
 	String storedName,
 	String url,
 	String contentType,
-	Long size
+	Long size,
+	Integer orderIndex
 ) {
 	public static Media toEntity(Long diaryId, MediaRequestDto request) {
 		return Media.builder()
@@ -18,6 +19,7 @@ public record MediaRequestDto(
 			.url(request.url())
 			.contentType(request.contentType())
 			.size(request.size())
+			.orderIndex(request.orderIndex())
 			.build();
 	}
 }
