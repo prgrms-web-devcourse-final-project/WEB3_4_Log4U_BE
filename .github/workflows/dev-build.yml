@@ -73,7 +73,7 @@ jobs:
         run: |
           chmod +x ./gradlew
           # 소나클라우드 임시 비활성화 ./gradlew build jacocoTestReport sonar --info -Pprofile=dev -Dsonar.branch.name=${{ github.ref_name }}
-          ./gradlew build jacocoTestReport -Pprofile=dev 
+          ./gradlew build -i jacocoTestReport -Pprofile=dev 
 
       - name: Docker MySQL 종료 및 제거
         run: |
