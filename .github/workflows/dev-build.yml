@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     name: Build and analyze
+    environment: develop-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,8 +41,8 @@ jobs:
           docker run --name log4u-mysql \
             -e MYSQL_ROOT_PASSWORD=root \
             -e MYSQL_DATABASE=log4u \
-            -e MYSQL_USER=dev \
-            -e MYSQL_PASSWORD=devcos4-team08 \
+            -e MYSQL_USER=${{ secrets.DB_USERNAME }} \
+            -e MYSQL_PASSWORD=${{ secrets.DB_PASSWORD}} \
             -d \
             -p 3307:3306 \
             mysql:8.0.33
@@ -61,13 +62,22 @@ jobs:
             exit 1
           fi
 
-      - name: Build and analyze
+      - name: Test and analyze
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          DB_URL: jdbc:mysql://localhost:3307/log4u
-          DB_USERNAME: dev
-          DB_PASSWORD: devcos4-team08
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          NAVER_DEV_CLIENT_ID: ${{ secrets.NAVER_DEV_CLIENT_ID }}
+          NAVER_DEV_CLIENT_SECRET: ${{ secrets.NAVER_DEV_CLIENT_SECRET }}
+          NAVER_DEV_REDIRECT_URI: ${{ secrets.NAVER_DEV_REDIRECT_URI }}
+          GOOGLE_DEV_CLIENT_ID: ${{ secrets.GOOGLE_DEV_CLIENT_ID }}
+          GOOGLE_DEV_CLIENT_SECRET: ${{ secrets.GOOGLE_DEV_CLIENT_SECRET }}r
+          GOOGLE_DEV_REDIRECT_URI: ${{ secrets.GOOGLE_DEV_REDIRECT_URI }}
+          KAKAO_DEV_CLIENT_ID: ${{ secrets.KAKAO_DEV_CLIENT_ID }}
+          KAKAO_DEV_CLIENT_SECRET: ${{ secrets.KAKAO_DEV_CLIENT_SECRET }}
+          KAKAO_DEV_REDIRECT_URI: ${{ secrets.KAKAO_DEV_REDIRECT_URI }}
 
         # dev 프로필 사용
         run: |
