@@ -22,7 +22,7 @@ import com.example.log4u.fixture.UserFixture;
 
 import jakarta.transaction.Transactional;
 
-@DisplayName("팔로우 통합 테스트(시큐리티 제외)")
+@DisplayName("팔로우 서비스 - 레포지토리 테스트")
 @SpringBootTest
 class FollowTest {
 
