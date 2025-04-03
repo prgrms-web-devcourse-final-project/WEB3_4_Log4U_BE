@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.service.DiaryService;
-import com.example.log4u.domain.follow.service.FollowService;
+import com.example.log4u.domain.follow.repository.FollowRepository;
 import com.example.log4u.domain.user.dto.NicknameValidationResponseDto;
 import com.example.log4u.domain.user.dto.UserProfileResponseDto;
 import com.example.log4u.domain.user.dto.UserProfileUpdateRequestDto;
@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserService {
 	private final UserRepository userRepository;
-	private final FollowService followService;
+	private final FollowRepository followRepository;
 	private final DiaryService diaryService;
 
 	private static final int DEFAULT_DIARIES_SIZE = 9;
@@ -35,8 +35,8 @@ public class UserService {
 
 		return UserProfileResponseDto.fromUser(
 			me,
-			followService.getFollowerCount(userId),
-			followService.getFollowingCount(userId),
+			followRepository.countByTargetId(userId),
+			followRepository.countByInitiatorId(userId),
 			diaries
 		);
 	}
@@ -54,8 +54,8 @@ public class UserService {
 
 		return UserProfileResponseDto.fromUser(
 			target,
-			followService.getFollowerCount(targetId),
-			followService.getFollowingCount(targetId),
+			followRepository.countByTargetId(targetId),
+			followRepository.countByInitiatorId(targetId),
 			diaries
 		);
 	}
