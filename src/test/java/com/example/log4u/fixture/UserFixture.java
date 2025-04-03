@@ -1,5 +1,8 @@
 package com.example.log4u.fixture;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import com.example.log4u.domain.user.entity.SocialType;
 import com.example.log4u.domain.user.entity.User;
 
@@ -7,35 +10,38 @@ public class UserFixture {
 
 	public static User createUserFixture() {
 		return User.builder()
-			.userId(1L)
-			.nickname("testUser")
-			.providerId("123")
-			.email("test@example.com")
+			.name("test" + UUID.randomUUID())
+			.nickname("testUser" + UUID.randomUUID())
+			.providerId("123" + UUID.randomUUID())
+			.email("test" + UUID.randomUUID() + "@example.com")
 			.socialType(SocialType.KAKAO)
-			.statusMessage("상태 메시지")
+			.role("ROLE_USER")
+			.statusMessage(LocalDateTime.now().toString())
 			.isPremium(false)
 			.build();
 	}
 
-	public static User createUserFixture(Long userId) {
+	public static User createUserFixtureWithNickname(String nickname) {
 		return User.builder()
-			.userId(userId)
-			.nickname("testUser" + userId)
-			.providerId("100 + userId")
-			.email("test" + userId + "@example.com")
+			.name("name" + nickname)
+			.nickname(nickname)
+			.providerId("100 " + nickname)
+			.email("test" + nickname + "@example.com")
 			.socialType(SocialType.KAKAO)
-			.statusMessage("상태 메시지 " + userId)
+			.role("ROLE_USER")
+			.statusMessage("상태 메시지 " + nickname)
 			.isPremium(false)
 			.build();
 	}
 
-	public static User createPremiumUserFixture(Long userId) {
+	public static User createPremiumUserFixture(String nickname) {
 		return User.builder()
-			.userId(userId)
-			.nickname("premiumUser" + userId)
-			.providerId("1000L + userId")
-			.email("premium" + userId + "@example.com")
+			.name("premium" + nickname)
+			.nickname("premiumUser" + nickname)
+			.providerId("1000L" + nickname)
+			.email("premium" + nickname + "@example.com")
 			.socialType(SocialType.KAKAO)
+			.role("ROLE_USER")
 			.statusMessage("프리미엄 사용자")
 			.isPremium(true)
 			.build();

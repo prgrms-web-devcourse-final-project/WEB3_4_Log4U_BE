@@ -169,7 +169,7 @@ public class DiaryService {
 			return List.of(VisibilityType.PUBLIC, VisibilityType.PRIVATE, VisibilityType.FOLLOWER);
 		}
 
-		if (followRepository.existsByFollowerIdAndFollowingId(userId, targetUserId)) {
+		if (followRepository.existsByInitiatorIdAndTargetId(userId, targetUserId)) {
 			return List.of(VisibilityType.PUBLIC, VisibilityType.FOLLOWER);
 		}
 
@@ -186,7 +186,7 @@ public class DiaryService {
 
 		if (diary.getVisibility() == VisibilityType.FOLLOWER) {
 			if (!diary.getUserId().equals(userId)
-				&& !followRepository.existsByFollowerIdAndFollowingId(userId, diary.getUserId())) {
+				&& !followRepository.existsByInitiatorIdAndTargetId(userId, diary.getUserId())) {
 				throw new NotFoundDiaryException();
 			}
 		}
