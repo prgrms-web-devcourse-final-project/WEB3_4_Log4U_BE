@@ -10,6 +10,7 @@ import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.follow.repository.FollowQuerydsl;
 import com.example.log4u.domain.user.dto.UserThumbnailResponseDto;
+import com.example.log4u.domain.user.mypage.dto.SubscriptionResponseDto;
 
 import lombok.RequiredArgsConstructor;
 
@@ -55,5 +56,10 @@ public class MyPageService {
 		Long nextCursor = !slice.isEmpty() ? slice.getContent().getLast().userId() : null;
 
 		return PageResponse.of(slice, nextCursor);
+	}
+
+	@Transactional(readOnly = true)
+	public SubscriptionResponseDto getMySubscription(Long userId) {
+		
 	}
 }
