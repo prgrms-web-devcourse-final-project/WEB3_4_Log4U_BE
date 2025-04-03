@@ -10,9 +10,9 @@ spring:
       ddl-auto: create
 
   datasource:
-    url: jdbc:mysql://localhost:3307/log4u
-    username: dev
-    password: devcos4-team08
+    url: ${DB_URL:jdbc:mysql://localhost:3307/log4u}
+    username: ${DB_USERNAME:dev}
+    password: ${DB_PASSWORD:devcos4-team08}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   security:
