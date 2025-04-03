@@ -1,7 +1,7 @@
 package com.example.log4u.domain.user.mypage.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -12,6 +12,7 @@ import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.follow.repository.FollowQuerydsl;
+import com.example.log4u.domain.subscription.PaymentStatus;
 import com.example.log4u.domain.subscription.dto.SubscriptionResponseDto;
 import com.example.log4u.domain.subscription.entity.Subscription;
 import com.example.log4u.domain.subscription.repository.SubscriptionRepository;
@@ -66,18 +67,20 @@ public class MyPageService {
 
 	@Transactional(readOnly = true)
 	public SubscriptionResponseDto getMySubscription(Long userId) {
-		List<Subscription> subscriptions = subscriptionRepository.findByUserIdAndEndTimeAfter(userId,
-			LocalDateTime.now());
-		if (subscriptions.isEmpty()) {
+		Optional<Subscription> optionalSubscription = subscriptionRepository
+			.findByUserIdAndCreatedAtBeforeAndPaymentStatusOrderByCreatedAtDesc(
+				userId,
+				LocalDateTime.now(), PaymentStatus.SUCCESS);
+		if (optionalSubscription.isEmpty()) {
 			return SubscriptionResponseDto.builder()
 				.isSubscriptionActive(false)
 				.build();
 		} else {
-			Subscription subscription = subscriptions.getFirst();
+			Subscription subscription = optionalSubscription.get();
 			return SubscriptionResponseDto.builder()
 				.isSubscriptionActive(true)
+				.paymentProvider(subscription.getPaymentProvider())
 				.startDate(subscription.getCreatedAt())
-				.endDate(subscription.getEndTime())
 				.build();
 		}
 	}
