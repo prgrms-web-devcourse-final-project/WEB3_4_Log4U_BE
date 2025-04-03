@@ -1,3 +1,9 @@
+jwt:
+  secret: ${JWT_SECRET:${jwt.secret}}
+  access-token-expire-time-seconds: ${JWT_ACCESS_TOKEN_EXPIRE_TIME_SECONDS:${jwt.access-token-expire-time-seconds}}
+  refresh-token-expire-time-seconds: ${JWT_REFRESH_TOKEN_EXPIRE_TIME_SECONDS:${jwt.refresh-token-expire-time-seconds}}
+
+
 logging:
   level:
     org:
