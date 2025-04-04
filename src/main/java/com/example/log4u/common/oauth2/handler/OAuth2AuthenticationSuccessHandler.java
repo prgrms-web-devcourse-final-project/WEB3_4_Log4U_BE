@@ -1,5 +1,8 @@
 package com.example.log4u.common.oauth2.handler;
 
+import static com.example.log4u.common.constants.TokenConstants.*;
+import static com.example.log4u.common.constants.UrlConstants.*;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
@@ -30,13 +33,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	private final UserRepository userRepository;
 	private final RefreshTokenService refreshTokenService;
 	private final JwtUtil jwtUtil;
-
-	private static final String MAIN_PAGE = "http://localhost:3000/";
-	private static final String PROFILE_CREATE_PAGE = "http://localhost:3000/profile";
-	private static final String LOGIN_PAGE = "http://localhost:3000/login";
-
-	private static final String ACCESS_TOKEN_KEY = "access";
-	private static final String REFRESH_TOKEN_KEY = "refresh";
 
 	@Value("${jwt.access-token-expire-time-seconds}")
 	private long accessTokenValidityInSeconds;
@@ -72,22 +68,22 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		String role = auth.getAuthority();
 
 		// 쿠키 생성
-		String access = jwtUtil.createJwt(ACCESS_TOKEN_KEY, userId, name, role, accessTokenValidityInSeconds);
-		String refresh = jwtUtil.createJwt(REFRESH_TOKEN_KEY, userId, name, role, refreshTokenValidityInSeconds);
+		String access = jwtUtil.createJwt(ACCESS_TOKEN, userId, name, role, accessTokenValidityInSeconds);
+		String refresh = jwtUtil.createJwt(REFRESH_TOKEN, userId, name, role, refreshTokenValidityInSeconds);
 
 		// 리프레시 토큰 DB 저장
 		refreshTokenService.saveRefreshToken(name, refresh);
 
-		response.addCookie(createCookie(ACCESS_TOKEN_KEY, access));
-		response.addCookie(createCookie(REFRESH_TOKEN_KEY, refresh));
+		response.addCookie(createCookie(ACCESS_TOKEN, access));
+		response.addCookie(createCookie(REFRESH_TOKEN, refresh));
 		response.setStatus(HttpStatus.OK.value());
 	}
 
 	private void redirectTo(HttpServletResponse response, CustomOAuth2User customOAuth2User) throws IOException {
 		String redirectUrl = switch (customOAuth2User.getRole()) {
-			case "ROLE_GUEST" -> PROFILE_CREATE_PAGE;
-			case "ROLE_USER" -> MAIN_PAGE;
-			default -> LOGIN_PAGE;
+			case "ROLE_GUEST" -> PROFILE_CREATE_URL;
+			case "ROLE_USER" -> MAIN_URL;
+			default -> LOGIN_URL;
 		};
 		response.sendRedirect(redirectUrl);
 	}
