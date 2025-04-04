@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.log4u.domain.media.dto.MediaRequestDto;
 import com.example.log4u.domain.media.entity.Media;
+import com.example.log4u.domain.media.exception.MediaLimitExceededException;
 import com.example.log4u.domain.media.exception.NotFoundMediaException;
 import com.example.log4u.domain.media.repository.MediaRepository;
 
@@ -34,6 +35,8 @@ public class MediaService {
 		if (mediaList == null || mediaList.isEmpty()) {
 			return;
 		}
+		// 미디어 개수 제한 검증
+		validateMediaLimit(mediaList);
 
 		// 미디어 ID 목록 추출
 		List<Long> mediaIds = mediaList.stream()
@@ -75,6 +78,8 @@ public class MediaService {
 
 	@Transactional
 	public void updateMediaByDiaryId(Long diaryId, List<MediaRequestDto> newMediaList) {
+		// 미디어 개수 제한 검증
+		validateMediaLimit(newMediaList);
 		// 모든 변경사항을 저장할 리스트
 		List<Media> allMediaToSave = new ArrayList<>();
 
@@ -147,5 +152,12 @@ public class MediaService {
 			.orElseThrow(NotFoundMediaException::new);
 		media.markAsDeleted();
 		mediaRepository.save(media);
+	}
+
+	// 미디어 개수 검증 로직
+	private void validateMediaLimit(List<MediaRequestDto> mediaList) {
+		if (mediaList.size() > 10) {
+			throw new MediaLimitExceededException();
+		}
 	}
 }

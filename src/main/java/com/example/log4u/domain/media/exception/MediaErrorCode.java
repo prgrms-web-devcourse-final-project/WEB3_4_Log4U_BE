@@ -10,7 +10,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum MediaErrorCode implements ErrorCode {
-	NOT_FOUND_MEDIA(HttpStatus.NOT_FOUND, "미디어를 찾을 수 없습니다.");
+	NOT_FOUND_MEDIA(HttpStatus.NOT_FOUND, "미디어를 찾을 수 없습니다."),
+	MEDIA_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "미디어는 최대 10개까지만 업로드 가능합니다.");
 
 	private final HttpStatus httpStatus;
 	private final String message;
