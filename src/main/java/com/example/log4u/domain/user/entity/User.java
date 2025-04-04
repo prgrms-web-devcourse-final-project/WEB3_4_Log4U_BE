@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.common.oauth2.dto.OAuth2Response;
+import com.example.log4u.domain.user.dto.UserProfileMakeRequestDto;
 import com.example.log4u.domain.user.dto.UserProfileUpdateRequestDto;
 
 import jakarta.persistence.Column;
@@ -70,6 +71,13 @@ public class User extends BaseEntity {
 		this.statusMessage = userProfileUpdateRequestDto.statusMessage();
 	}
 
+	public void createMyProfile(UserProfileMakeRequestDto userProfileMakeRequestDto) {
+		this.nickname = userProfileMakeRequestDto.nickname();
+		this.statusMessage = userProfileMakeRequestDto.statusMessage();
+		this.profileImage = userProfileMakeRequestDto.profileImage();
+		this.role = "ROLE_USER";
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null || getClass() != obj.getClass()) {
@@ -89,4 +97,5 @@ public class User extends BaseEntity {
 		return Objects.hash(getName(), getNickname(), getEmail(), getProviderId(), getProfileImage(), getRole(),
 			getSocialType(), getStatusMessage(), isPremium());
 	}
+
 }
