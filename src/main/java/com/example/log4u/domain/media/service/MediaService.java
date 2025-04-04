@@ -141,6 +141,7 @@ public class MediaService {
 		}
 	}
 
+	@Transactional(readOnly = true)
 	public Media getMediaById(Long mediaId) {
 		return mediaRepository.findById(mediaId)
 			.orElseThrow(NotFoundMediaException::new);
