@@ -39,7 +39,7 @@ public class UserController {
 	@GetMapping("/dev")
 	public ResponseEntity<?> loginAsDevUser(HttpServletResponse response) {
 		// 개발자 전용 유저 정보 세팅
-		Long userId = 3L;
+		Long userId = 1L;
 		String name = "test";
 
 		String email = "test@test.com";
