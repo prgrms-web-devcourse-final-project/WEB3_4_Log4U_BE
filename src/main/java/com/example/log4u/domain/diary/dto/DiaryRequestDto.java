@@ -8,6 +8,7 @@ import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.media.dto.MediaRequestDto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record DiaryRequestDto(
 	@NotBlank(message = "제목은 필수입니다.")
@@ -17,7 +18,7 @@ public record DiaryRequestDto(
 	Double latitude,
 	Double longitude,
 	WeatherInfo weatherInfo,
-	@NotBlank(message = "공개 범위는 필수입니다.")
+	@NotNull(message = "공개 범위는 필수입니다.")
 	VisibilityType visibility,
 	List<MediaRequestDto> mediaList
 ) {

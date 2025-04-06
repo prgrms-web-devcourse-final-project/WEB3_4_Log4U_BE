@@ -165,7 +165,7 @@ public class DiaryServiceTest {
 		List<Media> mediaList = List.of(MediaFixture.createMediaFixture(10L, diaryId));
 
 		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
-		given(followRepository.existsByFollowerIdAndFollowingId(userId, authorId)).willReturn(true);
+		given(followRepository.existsByInitiatorIdAndTargetId(userId, authorId)).willReturn(true);
 		given(mediaService.getMediaByDiaryId(diaryId)).willReturn(mediaList);
 
 		// when
@@ -188,7 +188,7 @@ public class DiaryServiceTest {
 		Diary diary = DiaryFixture.createFollowerDiaryFixture(diaryId, authorId); // 다른 사용자의 팔로워 다이어리
 
 		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
-		given(followRepository.existsByFollowerIdAndFollowingId(userId, authorId)).willReturn(false);
+		given(followRepository.existsByInitiatorIdAndTargetId(userId, authorId)).willReturn(false);
 
 		// when & then
 		assertThatThrownBy(() -> diaryService.getDiary(userId, diaryId))
