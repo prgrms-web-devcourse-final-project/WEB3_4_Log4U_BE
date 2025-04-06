@@ -48,10 +48,16 @@ public class MapService {
 	public void increaseRegionDiaryCount(Double lat, Double lon) {
 		sidoAreasRepository.findRegionByLatLon(lat, lon)
 			.flatMap(sido -> sidoAreasDiaryCountRepository.findById(sido.getId()))
-			.ifPresent(SidoAreasDiaryCount::incrementCount);
+			.ifPresent(count -> {
+				count.incrementCount();
+				sidoAreasDiaryCountRepository.save(count);
+			});
 
 		siggAreasRepository.findRegionByLatLon(lat, lon)
 			.flatMap(sigg -> siggAreasDiaryCountRepository.findById(sigg.getGid()))
-			.ifPresent(SiggAreasDiaryCount::incrementCount);
+			.ifPresent(count -> {
+				count.incrementCount();
+				siggAreasDiaryCountRepository.save(count);
+			});
 	}
 }
