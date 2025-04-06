@@ -63,16 +63,19 @@ jobs:
 
       - name: Build and analyze
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           DB_URL: jdbc:mysql://localhost:3307/log4u
           DB_USERNAME: dev
           DB_PASSWORD: devcos4-team08
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_ACCESS_TOKEN_EXPIRE_TIME_SECONDS: ${{ secrets.JWT_ACCESS_TOKEN_EXPIRE_TIME_SECONDS }}
+          JWT_REFRESH_TOKEN_EXPIRE_TIME_SECONDS: ${{ secrets.JWT_ACCESS_TOKEN_EXPIRE_TIME_SECONDS }}
 
         # 테스트용으로 dev 프로필 사용(시크릿 제외하고 prod 와 동일)
         run: |
-          chmod +x ./gradlew        
-          ./gradlew build jacocoTestReport -Pprofile=dev 
+          chmod +x ./gradlew
+          # 소나클라우드 임시 비활성화 ./gradlew build jacocoTestReport sonar --info -Pprofile=dev -Dsonar.branch.name=${{ github.ref_name }}
+          ./gradlew build -i jacocoTestReport -Pprofile=dev 
 
       - name: Docker MySQL 종료 및 제거
         run: |
