@@ -74,6 +74,8 @@ public class SecurityConfig {
 			.authorizeHttpRequests(auth -> auth
 				// 소셜 로그인 경로
 				.requestMatchers("/oauth2/**").permitAll()
+				// 프론트 개발용 임시 토큰 발급 api
+				.requestMatchers("/users/dev/**").permitAll()
 				// Swagger UI 관련 경로 (swagger-ui.html 추가)
 				.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
 				.anyRequest().authenticated());
