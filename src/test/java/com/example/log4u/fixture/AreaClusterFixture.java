@@ -1,31 +1,43 @@
 package com.example.log4u.fixture;
 
+import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import com.example.log4u.domain.map.dto.response.AreaClusterProjection;
 
 public class AreaClusterFixture {
 
-	public static AreaClusterProjection createSidoArea(Long id, String name, double lat, double lon, long diaryCount) {
-		return new AreaClusterProjectionStub(id, name, lat, lon, diaryCount);
-	}
-
-	public static AreaClusterProjection createSiggArea(Long id, String name, double lat, double lon, long diaryCount) {
-		return new AreaClusterProjectionStub(id, name, lat, lon, diaryCount);
-	}
-
-	public static List<AreaClusterProjection> sidoAreaList() {
-		return List.of(
-			createSidoArea(1L, "서울특별시", 37.5, 126.9, 100L),
-			createSidoArea(2L, "경기도", 37.6, 127.0, 80L)
+	public static DiaryClusterResponseDto createSidoAreaFixture(Long id, String name, double lat, double lon, long diaryCount) {
+		return new DiaryClusterResponseDto(
+			name,
+			id,
+			lat,
+			lon,
+			diaryCount
 		);
 	}
 
-	public static List<AreaClusterProjection> siggAreaList() {
-		return List.of(
-			createSiggArea(11L, "강남구", 37.4, 127.0, 42L),
-			createSiggArea(12L, "송파구", 37.5, 127.1, 30L)
+	public static DiaryClusterResponseDto createSiggAreaFixture(Long id, String name, double lat, double lon, long diaryCount) {
+		return new DiaryClusterResponseDto(
+			name,
+			id,
+			lat,
+			lon,
+			diaryCount
 		);
+	}
+
+	public static List<DiaryClusterResponseDto> sidoAreaList() {
+		List<DiaryClusterResponseDto> list = new ArrayList<>();
+		list.add(createSidoAreaFixture(1L, "서울특별시", 37.5665, 126.9780, 100L));
+		list.add(createSidoAreaFixture(2L, "경기도", 37.4138, 127.5183, 80L));
+		return list;
+	}
+
+	public static List<DiaryClusterResponseDto> siggAreaList() {
+		List<DiaryClusterResponseDto> list = new ArrayList<>();
+		list.add(createSiggAreaFixture(101L, "강남구", 37.4979, 127.0276, 42L));
+		list.add(createSiggAreaFixture(102L, "송파구", 37.5145, 127.1050, 30L));
+		return list;
 	}
 }
