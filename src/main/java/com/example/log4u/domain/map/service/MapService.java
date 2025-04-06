@@ -34,15 +34,11 @@ public class MapService {
 	}
 
 	private List<DiaryClusterResponseDto> getSidoAreasClusters(double south, double north, double west, double east) {
-		return sidoAreasRepository.findSidoAreaClusters(south, north, west, east).stream()
-			.map(DiaryClusterResponseDto::of)
-			.toList();
+		return sidoAreasRepository.findSidoAreaClusters(south, north, west, east);
 	}
 
 	private List<DiaryClusterResponseDto> getSiggAreasClusters(double south, double north, double west, double east) {
-		return siggAreasRepository.findSiggAreaClusters(south, north, west, east).stream()
-			.map(DiaryClusterResponseDto::of)
-			.toList();
+		return siggAreasRepository.findSiggAreaClusters(south, north, west, east);
 	}
 
 	public void increaseRegionDiaryCount(Double lat, Double lon) {
