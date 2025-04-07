@@ -1,7 +1,9 @@
 package com.example.log4u.domain.user.dto;
 
+import jakarta.validation.constraints.NotEmpty;
+
 public record UserProfileMakeRequestDto(
-	String nickname,
+	@NotEmpty String nickname,
 	String statusMessage,
 	String profileImage
 ) {
