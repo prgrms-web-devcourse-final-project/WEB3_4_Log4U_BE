@@ -66,7 +66,7 @@ public class User extends BaseEntity {
 		this.profileImage = oAuth2Response.getProfileImage();
 	}
 
-	public void updateProfile(UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
+	public void updateMyProfile(UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
 		this.profileImage = userProfileUpdateRequestDto.profileImage();
 		this.statusMessage = userProfileUpdateRequestDto.statusMessage();
 	}

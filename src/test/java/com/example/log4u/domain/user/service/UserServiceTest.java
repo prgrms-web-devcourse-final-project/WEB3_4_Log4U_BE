@@ -13,6 +13,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.log4u.domain.user.dto.NicknameValidationResponseDto;
+import com.example.log4u.domain.user.dto.UserProfileMakeRequestDto;
+import com.example.log4u.domain.user.dto.UserProfileUpdateRequestDto;
 import com.example.log4u.domain.user.entity.User;
 import com.example.log4u.domain.user.exception.UserNotFoundException;
 import com.example.log4u.domain.user.repository.UserRepository;
@@ -27,6 +29,43 @@ class UserServiceTest {
 
 	@Mock
 	private UserRepository userRepository;
+	
+	@Test
+	@DisplayName("내 프로필을 생성하고 저장해야 한다.")
+	void shouldCreateAndSaveMyUserProfile() {
+		Long userId = 1L;
+		UserProfileMakeRequestDto userProfileMakeRequestDto = new UserProfileMakeRequestDto(
+			"test nickname",
+			"test msg",
+			"test img"
+		);
+
+		User mockUser = mock(User.class);
+		when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+
+		userService.createMyProfile(userId, userProfileMakeRequestDto);
+
+		verify(mockUser).createMyProfile(userProfileMakeRequestDto);
+		verify(userRepository).save(mockUser);
+	}
+
+	@Test
+	@DisplayName("내 프로필을 업데이트 하고 저장해야 한다")
+	void shouldUpdateAndSaveMyProfile() {
+		Long userId = 1L;
+		UserProfileUpdateRequestDto userProfileUpdateRequestDto = new UserProfileUpdateRequestDto(
+			"test msg",
+			"test img"
+		);
+
+		User mockUser = mock(User.class);
+		when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+
+		userService.updateMyProfile(userId, userProfileUpdateRequestDto);
+
+		verify(mockUser).updateMyProfile(userProfileUpdateRequestDto);
+		verify(userRepository).save(mockUser);
+	}
 
 	@Test
 	@DisplayName(("닉네임 중복 검사 결과 이용 가능"))
@@ -72,7 +111,7 @@ class UserServiceTest {
 	void shouldThrowExceptionWhenUserNotFound() {
 		Long userId = 1L;
 		given(userRepository.findById(userId)).willReturn(Optional.empty());
-		
+
 		assertThrows(UserNotFoundException.class, () -> userService.getUserById(userId));
 		verify(userRepository).findById(userId);
 	}

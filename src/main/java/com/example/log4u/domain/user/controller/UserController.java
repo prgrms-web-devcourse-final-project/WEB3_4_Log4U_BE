@@ -119,13 +119,12 @@ public class UserController {
 	}
 
 	@PutMapping("/me")
-	public ResponseEntity<UserProfileResponseDto> updateMyProfile(
+	public ResponseEntity<Void> updateMyProfile(
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
 		UserProfileUpdateRequestDto userProfileUpdateRequestDto
 	) {
-		UserProfileResponseDto userProfileResponseDto =
-			userService.updateMyProfile(customOAuth2User.getUserId(), userProfileUpdateRequestDto);
-		return ResponseEntity.ok(userProfileResponseDto);
+		userService.updateMyProfile(customOAuth2User.getUserId(), userProfileUpdateRequestDto);
+		return ResponseEntity.ok().build();
 	}
 
 	@GetMapping("/validation/{nickname}")
