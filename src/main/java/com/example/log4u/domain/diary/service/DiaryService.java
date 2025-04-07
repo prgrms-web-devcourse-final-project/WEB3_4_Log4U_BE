@@ -21,6 +21,7 @@ import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
+import com.example.log4u.domain.like.repository.LikeRepository;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
 import com.example.log4u.domain.user.repository.UserRepository;
@@ -37,6 +38,7 @@ public class DiaryService {
 	private final UserRepository userRepository;
 	private final FollowRepository followRepository;
 	private final MediaService mediaService;
+	private final LikeRepository likeRepository;
 
 	// 다이어리 생성
 	@Transactional
@@ -73,8 +75,9 @@ public class DiaryService {
 
 		validateDiaryAccess(diary, userId);
 
+		boolean isLiked = likeRepository.existsByUserIdAndDiaryId(userId, diaryId);
 		List<Media> media = mediaService.getMediaByDiaryId(diary.getDiaryId());
-		return DiaryResponseDto.of(diary, media);
+		return DiaryResponseDto.of(diary, media, isLiked);
 	}
 
 	// 다이어리 목록 (프로필 페이지)

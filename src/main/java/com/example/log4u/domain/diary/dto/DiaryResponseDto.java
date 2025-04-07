@@ -23,10 +23,10 @@ public record DiaryResponseDto(
 	LocalDateTime updatedAt,
 	String thumbnailUrl,
 	Long likeCount,
-	List<MediaResponseDto> mediaList
-	// TODO: isLiked 현재 로그인한 사용자의 좋아요 여부
+	List<MediaResponseDto> mediaList,
+	boolean isLiked
 ) {
-	public static DiaryResponseDto of(Diary diary, List<Media> media) {
+	public static DiaryResponseDto of(Diary diary, List<Media> media, boolean isLiked) {
 		return DiaryResponseDto.builder()
 			.diaryId(diary.getDiaryId())
 			.userId(diary.getUserId())
@@ -42,6 +42,12 @@ public record DiaryResponseDto(
 			.likeCount(diary.getLikeCount())
 			.mediaList(media.stream()
 				.map(MediaResponseDto::of).toList())
+			.isLiked(isLiked)
 			.build();
+	}
+
+	// 다이어리 목록 반환 시 사용 (isLiked false 기본값)
+	public static DiaryResponseDto of(Diary diary, List<Media> media) {
+		return DiaryResponseDto.of(diary, media, false);
 	}
 }
