@@ -68,6 +68,7 @@ public class Diary extends BaseEntity {
 	public void update(DiaryRequestDto request, String newThumbnailUrl) {
 		this.title = request.title();
 		this.content = request.content();
+		this.diaryDate = request.diaryDate();
 		this.location = LocationDto.toEntity(request.location());
 		this.weatherInfo = request.weatherInfo();
 		this.visibility = request.visibility();
