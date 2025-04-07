@@ -21,9 +21,9 @@ import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
+import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
-import com.example.log4u.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,9 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 public class DiaryService {
 
 	private final DiaryRepository diaryRepository;
-	private final UserRepository userRepository;
 	private final FollowRepository followRepository;
 	private final MediaService mediaService;
+	private final MapService mapService;
 
 	// 다이어리 생성
 	@Transactional
@@ -46,6 +46,7 @@ public class DiaryService {
 			DiaryRequestDto.toEntity(userId, request, thumbnailUrl)
 		);
 		mediaService.saveMedia(diary.getDiaryId(), request.mediaList());
+		mapService.increaseRegionDiaryCount(request.latitude(), request.longitude());
 	}
 
 	// 다이어리 검색
