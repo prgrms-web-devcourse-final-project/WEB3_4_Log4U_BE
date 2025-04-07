@@ -62,7 +62,7 @@ class MyMapServiceTest {
 				null, 0L)
 		);
 
-		given(sidoRegionStrategy.findRegionsInBounds(west, south, east, north)).willReturn(sidoList);
+		given(sidoRegionStrategy.findRegionsInBounds(south, north, west, east)).willReturn(sidoList);
 		given(diaryRepository.findInBoundsByUserId(userId, south, north, west, east)).willReturn(diaries);
 		given(sidoRegionStrategy.findRegionByLatLon(anyDouble(), anyDouble()))
 			.willAnswer(invocation -> {
@@ -101,7 +101,7 @@ class MyMapServiceTest {
 		Diary diary = DiaryFixture.createCustomDiaryFixture(1L, userId, "title", "content", "thumb.jpg", null, 37.4979,
 			127.0276, null, 0L);
 
-		given(siggRegionStrategy.findRegionsInBounds(west, south, east, north)).willReturn(siggList);
+		given(siggRegionStrategy.findRegionsInBounds(south, north, west, east)).willReturn(siggList);
 		given(diaryRepository.findInBoundsByUserId(userId, south, north, west, east)).willReturn(List.of(diary));
 		given(siggRegionStrategy.findRegionByLatLon(anyDouble(), anyDouble())).willReturn(Optional.of(anyArea));
 		given(siggRegionStrategy.extractAreaName(any())).willReturn(anyArea.getSggName());
@@ -128,7 +128,7 @@ class MyMapServiceTest {
 		SidoAreas seoul = SidoAreasFixture.createSidoAreaFixture(1L, "서울특별시", 37.5665, 126.9780);
 		List<SidoAreas> sidoList = List.of(seoul);
 
-		given(sidoRegionStrategy.findRegionsInBounds(west, south, east, north)).willReturn(sidoList);
+		given(sidoRegionStrategy.findRegionsInBounds(south, north, west, east)).willReturn(sidoList);
 		given(diaryRepository.findInBoundsByUserId(userId, south, north, west, east)).willReturn(List.of());
 		given(sidoRegionStrategy.extractAreaName(any())).willReturn("서울특별시");
 		given(sidoRegionStrategy.toDto(any(), eq(0L))).willReturn(
