@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.log4u.domain.diary.entity.Diary;
+import com.example.log4u.domain.map.entitiy.Location;
 import com.example.log4u.domain.media.dto.MediaResponseDto;
 import com.example.log4u.domain.media.entity.Media;
 
@@ -13,8 +14,7 @@ import lombok.Builder;
 public record DiaryResponseDto(
 	Long diaryId,
 	Long userId,
-	Double latitude,
-	Double longitude,
+	Location location,
 	String title,
 	String content,
 	String weatherInfo,
@@ -30,8 +30,7 @@ public record DiaryResponseDto(
 		return DiaryResponseDto.builder()
 			.diaryId(diary.getDiaryId())
 			.userId(diary.getUserId())
-			.latitude(diary.getLatitude())
-			.longitude(diary.getLongitude())
+			.location(diary.getLocation())
 			.title(diary.getTitle())
 			.content(diary.getContent())
 			.weatherInfo(diary.getWeatherInfo().name())

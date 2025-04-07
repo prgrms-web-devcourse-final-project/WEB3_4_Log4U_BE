@@ -31,9 +31,9 @@ import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
+import com.example.log4u.domain.like.repository.LikeRepository;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
-import com.example.log4u.domain.user.repository.UserRepository;
 import com.example.log4u.fixture.DiaryFixture;
 import com.example.log4u.fixture.MediaFixture;
 
@@ -44,7 +44,7 @@ public class DiaryServiceTest {
 	private DiaryRepository diaryRepository;
 
 	@Mock
-	private UserRepository userRepository;
+	private LikeRepository likeRepository;
 
 	@Mock
 	private FollowRepository followRepository;

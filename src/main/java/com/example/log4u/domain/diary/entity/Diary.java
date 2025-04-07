@@ -4,8 +4,11 @@ import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.WeatherInfo;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
+import com.example.log4u.domain.map.dto.LocationDto;
+import com.example.log4u.domain.map.entitiy.Location;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -40,9 +43,8 @@ public class Diary extends BaseEntity {
 	@Column(nullable = false)
 	private String content;
 
-	private Double latitude;
-
-	private Double longitude;
+	@Embedded
+	private Location location;
 
 	@Enumerated(EnumType.STRING)
 	private WeatherInfo weatherInfo;
@@ -58,8 +60,7 @@ public class Diary extends BaseEntity {
 	public void update(DiaryRequestDto request, String newThumbnailUrl) {
 		this.title = request.title();
 		this.content = request.content();
-		this.latitude = request.latitude();
-		this.longitude = request.longitude();
+		this.location = LocationDto.toEntity(request.location());
 		this.weatherInfo = request.weatherInfo();
 		this.visibility = request.visibility();
 		this.thumbnailUrl = newThumbnailUrl;

@@ -7,6 +7,7 @@ import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.WeatherInfo;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.entity.Diary;
+import com.example.log4u.domain.map.entitiy.Location;
 import com.example.log4u.domain.media.dto.MediaRequestDto;
 
 public class DiaryFixture {
@@ -19,8 +20,7 @@ public class DiaryFixture {
 			.title("테스트 다이어리")
 			.thumbnailUrl("thumbnail.jpg")
 			.content("다이어리 내용입니다.")
-			.latitude(37.1234)
-			.longitude(127.5678)
+			.location(LocationFixture.createDefaultLocation())
 			.likeCount(11L)
 			.build();
 	}
@@ -33,8 +33,7 @@ public class DiaryFixture {
 		String content,
 		String thumbnailUrl,
 		VisibilityType visibility,
-		Double latitude,
-		Double longitude,
+		Location location,
 		WeatherInfo weatherInfo,
 		Long likeCount
 	) {
@@ -45,8 +44,7 @@ public class DiaryFixture {
 			.content(content)
 			.thumbnailUrl(thumbnailUrl)
 			.visibility(visibility)
-			.latitude(latitude)
-			.longitude(longitude)
+			.location(location)
 			.weatherInfo(weatherInfo)
 			.likeCount(likeCount)
 			.build();
@@ -56,7 +54,7 @@ public class DiaryFixture {
 	public static Diary createPublicDiaryFixture(Long diaryId, Long userId) {
 		return createCustomDiaryFixture(
 			diaryId, userId, "공개 일기", "누구나 볼 수 있는 내용", "https://example.com/public.jpg",
-			VisibilityType.PUBLIC, 37.5665, 126.9780, WeatherInfo.SUNNY, 5L
+			VisibilityType.PUBLIC, LocationFixture.createDefaultLocation(), WeatherInfo.SUNNY, 5L
 		);
 	}
 
@@ -64,7 +62,7 @@ public class DiaryFixture {
 	public static Diary createPrivateDiaryFixture(Long diaryId, Long userId) {
 		return createCustomDiaryFixture(
 			diaryId, userId, "비공개 일기", "나만 볼 수 있는 내용", "https://example.com/private.jpg",
-			VisibilityType.PRIVATE, 37.5665, 126.9780, WeatherInfo.CLOUDY, 0L
+			VisibilityType.PRIVATE, LocationFixture.createGangnamLocation(), WeatherInfo.CLOUDY, 0L
 		);
 	}
 
@@ -72,7 +70,7 @@ public class DiaryFixture {
 	public static Diary createFollowerDiaryFixture(Long diaryId, Long userId) {
 		return createCustomDiaryFixture(
 			diaryId, userId, "팔로워 일기", "팔로워만 볼 수 있는 내용", "https://example.com/follower.jpg",
-			VisibilityType.FOLLOWER, 37.5665, 126.9780, WeatherInfo.RAINY, 3L
+			VisibilityType.FOLLOWER, LocationFixture.createHongdaeLocation(), WeatherInfo.RAINY, 3L
 		);
 	}
 
@@ -88,8 +86,7 @@ public class DiaryFixture {
 		return new DiaryRequestDto(
 			"테스트 제목",
 			"테스트 내용",
-			37.5665,
-			126.9780,
+			LocationFixture.createDefaultLocationDto(),
 			WeatherInfo.SUNNY,
 			VisibilityType.PUBLIC,
 			mediaList
@@ -106,8 +103,7 @@ public class DiaryFixture {
 		return new DiaryRequestDto(
 			"공개 테스트 제목",
 			"공개 테스트 내용",
-			37.5665,
-			126.9780,
+			LocationFixture.createDefaultLocationDto(),
 			WeatherInfo.SUNNY,
 			VisibilityType.PUBLIC,
 			mediaList
@@ -124,8 +120,7 @@ public class DiaryFixture {
 		return new DiaryRequestDto(
 			"비공개 테스트 제목",
 			"비공개 테스트 내용",
-			37.5665,
-			126.9780,
+			LocationFixture.createGangnamLocationDto(),
 			WeatherInfo.CLOUDY,
 			VisibilityType.PRIVATE,
 			mediaList
@@ -142,8 +137,7 @@ public class DiaryFixture {
 		return new DiaryRequestDto(
 			"팔로워 테스트 제목",
 			"팔로워 테스트 내용",
-			37.5665,
-			126.9780,
+			LocationFixture.createHongdaeLocationDto(),
 			WeatherInfo.RAINY,
 			VisibilityType.FOLLOWER,
 			mediaList
@@ -164,8 +158,7 @@ public class DiaryFixture {
 		return new DiaryRequestDto(
 			"여러 미디어 테스트",
 			"순서가 다양한 미디어를 포함한 다이어리",
-			37.5665,
-			126.9780,
+			LocationFixture.createJejuLocationDto(),
 			WeatherInfo.SUNNY,
 			VisibilityType.PUBLIC,
 			mediaList
@@ -182,8 +175,7 @@ public class DiaryFixture {
 			.content("오늘은 날씨가 좋았습니다.")
 			.thumbnailUrl("https://example.com/thumbnail1.jpg")
 			.visibility(VisibilityType.PUBLIC)
-			.latitude(37.5665)
-			.longitude(126.9780)
+			.location(LocationFixture.createDefaultLocation())
 			.weatherInfo(WeatherInfo.SUNNY)
 			.likeCount(5L)
 			.build();
@@ -195,8 +187,7 @@ public class DiaryFixture {
 			.content("인기 있는 일기입니다.")
 			.thumbnailUrl("https://example.com/thumbnail2.jpg")
 			.visibility(VisibilityType.PUBLIC)
-			.latitude(37.5665)
-			.longitude(126.9780)
+			.location(LocationFixture.createGangnamLocation())
 			.weatherInfo(WeatherInfo.CLOUDY)
 			.likeCount(10L)
 			.build();
@@ -208,8 +199,7 @@ public class DiaryFixture {
 			.content("나만 볼 수 있는 내용입니다.")
 			.thumbnailUrl("https://example.com/thumbnail3.jpg")
 			.visibility(VisibilityType.PRIVATE)
-			.latitude(37.5665)
-			.longitude(126.9780)
+			.location(LocationFixture.createHongdaeLocation())
 			.weatherInfo(WeatherInfo.RAINY)
 			.likeCount(0L)
 			.build();
@@ -221,8 +211,7 @@ public class DiaryFixture {
 			.content("팔로워만 볼 수 있는 내용입니다.")
 			.thumbnailUrl("https://example.com/thumbnail4.jpg")
 			.visibility(VisibilityType.FOLLOWER)
-			.latitude(37.5665)
-			.longitude(126.9780)
+			.location(LocationFixture.createJejuLocation())
 			.weatherInfo(WeatherInfo.SNOWY)
 			.likeCount(3L)
 			.build();
@@ -234,8 +223,7 @@ public class DiaryFixture {
 			.content("다른 사용자가 작성한 공개 일기입니다.")
 			.thumbnailUrl("https://example.com/thumbnail5.jpg")
 			.visibility(VisibilityType.PUBLIC)
-			.latitude(35.1796)
-			.longitude(129.0756)
+			.location(LocationFixture.createHaeundaeLocation())
 			.weatherInfo(WeatherInfo.SUNNY)
 			.likeCount(3L)
 			.build();
@@ -254,6 +242,14 @@ public class DiaryFixture {
 		List<Diary> diaries = new ArrayList<>();
 
 		for (int i = 0; i < count; i++) {
+			Location location = LocationFixture.createCustomLocation(
+				37.5665 + (i * 0.001),
+				126.9780 + (i * 0.001),
+				"서울특별시",
+				"중구",
+				"명동" + (i + 1) + "가"
+			);
+
 			Diary diary = Diary.builder()
 				.diaryId((long)(i + 1))
 				.userId(1L)
@@ -261,15 +257,13 @@ public class DiaryFixture {
 				.content("테스트 내용 " + (i + 1))
 				.thumbnailUrl("https://example.com/thumbnail" + (i + 1) + ".jpg")
 				.visibility(VisibilityType.PUBLIC)
-				.latitude(37.5665 + (i * 0.001))
-				.longitude(126.9780 + (i * 0.001))
+				.location(location)
 				.weatherInfo(WeatherInfo.SUNNY)
 				.likeCount(5L + i)
 				.build();
 
 			diaries.add(diary);
 		}
-
 		return diaries;
 	}
 
