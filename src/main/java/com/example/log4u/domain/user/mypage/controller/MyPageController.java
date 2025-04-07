@@ -21,7 +21,7 @@ public class MyPageController {
 
 	@GetMapping("/users/me/diaries")
 	public ResponseEntity<PageResponse<DiaryResponseDto>> getMyDiaryPage(
-		@RequestParam(required = false) VisibilityType visibilityType,
+		@RequestParam(required = false, name = "visibilityType") VisibilityType visibilityType,
 		@RequestParam(required = false) Long cursorId
 	) {
 		Long userId = 1L;
