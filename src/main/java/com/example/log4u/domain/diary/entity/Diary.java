@@ -1,5 +1,7 @@
 package com.example.log4u.domain.diary.entity;
 
+import java.time.LocalDate;
+
 import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.WeatherInfo;
@@ -38,15 +40,21 @@ public class Diary extends BaseEntity {
 	@Column(nullable = false)
 	private String title;
 
+	@Column(nullable = false)
 	private String thumbnailUrl;
 
 	@Column(nullable = false)
 	private String content;
 
+	@Column(nullable = false)
+	private LocalDate diaryDate;
+
 	@Embedded
+	@Column(nullable = false)
 	private Location location;
 
 	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
 	private WeatherInfo weatherInfo;
 
 	@Enumerated(EnumType.STRING)
