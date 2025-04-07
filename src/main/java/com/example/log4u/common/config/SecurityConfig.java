@@ -90,7 +90,7 @@ public class SecurityConfig {
 				configuration.setAllowedOrigins(Collections.singletonList(UrlConstants.FRONT_ORIGIN_URL));
 				// 프론트 도메인을 백엔드 도메인 하위로 둘 경우
 				configuration.setAllowedOrigins(Collections.singletonList(
-					"http://web.ec2-13-209-127-186.ap-northeast-2.compute.amazonaws.com:3000"));
+					UrlConstants.FRONT_SUB_DOMAIN_URL));
 				configuration.setAllowedMethods(Collections.singletonList("*"));
 				configuration.setAllowCredentials(true);
 				configuration.setAllowedHeaders(Collections.singletonList("*"));
