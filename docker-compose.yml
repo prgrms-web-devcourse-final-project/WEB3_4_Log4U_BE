@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: log4u_postgres
+    environment:
+      POSTGRES_DB: gis_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - log4u-net
+
+volumes:
+  pgdata:
+
+networks:
+  log4u-net:

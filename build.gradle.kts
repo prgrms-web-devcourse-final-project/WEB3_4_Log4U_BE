@@ -35,6 +35,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("mysql:mysql-connector-java:8.0.33")
 
+    implementation ("org.antlr:antlr4-runtime:4.10.1")
+
+
     // PostgreSQL + PostGIS
     implementation("org.postgresql:postgresql:42.7.3") // 최신 버전 확인
     implementation ("org.hibernate.orm:hibernate-spatial:6.2.7.Final") // 최신 Hibernate 6
