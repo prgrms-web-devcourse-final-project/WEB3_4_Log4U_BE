@@ -2,8 +2,6 @@ package com.example.log4u.domain.user.service;
 
 import org.springframework.stereotype.Service;
 
-import com.example.log4u.common.dto.PageResponse;
-import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.follow.repository.FollowRepository;
 import com.example.log4u.domain.user.dto.NicknameValidationResponseDto;
@@ -26,37 +24,22 @@ public class UserService {
 
 	public UserProfileResponseDto getMyProfile(Long userId) {
 		User me = getUserById(userId);
-		PageResponse<DiaryResponseDto> diaries =
-			diaryService.getDiariesByCursor(
-				userId,
-				userId,
-				null,
-				DEFAULT_DIARIES_SIZE);
 
 		return UserProfileResponseDto.fromUser(
 			me,
 			followRepository.countByTargetId(userId),
-			followRepository.countByInitiatorId(userId),
-			diaries
+			followRepository.countByInitiatorId(userId)
 		);
 	}
 
-	public UserProfileResponseDto getUserProfile(Long userId, String nickname) {
+	public UserProfileResponseDto getUserProfile(String nickname) {
 		User target = getUserByNickname(nickname);
 		final Long targetId = target.getUserId();
-
-		PageResponse<DiaryResponseDto> diaries =
-			diaryService.getDiariesByCursor(
-				userId,
-				targetId,
-				null,
-				DEFAULT_DIARIES_SIZE);
 
 		return UserProfileResponseDto.fromUser(
 			target,
 			followRepository.countByTargetId(targetId),
-			followRepository.countByInitiatorId(targetId),
-			diaries
+			followRepository.countByInitiatorId(targetId)
 		);
 	}
 
