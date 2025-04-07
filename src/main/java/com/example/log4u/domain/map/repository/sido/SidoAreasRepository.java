@@ -26,6 +26,6 @@ public interface SidoAreasRepository extends JpaRepository<SidoAreas, Long>, Sid
 		WHERE s.lat BETWEEN :south AND :north
 		  AND s.lon BETWEEN :west AND :east
 	""")
-	List<SidoAreas> findWithinBoundingBox(@Param("west") double west, @Param("south") double south, @Param("east") double east, @Param("north") double north
+	List<SidoAreas> findWithinBoundingBox(@Param("south") double south, @Param("north") double north, @Param("west") double west, @Param("east") double east
 	);
 }

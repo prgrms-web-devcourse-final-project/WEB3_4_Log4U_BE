@@ -26,7 +26,7 @@ public interface SiggAreasRepository extends JpaRepository<SiggAreas, Long>, Sig
 		WHERE r.lat BETWEEN :south AND :north
 		  AND r.lon BETWEEN :west AND :east
 	""")
-	List<SiggAreas> findWithinBoundingBox(@Param("west") double west, @Param("south") double south, @Param("east") double east, @Param("north") double north
+	List<SiggAreas> findWithinBoundingBox(@Param("south") double south, @Param("north") double north, @Param("west") double west, @Param("east") double east
 	);
 
 }
