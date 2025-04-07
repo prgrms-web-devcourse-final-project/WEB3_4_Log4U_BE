@@ -52,20 +52,26 @@ public class DiaryService {
 
 	// 다이어리 검색
 	@Transactional(readOnly = true)
-	public PageResponse<DiaryResponseDto> searchDiaries(
+	public PageResponse<DiaryResponseDto> searchDiariesByCursor(
 		String keyword,
 		SortType sort,
-		int page,
+		Long cursorId,
 		int size
 	) {
-		Page<Diary> diaryPage = diaryRepository.searchDiaries(
+		Slice<Diary> diaries = diaryRepository.searchDiariesByCursor(
 			keyword,
 			List.of(VisibilityType.PUBLIC),
 			sort,
-			PageRequest.of(page, size)
+			cursorId != null ? cursorId : Long.MAX_VALUE,
+			PageRequest.of(0, size)
 		);
 
-		return PageResponse.of(mapToDtoPage(diaryPage));
+		Slice<DiaryResponseDto> dtoSlice = mapToDtoSlice(diaries);
+
+		// 다음 커서 ID 계산
+		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
+
+		return PageResponse.of(dtoSlice, nextCursor);
 	}
 
 	// 다이어리 상세 조회

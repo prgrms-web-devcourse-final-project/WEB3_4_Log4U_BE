@@ -32,6 +32,19 @@ public class DiaryController {
 
 	private final DiaryService diaryService;
 
+	@GetMapping("/users/{userId}")
+	public ResponseEntity<PageResponse<DiaryResponseDto>> getDiariesByUserId(
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
+		@PathVariable(name = "userId") Long targetUserId,
+		@RequestParam(required = false) Long cursorId,
+		@RequestParam(defaultValue = "12") int size
+	) {
+		PageResponse<DiaryResponseDto> response = diaryService.getDiariesByCursor(customOAuth2User.getUserId(),
+			targetUserId, cursorId, size);
+
+		return ResponseEntity.ok(response);
+	}
+
 	@PostMapping
 	public ResponseEntity<Void> createDiary(
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
@@ -41,16 +54,16 @@ public class DiaryController {
 		return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 
-	@GetMapping
+	@GetMapping("/search")
 	public ResponseEntity<PageResponse<DiaryResponseDto>> searchDiaries(
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
 		@RequestParam(required = false) String keyword,
 		@RequestParam(defaultValue = "LATEST") SortType sort,
-		@RequestParam(defaultValue = "0") int page,
+		@RequestParam(required = false) Long cursorId,
 		@RequestParam(defaultValue = "6") int size
 	) {
 		return ResponseEntity.ok(
-			diaryService.searchDiaries(keyword, sort, page, size)
+			diaryService.searchDiariesByCursor(keyword, sort, cursorId, size)
 		);
 	}
 

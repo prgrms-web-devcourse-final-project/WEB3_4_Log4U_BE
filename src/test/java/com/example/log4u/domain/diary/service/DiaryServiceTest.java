@@ -15,8 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -85,18 +83,19 @@ public class DiaryServiceTest {
 		// given
 		String keyword = "테스트";
 		SortType sort = SortType.LATEST;
-		int page = 0;
+		Long cursorId = null; // 커서 ID를 null로 설정 (첫 페이지 조회)
 		int size = 6;
 
 		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
-		Page<Diary> diaryPage = new PageImpl<>(diaries, PageRequest.of(0, SEARCH_PAGE_SIZE), 3);
+		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), false);
 
-		given(diaryRepository.searchDiaries(
+		given(diaryRepository.searchDiariesByCursor(
 			eq(keyword),
 			eq(List.of(VisibilityType.PUBLIC)),
 			eq(sort),
+			eq(Long.MAX_VALUE),
 			any(PageRequest.class)
-		)).willReturn(diaryPage);
+		)).willReturn(diarySlice);
 
 		Map<Long, List<Media>> mediaMap = new HashMap<>();
 		for (Diary diary : diaries) {
@@ -108,12 +107,11 @@ public class DiaryServiceTest {
 		given(mediaService.getMediaMapByDiaryIds(anyList())).willReturn(mediaMap);
 
 		// when
-		PageResponse<DiaryResponseDto> result = diaryService.searchDiaries(keyword, sort, page, size);
+		PageResponse<DiaryResponseDto> result = diaryService.searchDiariesByCursor(keyword, sort, cursorId, size);
 
 		// then
 		assertThat(result.list()).hasSize(3);
-		assertThat(result.pageInfo().totalPages()).isEqualTo(1);
-		assertThat(result.pageInfo().totalElements()).isEqualTo(3);
+		assertThat(result.pageInfo().hasNext()).isFalse();
 
 		assertThat(result.list()).allSatisfy(diary -> {
 			assertThat(diary.title().contains(keyword) || diary.content().contains(keyword))

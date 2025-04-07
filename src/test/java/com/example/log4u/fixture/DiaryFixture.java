@@ -1,5 +1,6 @@
 package com.example.log4u.fixture;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class DiaryFixture {
 			.title("테스트 다이어리")
 			.thumbnailUrl("thumbnail.jpg")
 			.content("다이어리 내용입니다.")
+			.diaryDate(LocalDate.now())
 			.location(LocationFixture.createDefaultLocation())
 			.likeCount(11L)
 			.build();
@@ -44,6 +46,7 @@ public class DiaryFixture {
 			.content(content)
 			.thumbnailUrl(thumbnailUrl)
 			.visibility(visibility)
+			.diaryDate(LocalDate.now())
 			.location(location)
 			.weatherInfo(weatherInfo)
 			.likeCount(likeCount)
@@ -86,6 +89,7 @@ public class DiaryFixture {
 		return new DiaryRequestDto(
 			"테스트 제목",
 			"테스트 내용",
+			LocalDate.now(),
 			LocationFixture.createDefaultLocationDto(),
 			WeatherInfo.SUNNY,
 			VisibilityType.PUBLIC,
@@ -103,6 +107,7 @@ public class DiaryFixture {
 		return new DiaryRequestDto(
 			"공개 테스트 제목",
 			"공개 테스트 내용",
+			LocalDate.now(),
 			LocationFixture.createDefaultLocationDto(),
 			WeatherInfo.SUNNY,
 			VisibilityType.PUBLIC,
@@ -120,6 +125,7 @@ public class DiaryFixture {
 		return new DiaryRequestDto(
 			"비공개 테스트 제목",
 			"비공개 테스트 내용",
+			LocalDate.now(),
 			LocationFixture.createGangnamLocationDto(),
 			WeatherInfo.CLOUDY,
 			VisibilityType.PRIVATE,
@@ -137,6 +143,7 @@ public class DiaryFixture {
 		return new DiaryRequestDto(
 			"팔로워 테스트 제목",
 			"팔로워 테스트 내용",
+			LocalDate.now(),
 			LocationFixture.createHongdaeLocationDto(),
 			WeatherInfo.RAINY,
 			VisibilityType.FOLLOWER,
@@ -158,6 +165,7 @@ public class DiaryFixture {
 		return new DiaryRequestDto(
 			"여러 미디어 테스트",
 			"순서가 다양한 미디어를 포함한 다이어리",
+			LocalDate.now(),
 			LocationFixture.createJejuLocationDto(),
 			WeatherInfo.SUNNY,
 			VisibilityType.PUBLIC,
@@ -178,6 +186,7 @@ public class DiaryFixture {
 			.location(LocationFixture.createDefaultLocation())
 			.weatherInfo(WeatherInfo.SUNNY)
 			.likeCount(5L)
+			.diaryDate(LocalDate.now())  // diaryDate 추가
 			.build();
 
 		// 두번째 일기 (userId1, PUBLIC, 좋아요 10개)
@@ -190,6 +199,7 @@ public class DiaryFixture {
 			.location(LocationFixture.createGangnamLocation())
 			.weatherInfo(WeatherInfo.CLOUDY)
 			.likeCount(10L)
+			.diaryDate(LocalDate.now().minusDays(1))  // diaryDate 추가 (어제 날짜)
 			.build();
 
 		// 세번째 일기 (userId1, PRIVATE)
@@ -202,6 +212,7 @@ public class DiaryFixture {
 			.location(LocationFixture.createHongdaeLocation())
 			.weatherInfo(WeatherInfo.RAINY)
 			.likeCount(0L)
+			.diaryDate(LocalDate.now().minusDays(2))  // diaryDate 추가 (2일 전)
 			.build();
 
 		// 네번째 일기 (userId1, FOLLOWER)
@@ -214,6 +225,7 @@ public class DiaryFixture {
 			.location(LocationFixture.createJejuLocation())
 			.weatherInfo(WeatherInfo.SNOWY)
 			.likeCount(3L)
+			.diaryDate(LocalDate.now().minusDays(3))  // diaryDate 추가 (3일 전)
 			.build();
 
 		// 다섯번째 일기 (userId2, PUBLIC, 좋아요 3개)
@@ -226,6 +238,7 @@ public class DiaryFixture {
 			.location(LocationFixture.createHaeundaeLocation())
 			.weatherInfo(WeatherInfo.SUNNY)
 			.likeCount(3L)
+			.diaryDate(LocalDate.now().minusDays(4))  // diaryDate 추가 (4일 전)
 			.build();
 
 		diaries.add(diary1);
@@ -260,11 +273,11 @@ public class DiaryFixture {
 				.location(location)
 				.weatherInfo(WeatherInfo.SUNNY)
 				.likeCount(5L + i)
+				.diaryDate(LocalDate.now().minusDays(i))
 				.build();
 
 			diaries.add(diary);
 		}
 		return diaries;
 	}
-
 }
