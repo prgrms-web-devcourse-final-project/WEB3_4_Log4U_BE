@@ -5,7 +5,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
+import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.example.log4u.domain.map.entity.SidoAreasDiaryCount;
 import com.example.log4u.domain.map.entity.SiggAreasDiaryCount;
 import com.example.log4u.domain.map.repository.SidoAreasDiaryCountRepository;
@@ -23,6 +25,7 @@ public class MapService {
 	private final SidoAreasDiaryCountRepository sidoAreasDiaryCountRepository;
 	private final SiggAreasRepository siggAreasRepository;
 	private final SiggAreasDiaryCountRepository siggAreasDiaryCountRepository;
+	private final DiaryRepository diaryRepository;
 
 	@Transactional(readOnly = true)
 	public List<DiaryClusterResponseDto> getDiaryClusters(double south, double north, double west, double east, int zoom) {
@@ -56,4 +59,10 @@ public class MapService {
 				siggAreasDiaryCountRepository.save(count);
 			});
 	}
+
+	@Transactional(readOnly = true)
+	public List<DiaryMarkerResponseDto> getDiariesInBounds(double south, double north, double west, double east) {
+		return diaryRepository.findDiariesInBounds(south, north, west, east);
+	}
+
 }
