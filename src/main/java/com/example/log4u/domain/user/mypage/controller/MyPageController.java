@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.log4u.common.dto.PageResponse;
+import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.subscription.dto.SubscriptionResponseDto;
 import com.example.log4u.domain.user.dto.UserThumbnailResponseDto;
@@ -20,10 +21,11 @@ public class MyPageController {
 
 	@GetMapping("/users/me/diaries")
 	public ResponseEntity<PageResponse<DiaryResponseDto>> getMyDiaryPage(
+		@RequestParam(required = false) VisibilityType visibilityType,
 		@RequestParam(required = false) Long cursorId
 	) {
 		Long userId = 1L;
-		return ResponseEntity.ok(myPageService.getMyDiariesByCursor(userId, cursorId));
+		return ResponseEntity.ok(myPageService.getMyDiariesByCursor(userId, visibilityType, cursorId));
 	}
 
 	@GetMapping("/users/me/likes")

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.log4u.common.dto.PageResponse;
+import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.follow.repository.FollowQuerydsl;
@@ -30,9 +31,10 @@ public class MyPageService {
 	private final SubscriptionRepository subscriptionRepository;
 
 	@Transactional(readOnly = true)
-	public PageResponse<DiaryResponseDto> getMyDiariesByCursor(Long userId, Long cursorId) {
-		return diaryService.getDiariesByCursor(userId, userId,
-			cursorId, defaultPageSize); // 일단 로직 자체가 구현 그대로 돼있길래 그대로 갖다 썼는데 이래도 구조가 괜찮을 지 모르겠습니다.
+	public PageResponse<DiaryResponseDto> getMyDiariesByCursor(Long userId, VisibilityType visibilityType,
+		Long cursorId) {
+		return diaryService.getMyDiariesByCursor(userId, visibilityType, cursorId,
+			defaultPageSize); // 일단 로직 자체가 구현 그대로 돼있길래 그대로 갖다 썼는데 이래도 구조가 괜찮을 지 모르겠습니다.
 	}
 
 	@Transactional(readOnly = true)

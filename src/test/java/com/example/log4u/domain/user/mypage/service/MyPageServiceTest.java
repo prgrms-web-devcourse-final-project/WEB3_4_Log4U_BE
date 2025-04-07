@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.SliceImpl;
 
 import com.example.log4u.common.dto.PageResponse;
+import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.follow.repository.FollowQuerydsl;
@@ -66,7 +67,8 @@ public class MyPageServiceTest {
 
 		when(diaryService.getDiariesByCursor(userId, userId, cursorId, 6)).thenReturn(mockResponse);
 
-		PageResponse<DiaryResponseDto> result = myPageService.getMyDiariesByCursor(userId, cursorId);
+		PageResponse<DiaryResponseDto> result = myPageService.getMyDiariesByCursor(userId, VisibilityType.PUBLIC,
+			cursorId);
 
 		assertThat(result).isNotNull();
 		verify(diaryService).getDiariesByCursor(userId, userId, cursorId, 6);
