@@ -8,12 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
-import com.example.log4u.domain.map.entity.SidoAreasDiaryCount;
-import com.example.log4u.domain.map.entity.SiggAreasDiaryCount;
-import com.example.log4u.domain.map.repository.SidoAreasDiaryCountRepository;
-import com.example.log4u.domain.map.repository.SiggAreasRepository;
-import com.example.log4u.domain.map.repository.SidoAreasRepository;
-import com.example.log4u.domain.map.repository.SiggAreasDiaryCountRepository;
+import com.example.log4u.domain.map.repository.sido.SidoAreasDiaryCountRepository;
+import com.example.log4u.domain.map.repository.sigg.SiggAreasRepository;
+import com.example.log4u.domain.map.repository.sido.SidoAreasRepository;
+import com.example.log4u.domain.map.repository.sigg.SiggAreasDiaryCountRepository;
 
 import lombok.RequiredArgsConstructor;
 

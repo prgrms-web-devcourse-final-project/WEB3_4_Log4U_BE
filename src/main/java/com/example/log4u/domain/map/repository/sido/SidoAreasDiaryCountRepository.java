@@ -1,6 +1,4 @@
-package com.example.log4u.domain.map.repository;
-
-import java.util.List;
+package com.example.log4u.domain.map.repository.sido;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

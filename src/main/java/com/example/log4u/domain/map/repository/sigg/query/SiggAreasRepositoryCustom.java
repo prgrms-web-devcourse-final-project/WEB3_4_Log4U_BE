@@ -1,4 +1,4 @@
-package com.example.log4u.domain.map.repository;
+package com.example.log4u.domain.map.repository.sigg.query;
 
 import java.util.List;
 

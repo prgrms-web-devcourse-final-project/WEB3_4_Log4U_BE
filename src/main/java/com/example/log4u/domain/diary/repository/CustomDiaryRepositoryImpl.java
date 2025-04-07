@@ -161,4 +161,19 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 			.orderBy(d.createdAt.asc())
 			.fetch();
 	}
+
+	@Override
+	public List<Diary> findInBoundsByUserId(Long userId, double south, double north, double west, double east) {
+		QDiary d = QDiary.diary;
+
+		return queryFactory
+			.selectFrom(d)
+			.where(
+				d.userId.eq(userId),
+				d.latitude.between(south, north),
+				d.longitude.between(west, east)
+			)
+			.fetch();
+	}
+
 }
