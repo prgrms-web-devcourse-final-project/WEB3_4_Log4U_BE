@@ -42,4 +42,11 @@ public class SiggAreas {
 
 	@Column(name = "parent_id")
 	private Integer parentId;
+
+	public SiggAreas(String sggName, Double lat, Double lon) {
+		this.sggName = sggName;
+		this.lat = lat;
+		this.lon = lon;
+	}
+
 }

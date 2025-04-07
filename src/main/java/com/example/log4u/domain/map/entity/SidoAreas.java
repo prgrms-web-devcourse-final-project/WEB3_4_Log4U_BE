@@ -32,4 +32,10 @@ public class SidoAreas {
 
 	@Column(nullable = false)
 	private Double lon;
+
+	public SidoAreas(String name, double lat, double lon) {
+		this.name = name;
+		this.lat = lat;
+		this.lon = lon;
+	}
 }
