@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
+import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.example.log4u.domain.map.service.strategy.AreaRegion;
 import com.example.log4u.domain.map.service.strategy.SidoRegionStrategy;
 import com.example.log4u.domain.map.service.strategy.SiggRegionStrategy;
@@ -62,5 +63,10 @@ public class MyMapService {
 				return regionStrategy.toDto(region, count);
 			})
 			.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public List<DiaryMarkerResponseDto> getMyDiariesInBounds(Long userId, double south, double north, double west, double east) {
+		return diaryRepository.findMyDiariesInBounds(userId, south, north, west, east);
 	}
 }

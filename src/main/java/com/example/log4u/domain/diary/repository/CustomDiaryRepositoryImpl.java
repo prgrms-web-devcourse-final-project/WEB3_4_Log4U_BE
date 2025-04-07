@@ -176,4 +176,28 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 			.fetch();
 	}
 
+	@Override
+	public List<DiaryMarkerResponseDto> findMyDiariesInBounds(Long userId, double south, double north, double west, double east) {
+		QDiary d = QDiary.diary;
+
+		return queryFactory
+			.select(Projections.constructor(DiaryMarkerResponseDto.class,
+				d.diaryId,
+				d.title,
+				d.thumbnailUrl,
+				d.likeCount,
+				d.latitude,
+				d.longitude,
+				d.createdAt
+			))
+			.from(d)
+			.where(
+				d.userId.eq(userId),
+				d.latitude.between(south, north),
+				d.longitude.between(west, east)
+			)
+			.orderBy(d.createdAt.asc())
+			.fetch();
+	}
+
 }

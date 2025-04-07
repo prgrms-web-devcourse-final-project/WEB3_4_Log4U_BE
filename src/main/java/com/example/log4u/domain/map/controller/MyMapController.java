@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
+import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.example.log4u.domain.map.service.MyMapService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,4 +35,17 @@ public class MyMapController {
 		List<DiaryClusterResponseDto> clusters = myMapService.getMyDiaryClusters(south, north, west, east, zoom, userId);
 		return ResponseEntity.ok(clusters);
 	}
+
+	@GetMapping("/my/diaries/marker")
+	public ResponseEntity<List<DiaryMarkerResponseDto>> getMyDiariesInBounds(
+		@RequestParam double south,
+		@RequestParam double north,
+		@RequestParam double west,
+		@RequestParam double east,
+		@RequestParam Long userId
+	) {
+		List<DiaryMarkerResponseDto> diaries = myMapService.getMyDiariesInBounds(userId, south, north, west, east);
+		return ResponseEntity.ok(diaries);
+	}
+
 }
