@@ -111,17 +111,17 @@ public class DiaryServiceTest {
 		PageResponse<DiaryResponseDto> result = diaryService.searchDiaries(keyword, sort, page, size);
 
 		// then
-		assertThat(result.content()).hasSize(3);
+		assertThat(result.list()).hasSize(3);
 		assertThat(result.pageInfo().totalPages()).isEqualTo(1);
 		assertThat(result.pageInfo().totalElements()).isEqualTo(3);
 
-		assertThat(result.content()).allSatisfy(diary -> {
+		assertThat(result.list()).allSatisfy(diary -> {
 			assertThat(diary.title().contains(keyword) || diary.content().contains(keyword))
 				.as("다이어리 제목 또는 내용에 키워드 '%s'가 포함되어야 합니다.", keyword)
 				.isTrue();
 		});
 
-		DiaryResponseDto firstDiary = result.content().get(0);
+		DiaryResponseDto firstDiary = result.list().get(0);
 		assertThat(firstDiary.diaryId()).isEqualTo(diaries.get(0).getDiaryId());
 		assertThat(firstDiary.title()).isEqualTo(diaries.get(0).getTitle());
 		assertThat(firstDiary.content()).isEqualTo(diaries.get(0).getContent());
@@ -266,7 +266,7 @@ public class DiaryServiceTest {
 		PageResponse<DiaryResponseDto> result = diaryService.getDiariesByCursor(userId, targetUserId, cursorId, size);
 
 		// then
-		assertThat(result.content()).hasSize(3);
+		assertThat(result.list()).hasSize(3);
 		assertThat(result.pageInfo().hasNext()).isFalse();
 	}
 
