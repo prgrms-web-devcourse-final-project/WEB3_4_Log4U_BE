@@ -19,7 +19,7 @@ public class SidoRegionStrategy implements AreaRegion<SidoAreas> {
 
 	@Override
 	public List<SidoAreas> findRegionsInBounds(double south, double north, double west, double east) {
-		return sidoAreasRepository.findWithinBoundingBox(south, north, west, east));
+		return sidoAreasRepository.findWithinBoundingBox(south, north, west, east);
 	}
 
 	@Override
