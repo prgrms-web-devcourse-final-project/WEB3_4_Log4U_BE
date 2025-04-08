@@ -9,7 +9,7 @@ import org.locationtech.jts.geom.Geometry;
 @Getter
 @NoArgsConstructor
 @Table(name = "sido_areas", schema = "public")
-public class SidoAreas {
+public class SidoAreas implements Areas {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,4 +32,30 @@ public class SidoAreas {
 
 	@Column(nullable = false)
 	private Double lon;
+
+	public SidoAreas(String name, double lat, double lon) {
+		this.name = name;
+		this.lat = lat;
+		this.lon = lon;
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public Long getId() {
+		return id;
+	}
+
+	@Override
+	public Double getLat() {
+		return lat;
+	}
+
+	@Override
+	public Double getLon() {
+		return lon;
+	}
 }
