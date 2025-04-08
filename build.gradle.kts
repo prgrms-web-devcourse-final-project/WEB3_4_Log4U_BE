@@ -71,6 +71,10 @@ dependencies {
 
     // mysql
     runtimeOnly("com.mysql:mysql-connector-j")
+
+    // AWS
+    implementation(platform("software.amazon.awssdk:bom:2.31.11"))
+    implementation("software.amazon.awssdk:s3")
 }
 
 tasks.withType<Test> {

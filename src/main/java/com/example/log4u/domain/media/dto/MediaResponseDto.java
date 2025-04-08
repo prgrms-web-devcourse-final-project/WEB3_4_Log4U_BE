@@ -8,13 +8,15 @@ import lombok.Builder;
 public record MediaResponseDto(
 	Long mediaId,
 	String fileUrl,
-	String contentType
+	String contentType,
+	Integer orderIndex
 ) {
 	public static MediaResponseDto of(Media media) {
 		return MediaResponseDto.builder()
-			.mediaId(media.getId())
+			.mediaId(media.getMediaId())
 			.fileUrl(media.getUrl())
 			.contentType(media.getContentType())
+			.orderIndex(media.getOrderIndex())
 			.build();
 	}
 }

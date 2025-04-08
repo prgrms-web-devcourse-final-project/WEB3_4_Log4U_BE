@@ -21,6 +21,7 @@ import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
+import com.example.log4u.domain.like.repository.LikeRepository;
 import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
@@ -37,6 +38,7 @@ public class DiaryService {
 	private final FollowRepository followRepository;
 	private final MediaService mediaService;
 	private final MapService mapService;
+	private final LikeRepository likeRepository;
 
 	// 다이어리 생성
 	@Transactional
@@ -51,20 +53,26 @@ public class DiaryService {
 
 	// 다이어리 검색
 	@Transactional(readOnly = true)
-	public PageResponse<DiaryResponseDto> searchDiaries(
+	public PageResponse<DiaryResponseDto> searchDiariesByCursor(
 		String keyword,
 		SortType sort,
-		int page,
+		Long cursorId,
 		int size
 	) {
-		Page<Diary> diaryPage = diaryRepository.searchDiaries(
+		Slice<Diary> diaries = diaryRepository.searchDiariesByCursor(
 			keyword,
 			List.of(VisibilityType.PUBLIC),
 			sort,
-			PageRequest.of(page, size)
+			cursorId != null ? cursorId : Long.MAX_VALUE,
+			PageRequest.of(0, size)
 		);
 
-		return PageResponse.of(mapToDtoPage(diaryPage));
+		Slice<DiaryResponseDto> dtoSlice = mapToDtoSlice(diaries);
+
+		// 다음 커서 ID 계산
+		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
+
+		return PageResponse.of(dtoSlice, nextCursor);
 	}
 
 	// 다이어리 상세 조회
@@ -74,8 +82,9 @@ public class DiaryService {
 
 		validateDiaryAccess(diary, userId);
 
+		boolean isLiked = likeRepository.existsByUserIdAndDiaryId(userId, diaryId);
 		List<Media> media = mediaService.getMediaByDiaryId(diary.getDiaryId());
-		return DiaryResponseDto.of(diary, media);
+		return DiaryResponseDto.of(diary, media, isLiked);
 	}
 
 	// 다이어리 목록 (프로필 페이지)

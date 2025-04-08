@@ -26,6 +26,14 @@ public interface CustomDiaryRepository {
 		Pageable pageable
 	);
 
+	Slice<Diary> searchDiariesByCursor(
+		String keyword,
+		List<VisibilityType> visibilities,
+		SortType sort,
+		Long cursorId,
+		Pageable pageable
+	);
+
 	Slice<Diary> getLikeDiarySliceByUserId(
 		Long userId,
 		List<VisibilityType> visibilities,
