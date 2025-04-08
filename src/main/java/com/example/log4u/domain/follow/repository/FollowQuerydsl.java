@@ -18,15 +18,15 @@ import com.querydsl.core.types.dsl.NumberPath;
 
 @Repository
 public class FollowQuerydsl extends QuerydslRepositorySupport {
-	private final QFollow follow = QFollow.follow;
-	private final QUser user = QUser.user;
+	private static final QFollow follow = QFollow.follow;
+	private static final QUser user = QUser.user;
 
 	public FollowQuerydsl() {
 		super(Follow.class);
 	}
 
 	private NumberPath<Long> getNumberPath(boolean isFollowerQuery) {
-		return isFollowerQuery ? follow.followerId : follow.followingId;
+		return isFollowerQuery ? follow.targetId : follow.initiatorId;
 	}
 
 	private BooleanBuilder getBooleanBuilder(boolean isFollowerQuery, Long userId, Long cursorId) {
