@@ -42,6 +42,7 @@ public class MapService {
 		return siggAreasRepository.findSiggAreaClusters(south, north, west, east);
 	}
 
+	@Transactional
 	public void increaseRegionDiaryCount(Double lat, Double lon) {
 		sidoAreasRepository.findRegionByLatLon(lat, lon)
 			.flatMap(sido -> sidoAreasDiaryCountRepository.findById(sido.getId()))
