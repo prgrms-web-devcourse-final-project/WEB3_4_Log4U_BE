@@ -31,6 +31,7 @@ import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
+import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
 import com.example.log4u.domain.user.repository.UserRepository;
@@ -55,6 +56,9 @@ public class DiaryServiceTest {
 	@InjectMocks
 	private DiaryService diaryService;
 
+	@Mock
+	private MapService mapService;
+
 	private static final int CURSOR_PAGE_SIZE = 12;
 
 	private static final int SEARCH_PAGE_SIZE = 6;
@@ -77,6 +81,7 @@ public class DiaryServiceTest {
 
 		// then
 		verify(mediaService).saveMedia(eq(diary.getDiaryId()), eq(request.mediaList()));
+		verify(mapService).increaseRegionDiaryCount(request.latitude(), request.longitude());
 	}
 
 	@Test

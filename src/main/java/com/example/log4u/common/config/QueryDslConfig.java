@@ -2,6 +2,7 @@ package com.example.log4u.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -17,6 +18,7 @@ public class QueryDslConfig {
 	}
 
 	@Bean
+	@Primary
 	public JPAQueryFactory jpaQueryFactory() {
 		return new JPAQueryFactory(entityManager);
 	}
