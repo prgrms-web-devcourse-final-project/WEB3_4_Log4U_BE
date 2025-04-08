@@ -7,21 +7,26 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.entity.QDiary;
+import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
 
+@Repository
 @RequiredArgsConstructor
 public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
+
 	private final JPAQueryFactory queryFactory;
 
 	@Override
@@ -131,5 +136,29 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 		}
 
 		return new SliceImpl<>(content, pageable, hasNext);
+	}
+
+	@Override
+	public List<DiaryMarkerResponseDto> findDiariesInBounds(double south, double north, double west, double east) {
+		QDiary d = QDiary.diary;
+
+		return queryFactory
+			.select(Projections.constructor(DiaryMarkerResponseDto.class,
+				d.diaryId,
+				d.title,
+				d.thumbnailUrl,
+				d.likeCount,
+				d.latitude,
+				d.longitude,
+				d.createdAt
+			))
+			.from(d)
+			.where(
+				d.visibility.eq(VisibilityType.PUBLIC),
+				d.latitude.between(south, north),
+				d.longitude.between(west, east)
+			)
+			.orderBy(d.createdAt.asc())
+			.fetch();
 	}
 }
