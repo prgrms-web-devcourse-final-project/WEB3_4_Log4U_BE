@@ -36,29 +36,35 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
 
-      - name: MySQL 컨테이너 실행
+      - name: Docker Compose 실행
         run: |
-          docker run --name log4u-mysql \
-            -e MYSQL_ROOT_PASSWORD=root \
-            -e MYSQL_DATABASE=log4u \
-            -e MYSQL_USER=${{ secrets.DB_USERNAME }} \
-            -e MYSQL_PASSWORD=${{ secrets.DB_PASSWORD}} \
-            -d \
-            -p 3307:3306 \
-            mysql:8.0.33
+          docker-compose -f docker-compose.yml up -d
 
-      - name: Wait for MySQL to be ready
+      - name: 컨테이너 실행 대기
         run: |
+          echo "Waiting for MySQL to be ready..."
           for i in {1..10}; do
-            if docker exec log4u-mysql mysqladmin ping -h "127.0.0.1" --silent; then
+            if docker exec log4u_mysql mysqladmin ping -h "127.0.0.1" --silent; then
               echo "MySQL is ready!"
               break
             fi
-            echo "Waiting for MySQL to start..."
             sleep 1
           done
-          if ! docker exec log4u-mysql mysqladmin ping -h "127.0.0.1" --silent; then
+          if ! docker exec log4u_mysql mysqladmin ping -h "127.0.0.1" --silent; then
             echo "MySQL did not start in time!"
+            exit 1
+          fi
+
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in {1..10}; do
+            if docker exec log4u_postgres pg_isready -U postgres; then
+              echo "PostgreSQL is ready!"
+              break
+            fi
+            sleep 1
+          done
+          if ! docker exec log4u_postgres pg_isready -U postgres; then
+            echo "PostgreSQL did not start in time!"
             exit 1
           fi
 
@@ -88,10 +94,9 @@ jobs:
           # 소나클라우드 임시 비활성화 ./gradlew build jacocoTestReport sonar --info -Pprofile=dev -Dsonar.branch.name=${{ github.ref_name }}
           ./gradlew build -i jacocoTestReport -Pprofile=dev 
 
-      - name: Docker MySQL 종료 및 제거
-        run: |
-          docker stop log4u-mysql
-          docker rm log4u-mysql
+
+      - name: Docker Compose 종료
+        run: docker-compose -f docker-compose.yml down
 
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
