@@ -29,8 +29,8 @@ import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
-import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.domain.like.repository.LikeRepository;
+import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
 import com.example.log4u.fixture.DiaryFixture;
@@ -79,7 +79,7 @@ public class DiaryServiceTest {
 
 		// then
 		verify(mediaService).saveMedia(eq(diary.getDiaryId()), eq(request.mediaList()));
-		verify(mapService).increaseRegionDiaryCount(request.latitude(), request.longitude());
+		verify(mapService).increaseRegionDiaryCount(request.location().latitude(), request.location().longitude());
 	}
 
 	@Test

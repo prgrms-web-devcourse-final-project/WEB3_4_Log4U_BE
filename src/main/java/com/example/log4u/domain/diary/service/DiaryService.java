@@ -48,7 +48,7 @@ public class DiaryService {
 			DiaryRequestDto.toEntity(userId, request, thumbnailUrl)
 		);
 		mediaService.saveMedia(diary.getDiaryId(), request.mediaList());
-		mapService.increaseRegionDiaryCount(request.latitude(), request.longitude());
+		mapService.increaseRegionDiaryCount(request.location().latitude(), request.location().longitude());
 	}
 
 	// 다이어리 검색

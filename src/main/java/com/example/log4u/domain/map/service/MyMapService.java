@@ -10,12 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
+import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.example.log4u.domain.map.entity.Areas;
 import com.example.log4u.domain.map.service.strategy.AreaRegion;
 import com.example.log4u.domain.map.service.strategy.SidoRegionStrategy;
 import com.example.log4u.domain.map.service.strategy.SiggRegionStrategy;
-import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,10 +48,12 @@ public class MyMapService {
 		List<Diary> diaries = diaryRepository.findInBoundsByUserId(userId, south, north, west, east);
 
 		Map<String, Long> diaryCountMap = diaries.stream()
-			.map(diary -> regionStrategy.findRegionByLatLon(diary.getLatitude(), diary.getLongitude())
+			.map(diary -> regionStrategy.findRegionByLatLon(diary.getLocation().getLatitude(),
+					diary.getLocation().getLongitude())
 				.map(regionStrategy::extractAreaName)
 				.orElseGet(() -> {
-					log.warn("지역 매핑 실패 - diaryId: {}, lat: {}, lon: {}", diary.getDiaryId(), diary.getLatitude(), diary.getLongitude());
+					log.warn("지역 매핑 실패 - diaryId: {}, lat: {}, lon: {}", diary.getDiaryId(),
+						diary.getLocation().getLatitude(), diary.getLocation().getLongitude());
 					return "UNKNOWN";
 				}))
 			.collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
@@ -66,7 +68,8 @@ public class MyMapService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<DiaryMarkerResponseDto> getMyDiariesInBounds(Long userId, double south, double north, double west, double east) {
+	public List<DiaryMarkerResponseDto> getMyDiariesInBounds(Long userId, double south, double north, double west,
+		double east) {
 		return diaryRepository.findMyDiariesInBounds(userId, south, north, west, east);
 	}
 }

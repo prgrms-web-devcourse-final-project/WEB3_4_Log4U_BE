@@ -250,15 +250,15 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 				d.title,
 				d.thumbnailUrl,
 				d.likeCount,
-				d.latitude,
-				d.longitude,
+				d.location.latitude,
+				d.location.longitude,
 				d.createdAt
 			))
 			.from(d)
 			.where(
 				d.visibility.eq(VisibilityType.PUBLIC),
-				d.latitude.between(south, north),
-				d.longitude.between(west, east)
+				d.location.latitude.between(south, north),
+				d.location.longitude.between(west, east)
 			)
 			.orderBy(d.createdAt.asc())
 			.fetch();
@@ -272,14 +272,15 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 			.selectFrom(d)
 			.where(
 				d.userId.eq(userId),
-				d.latitude.between(south, north),
-				d.longitude.between(west, east)
+				d.location.latitude.between(south, north),
+				d.location.longitude.between(west, east)
 			)
 			.fetch();
 	}
 
 	@Override
-	public List<DiaryMarkerResponseDto> findMyDiariesInBounds(Long userId, double south, double north, double west, double east) {
+	public List<DiaryMarkerResponseDto> findMyDiariesInBounds(Long userId, double south, double north, double west,
+		double east) {
 		QDiary d = QDiary.diary;
 
 		return queryFactory
@@ -288,15 +289,15 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 				d.title,
 				d.thumbnailUrl,
 				d.likeCount,
-				d.latitude,
-				d.longitude,
+				d.location.latitude,
+				d.location.longitude,
 				d.createdAt
 			))
 			.from(d)
 			.where(
 				d.userId.eq(userId),
-				d.latitude.between(south, north),
-				d.longitude.between(west, east)
+				d.location.latitude.between(south, north),
+				d.location.longitude.between(west, east)
 			)
 			.orderBy(d.createdAt.asc())
 			.fetch();

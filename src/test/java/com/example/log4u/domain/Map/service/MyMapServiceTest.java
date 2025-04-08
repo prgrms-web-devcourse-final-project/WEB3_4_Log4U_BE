@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
+import com.example.log4u.domain.map.entitiy.Location;
 import com.example.log4u.domain.map.entity.SidoAreas;
 import com.example.log4u.domain.map.entity.SiggAreas;
 import com.example.log4u.domain.map.service.MyMapService;
@@ -53,12 +54,36 @@ class MyMapServiceTest {
 		SidoAreas gyeonggi = SidoAreasFixture.createSidoAreaFixture(2L, "경기도", 37.4138, 127.5183);
 		List<SidoAreas> sidoList = List.of(seoul, gyeonggi);
 
+		Location l1 = new Location(
+			37.5665, // 첫 번째 Diary 위도
+			126.9780, // 첫 번째 Diary 경도
+			null,
+			null,
+			null
+		);
+
+		Location l2 = new Location(
+			37.5666,
+			126.9781,
+			null,
+			null,
+			null
+		);
+
+		Location l3 = new Location(
+			37.4138,
+			127.5183,
+			null,
+			null,
+			null
+		);
+
 		List<Diary> diaries = List.of(
-			DiaryFixture.createCustomDiaryFixture(1L, userId, "title", "content", "thumb1.jpg", null, 37.5665, 126.9780,
+			DiaryFixture.createCustomDiaryFixture(1L, userId, "title", "content", "thumb1.jpg", null, l1,
 				null, 0L),
-			DiaryFixture.createCustomDiaryFixture(2L, userId, "title", "content", "thumb2.jpg", null, 37.5666, 126.9781,
+			DiaryFixture.createCustomDiaryFixture(2L, userId, "title", "content", "thumb2.jpg", null, l2,
 				null, 0L),
-			DiaryFixture.createCustomDiaryFixture(3L, userId, "title", "content", "thumb3.jpg", null, 37.4138, 127.5183,
+			DiaryFixture.createCustomDiaryFixture(3L, userId, "title", "content", "thumb3.jpg", null, l3,
 				null, 0L)
 		);
 
@@ -98,8 +123,16 @@ class MyMapServiceTest {
 		SiggAreas anyArea = SiggAreasFixture.createSiggAreaFixture(1L, "강남구", 37.4979, 127.0276);
 		List<SiggAreas> siggList = List.of(anyArea);
 
-		Diary diary = DiaryFixture.createCustomDiaryFixture(1L, userId, "title", "content", "thumb.jpg", null, 37.4979,
-			127.0276, null, 0L);
+		Location location = new Location(
+			37.4979,
+			127.0276,
+			null,
+			null,
+			null
+		);
+
+		Diary diary = DiaryFixture.createCustomDiaryFixture(1L, userId, "title", "content", "thumb.jpg", null, location,
+			null, 0L);
 
 		given(siggRegionStrategy.findRegionsInBounds(south, north, west, east)).willReturn(siggList);
 		given(diaryRepository.findInBoundsByUserId(userId, south, north, west, east)).willReturn(List.of(diary));
