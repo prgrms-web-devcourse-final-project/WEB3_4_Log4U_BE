@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
+import com.example.log4u.domain.map.entity.Areas;
 import com.example.log4u.domain.map.service.strategy.AreaRegion;
 import com.example.log4u.domain.map.service.strategy.SidoRegionStrategy;
 import com.example.log4u.domain.map.service.strategy.SiggRegionStrategy;
@@ -39,21 +40,20 @@ public class MyMapService {
 		}
 	}
 
-	private <T> List<DiaryClusterResponseDto> calculateClusters(AreaRegion<T> regionStrategy, Long userId,
+	private <T extends Areas> List<DiaryClusterResponseDto> calculateClusters(
+		AreaRegion<T> regionStrategy, Long userId,
 		double south, double north, double west, double east) {
 
 		List<T> regions = regionStrategy.findRegionsInBounds(south, north, west, east);
 		List<Diary> diaries = diaryRepository.findInBoundsByUserId(userId, south, north, west, east);
 
 		Map<String, Long> diaryCountMap = diaries.stream()
-			.map(diary -> {
-				return regionStrategy.findRegionByLatLon(diary.getLatitude(), diary.getLongitude())
-					.map(regionStrategy::extractAreaName)
-					.orElseGet(() -> {
-						log.warn("지역 매핑 실패 - diaryId: {}, lat: {}, lon: {}", diary.getDiaryId(), diary.getLatitude(), diary.getLongitude());
-						return "UNKNOWN";
-					});
-			})
+			.map(diary -> regionStrategy.findRegionByLatLon(diary.getLatitude(), diary.getLongitude())
+				.map(regionStrategy::extractAreaName)
+				.orElseGet(() -> {
+					log.warn("지역 매핑 실패 - diaryId: {}, lat: {}, lon: {}", diary.getDiaryId(), diary.getLatitude(), diary.getLongitude());
+					return "UNKNOWN";
+				}))
 			.collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
 		return regions.stream()

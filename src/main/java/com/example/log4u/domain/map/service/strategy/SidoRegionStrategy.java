@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
 import com.example.log4u.domain.map.entity.SidoAreas;
 import com.example.log4u.domain.map.repository.sido.SidoAreasRepository;
 
@@ -25,15 +24,5 @@ public class SidoRegionStrategy implements AreaRegion<SidoAreas> {
 	@Override
 	public Optional<SidoAreas> findRegionByLatLon(double lat, double lon) {
 		return sidoAreasRepository.findRegionByLatLon(lat, lon);
-	}
-
-	@Override
-	public String extractAreaName(SidoAreas area) {
-		return area.getName();
-	}
-
-	@Override
-	public DiaryClusterResponseDto toDto(SidoAreas area, Long count) {
-		return DiaryClusterResponseDto.of(area, count);
 	}
 }

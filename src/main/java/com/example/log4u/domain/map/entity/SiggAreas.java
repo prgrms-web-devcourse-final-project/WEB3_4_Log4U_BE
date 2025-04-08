@@ -9,7 +9,7 @@ import org.locationtech.jts.geom.Geometry;
 @Getter
 @NoArgsConstructor
 @Table(name = "sigg_areas", schema = "public")
-public class SiggAreas {
+public class SiggAreas implements Areas {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,4 +49,23 @@ public class SiggAreas {
 		this.lon = lon;
 	}
 
+	@Override
+	public String getName() {
+		return sggName;
+	}
+
+	@Override
+	public Long getId() {
+		return gid;
+	}
+
+	@Override
+	public Double getLat() {
+		return lat;
+	}
+
+	@Override
+	public Double getLon() {
+		return lon;
+	}
 }

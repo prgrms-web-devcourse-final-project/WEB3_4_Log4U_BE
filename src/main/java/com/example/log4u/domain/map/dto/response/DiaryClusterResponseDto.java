@@ -1,5 +1,6 @@
 package com.example.log4u.domain.map.dto.response;
 
+import com.example.log4u.domain.map.entity.Areas;
 import com.example.log4u.domain.map.entity.SidoAreas;
 import com.example.log4u.domain.map.entity.SiggAreas;
 import com.querydsl.core.annotations.QueryProjection;
@@ -16,20 +17,10 @@ public record DiaryClusterResponseDto(
 	public DiaryClusterResponseDto {
 	}
 
-	public static DiaryClusterResponseDto of(SidoAreas region, Long diaryCount) {
+	public static <T extends Areas> DiaryClusterResponseDto of(T region, Long diaryCount){
 		return new DiaryClusterResponseDto(
 			region.getName(),
 			region.getId(),
-			region.getLat(),
-			region.getLon(),
-			diaryCount
-		);
-	}
-
-	public static DiaryClusterResponseDto of(SiggAreas region, Long diaryCount) {
-		return new DiaryClusterResponseDto(
-			region.getSggName(),
-			region.getGid(),
 			region.getLat(),
 			region.getLon(),
 			diaryCount
