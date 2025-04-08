@@ -87,7 +87,10 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           JWT_ACCESS_TOKEN_EXPIRE_TIME_SECONDS: ${{ secrets.JWT_ACCESS_TOKEN_EXPIRE_TIME_SECONDS }}
           JWT_REFRESH_TOKEN_EXPIRE_TIME_SECONDS: ${{ secrets.JWT_ACCESS_TOKEN_EXPIRE_TIME_SECONDS }}
-
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
         # dev 프로필 사용
         run: |
           chmod +x ./gradlew
