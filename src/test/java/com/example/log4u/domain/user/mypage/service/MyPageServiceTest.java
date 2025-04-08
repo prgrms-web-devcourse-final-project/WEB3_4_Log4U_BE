@@ -65,13 +65,13 @@ public class MyPageServiceTest {
 			new SliceImpl<>(diaries), null
 		);
 
-		when(diaryService.getDiariesByCursor(userId, userId, cursorId, 6)).thenReturn(mockResponse);
+		when(diaryService.getMyDiariesByCursor(userId, VisibilityType.PUBLIC, cursorId, 6)).thenReturn(mockResponse);
 
 		PageResponse<DiaryResponseDto> result = myPageService.getMyDiariesByCursor(userId, VisibilityType.PUBLIC,
 			cursorId);
 
 		assertThat(result).isNotNull();
-		verify(diaryService).getDiariesByCursor(userId, userId, cursorId, 6);
+		verify(diaryService).getMyDiariesByCursor(userId, VisibilityType.PUBLIC, cursorId, 6);
 	}
 
 	@DisplayName("성공 테스트 : 좋아요한 다이어리 조회")
