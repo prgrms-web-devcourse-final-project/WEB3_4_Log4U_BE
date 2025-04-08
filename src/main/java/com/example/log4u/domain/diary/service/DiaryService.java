@@ -218,4 +218,44 @@ public class DiaryService {
 			throw new NotFoundDiaryException();
 		}
 	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<DiaryResponseDto> getMyDiariesByCursor(Long userId, VisibilityType visibilityType,
+		Long cursorId, int size) {
+		List<VisibilityType> visibilities =
+			visibilityType == null ? List.of(VisibilityType.PUBLIC, VisibilityType.PRIVATE, VisibilityType.FOLLOWER) :
+				List.of(visibilityType);
+
+		Slice<Diary> diaries = diaryRepository.findByUserIdAndVisibilityInAndCursorId(
+			userId,
+			visibilities,
+			cursorId != null ? cursorId : Long.MAX_VALUE,
+			PageRequest.of(0, size)
+		);
+
+		Slice<DiaryResponseDto> dtoSlice = mapToDtoSlice(diaries);
+
+		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
+
+		return PageResponse.of(dtoSlice, nextCursor);
+	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<DiaryResponseDto> getLikeDiariesByCursor(Long userId, Long targetUserId, Long cursorId,
+		int size) {
+		List<VisibilityType> visibilities = determineAccessibleVisibilities(userId, targetUserId);
+
+		Slice<Diary> diaries = diaryRepository.getLikeDiarySliceByUserId(
+			targetUserId,
+			visibilities,
+			cursorId != null ? cursorId : Long.MAX_VALUE,
+			PageRequest.of(0, size)
+		);
+
+		Slice<DiaryResponseDto> dtoSlice = mapToDtoSlice(diaries);
+
+		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
+
+		return PageResponse.of(dtoSlice, nextCursor);
+	}
 }

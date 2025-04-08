@@ -26,6 +26,12 @@ public interface CustomDiaryRepository {
 		Pageable pageable
 	);
 
+	Slice<Diary> getLikeDiarySliceByUserId(
+		Long userId,
+		List<VisibilityType> visibilities,
+		Long cursorId,
+		Pageable pageable);
+
 	List<DiaryMarkerResponseDto> findDiariesInBounds(double south, double north, double west, double east);
 
 	List<Diary> findInBoundsByUserId(Long userId, double south, double north, double west, double east);
