@@ -27,7 +27,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 		"com.example.log4u.domain.media",
 		"com.example.log4u.domain.reports",
 		"com.example.log4u.domain.supports",
-		"com.example.log4u.domain.user"
+		"com.example.log4u.domain.user",
+		"com.example.log4u.domain.subscription"
 	},
 	entityManagerFactoryRef = "mysqlEntityManagerFactory",
 	transactionManagerRef = "mysqlTransactionManager"
@@ -55,7 +56,8 @@ public class MySqlConfig {
 			"com.example.log4u.domain.media",
 			"com.example.log4u.domain.reports",
 			"com.example.log4u.domain.supports",
-			"com.example.log4u.domain.user"
+			"com.example.log4u.domain.user",
+			"com.example.log4u.domain.subscription"
 		);
 		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
 		vendorAdapter.setShowSql(true);
