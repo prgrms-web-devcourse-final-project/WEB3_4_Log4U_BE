@@ -10,6 +10,12 @@ spring:
     password: ${aws-mysql.password}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  second-datasource:
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: 1234
+    jdbc-url: jdbc:postgresql://localhost:5432/gis_db
+
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
