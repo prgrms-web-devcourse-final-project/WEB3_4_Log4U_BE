@@ -9,9 +9,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.log4u.common.config.QueryDslConfig;
 import com.example.log4u.domain.media.MediaStatus;
@@ -21,10 +22,11 @@ import com.example.log4u.fixture.MediaFixture;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
-@DataJpaTest
-@ActiveProfiles("test")
+@SpringBootTest
 @Import(QueryDslConfig.class)
-public class MediaRepositoryTest {
+@Transactional
+@ActiveProfiles({"dev", "dev-secret"})
+class MediaRepositoryTest {
 
 	@Autowired
 	private MediaRepository mediaRepository;
@@ -38,7 +40,7 @@ public class MediaRepositoryTest {
 	@BeforeEach
 	void setUp() {
 		mediaRepository.deleteAll();
-		em.createNativeQuery("ALTER TABLE media ALTER COLUMN media_id RESTART WITH 1").executeUpdate();
+		em.createNativeQuery("ALTER TABLE Media AUTO_INCREMENT = 1;").executeUpdate();
 
 		Media media1 = MediaFixture.createMediaFixture(null, diaryId1, MediaStatus.PERMANENT, 2);
 		Media media2 = MediaFixture.createMediaFixture(null, diaryId1, MediaStatus.PERMANENT, 0);
