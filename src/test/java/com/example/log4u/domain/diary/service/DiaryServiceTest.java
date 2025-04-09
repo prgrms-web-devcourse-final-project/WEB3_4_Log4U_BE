@@ -29,6 +29,7 @@ import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
+import com.example.log4u.domain.hashtag.service.HashtagService;
 import com.example.log4u.domain.like.repository.LikeRepository;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
@@ -49,6 +50,9 @@ public class DiaryServiceTest {
 
 	@Mock
 	private MediaService mediaService;
+
+	@Mock
+	private HashtagService hashtagService;
 
 	@InjectMocks
 	private DiaryService diaryService;
