@@ -59,6 +59,9 @@ jobs:
         run: |
           docker-compose -f docker-compose.yml up -d
 
+      - name: PostgreSQL 컨테이너 로그 확인
+        run: docker logs log4u_postgres
+
       - name: 컨테이너 실행 대기
         run: |
           echo "Waiting for MySQL to be ready..."
