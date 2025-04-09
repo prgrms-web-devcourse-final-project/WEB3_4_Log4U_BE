@@ -18,10 +18,10 @@ import org.springframework.stereotype.Component;
 import com.example.log4u.common.oauth2.dto.CustomOAuth2User;
 import com.example.log4u.common.oauth2.jwt.JwtUtil;
 import com.example.log4u.common.oauth2.service.RefreshTokenService;
+import com.example.log4u.common.util.CookieUtil;
 import com.example.log4u.domain.user.entity.User;
 import com.example.log4u.domain.user.repository.UserRepository;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -74,8 +74,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		// 리프레시 토큰 DB 저장
 		refreshTokenService.saveRefreshToken(name, refresh);
 
-		response.addCookie(createCookie(ACCESS_TOKEN, access));
-		response.addCookie(createCookie(REFRESH_TOKEN, refresh));
+		response.addCookie(CookieUtil.createCookie(ACCESS_TOKEN, access));
+		response.addCookie(CookieUtil.createCookie(REFRESH_TOKEN, refresh));
 		response.setStatus(HttpStatus.OK.value());
 	}
 
@@ -86,15 +86,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 			default -> LOGIN_URL;
 		};
 		response.sendRedirect(redirectUrl);
-	}
-
-	private Cookie createCookie(String key, String value) {
-		Cookie cookie = new Cookie(key, value);
-		cookie.setMaxAge(60 * 60 * 60);
-		//cookie.setSecure(true);
-		cookie.setPath("/");
-		cookie.setHttpOnly(true);
-		return cookie;
 	}
 
 }
