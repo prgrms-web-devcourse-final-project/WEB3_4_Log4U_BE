@@ -42,7 +42,7 @@ jobs:
           AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         run: |
           mkdir -p docker
-          aws s3 cp s3://${{ secrets.S3_BUCKET_NAME }}/db/init.sql ./docker/init.sql
+          aws s3 cp s3://devcos4-team08-bucket/db/init.sql ./docker/init.sql
 
 
       - name: Docker Compose 설치
