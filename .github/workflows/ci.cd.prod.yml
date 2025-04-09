@@ -67,20 +67,19 @@ jobs:
         run: |
           echo "Waiting for MySQL to be ready..."
           for i in {1..10}; do
-            if docker-compose exec log4u_mysql mysqladmin ping -h "127.0.0.1" --silent; then
+            if docker-compose exec mysql mysqladmin ping -h "127.0.0.1" --silent; then
               echo "MySQL is ready!"
               break
             fi
             sleep 1
           done
-          if ! docker-compose exec log4u_mysql mysqladmin ping -h "127.0.0.1" --silent; then
+          if ! docker-compose exec mysql mysqladmin ping -h "127.0.0.1" --silent; then
             echo "MySQL did not start in time!"
             exit 1
           fi
           
           echo "Waiting for PostgreSQL to be ready..."
           for i in {1..10}; do
-          
             if docker-compose exec -T postgres pg_isready -d gis_db -U postgres
               echo "PostgreSQL is ready!"
               break
