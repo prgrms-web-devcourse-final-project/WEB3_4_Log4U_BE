@@ -12,7 +12,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity(name = "follow")
+@Entity(name = "Follow")
 @Getter
 @Builder
 @AllArgsConstructor

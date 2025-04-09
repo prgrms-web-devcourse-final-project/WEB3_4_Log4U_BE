@@ -21,9 +21,10 @@ import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
+import com.example.log4u.domain.like.repository.LikeRepository;
+import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
-import com.example.log4u.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,9 +35,10 @@ import lombok.extern.slf4j.Slf4j;
 public class DiaryService {
 
 	private final DiaryRepository diaryRepository;
-	private final UserRepository userRepository;
 	private final FollowRepository followRepository;
 	private final MediaService mediaService;
+	private final MapService mapService;
+	private final LikeRepository likeRepository;
 
 	// 다이어리 생성
 	@Transactional
@@ -46,24 +48,31 @@ public class DiaryService {
 			DiaryRequestDto.toEntity(userId, request, thumbnailUrl)
 		);
 		mediaService.saveMedia(diary.getDiaryId(), request.mediaList());
+		mapService.increaseRegionDiaryCount(request.location().latitude(), request.location().longitude());
 	}
 
 	// 다이어리 검색
 	@Transactional(readOnly = true)
-	public PageResponse<DiaryResponseDto> searchDiaries(
+	public PageResponse<DiaryResponseDto> searchDiariesByCursor(
 		String keyword,
 		SortType sort,
-		int page,
+		Long cursorId,
 		int size
 	) {
-		Page<Diary> diaryPage = diaryRepository.searchDiaries(
+		Slice<Diary> diaries = diaryRepository.searchDiariesByCursor(
 			keyword,
 			List.of(VisibilityType.PUBLIC),
 			sort,
-			PageRequest.of(page, size)
+			cursorId != null ? cursorId : Long.MAX_VALUE,
+			PageRequest.of(0, size)
 		);
 
-		return PageResponse.of(mapToDtoPage(diaryPage));
+		Slice<DiaryResponseDto> dtoSlice = mapToDtoSlice(diaries);
+
+		// 다음 커서 ID 계산
+		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
+
+		return PageResponse.of(dtoSlice, nextCursor);
 	}
 
 	// 다이어리 상세 조회
@@ -73,8 +82,9 @@ public class DiaryService {
 
 		validateDiaryAccess(diary, userId);
 
+		boolean isLiked = likeRepository.existsByUserIdAndDiaryId(userId, diaryId);
 		List<Media> media = mediaService.getMediaByDiaryId(diary.getDiaryId());
-		return DiaryResponseDto.of(diary, media);
+		return DiaryResponseDto.of(diary, media, isLiked);
 	}
 
 	// 다이어리 목록 (프로필 페이지)
@@ -216,5 +226,45 @@ public class DiaryService {
 		if (!diaryRepository.existsById(diaryId)) {
 			throw new NotFoundDiaryException();
 		}
+	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<DiaryResponseDto> getMyDiariesByCursor(Long userId, VisibilityType visibilityType,
+		Long cursorId, int size) {
+		List<VisibilityType> visibilities =
+			visibilityType == null ? List.of(VisibilityType.PUBLIC, VisibilityType.PRIVATE, VisibilityType.FOLLOWER) :
+				List.of(visibilityType);
+
+		Slice<Diary> diaries = diaryRepository.findByUserIdAndVisibilityInAndCursorId(
+			userId,
+			visibilities,
+			cursorId != null ? cursorId : Long.MAX_VALUE,
+			PageRequest.of(0, size)
+		);
+
+		Slice<DiaryResponseDto> dtoSlice = mapToDtoSlice(diaries);
+
+		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
+
+		return PageResponse.of(dtoSlice, nextCursor);
+	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<DiaryResponseDto> getLikeDiariesByCursor(Long userId, Long targetUserId, Long cursorId,
+		int size) {
+		List<VisibilityType> visibilities = determineAccessibleVisibilities(userId, targetUserId);
+
+		Slice<Diary> diaries = diaryRepository.getLikeDiarySliceByUserId(
+			targetUserId,
+			visibilities,
+			cursorId != null ? cursorId : Long.MAX_VALUE,
+			PageRequest.of(0, size)
+		);
+
+		Slice<DiaryResponseDto> dtoSlice = mapToDtoSlice(diaries);
+
+		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
+
+		return PageResponse.of(dtoSlice, nextCursor);
 	}
 }

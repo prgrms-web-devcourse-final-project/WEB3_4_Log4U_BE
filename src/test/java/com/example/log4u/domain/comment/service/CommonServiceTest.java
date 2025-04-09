@@ -20,6 +20,7 @@ import org.springframework.data.domain.SliceImpl;
 
 import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.comment.dto.request.CommentCreateRequestDto;
+import com.example.log4u.domain.comment.dto.response.CommentCreateResponseDto;
 import com.example.log4u.domain.comment.dto.response.CommentResponseDto;
 import com.example.log4u.domain.comment.entity.Comment;
 import com.example.log4u.domain.comment.exception.NotFoundCommentException;
@@ -27,7 +28,6 @@ import com.example.log4u.domain.comment.exception.UnauthorizedAccessException;
 import com.example.log4u.domain.comment.repository.CommentRepository;
 import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.service.DiaryService;
-import com.example.log4u.domain.comment.dto.response.CommentCreateResponseDto;
 import com.example.log4u.fixture.CommentFixture;
 
 @DisplayName("댓글 API 단위 테스트")
@@ -160,15 +160,15 @@ public class CommonServiceTest {
 			.willReturn(slice);
 
 		// when
-		PageResponse<CommentResponseDto> response = commentService.getCommentListByDiary(diaryId, cursorCommentId, size);
+		PageResponse<CommentResponseDto> response = commentService.getCommentListByDiary(diaryId, cursorCommentId,
+			size);
 
 		// then
-		assertThat(response.content()).hasSize(sliced.size());
+		assertThat(response.list()).hasSize(sliced.size());
 		assertThat(response.pageInfo().hasNext()).isEqualTo(hasNext);
 		assertThat(response.pageInfo().nextCursor()).isEqualTo(hasNext ? sliced.getLast().getCommentId() : null);
 
 		verify(commentRepository).findByDiaryIdWithCursor(diaryId, cursorCommentId, pageable);
 	}
-
 
 }

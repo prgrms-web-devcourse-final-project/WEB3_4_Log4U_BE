@@ -15,8 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -31,9 +29,10 @@ import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
+import com.example.log4u.domain.like.repository.LikeRepository;
+import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
-import com.example.log4u.domain.user.repository.UserRepository;
 import com.example.log4u.fixture.DiaryFixture;
 import com.example.log4u.fixture.MediaFixture;
 
@@ -44,7 +43,7 @@ public class DiaryServiceTest {
 	private DiaryRepository diaryRepository;
 
 	@Mock
-	private UserRepository userRepository;
+	private LikeRepository likeRepository;
 
 	@Mock
 	private FollowRepository followRepository;
@@ -54,6 +53,9 @@ public class DiaryServiceTest {
 
 	@InjectMocks
 	private DiaryService diaryService;
+
+	@Mock
+	private MapService mapService;
 
 	private static final int CURSOR_PAGE_SIZE = 12;
 
@@ -77,6 +79,7 @@ public class DiaryServiceTest {
 
 		// then
 		verify(mediaService).saveMedia(eq(diary.getDiaryId()), eq(request.mediaList()));
+		verify(mapService).increaseRegionDiaryCount(request.location().latitude(), request.location().longitude());
 	}
 
 	@Test
@@ -85,18 +88,19 @@ public class DiaryServiceTest {
 		// given
 		String keyword = "테스트";
 		SortType sort = SortType.LATEST;
-		int page = 0;
+		Long cursorId = null; // 커서 ID를 null로 설정 (첫 페이지 조회)
 		int size = 6;
 
 		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
-		Page<Diary> diaryPage = new PageImpl<>(diaries, PageRequest.of(0, SEARCH_PAGE_SIZE), 3);
+		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), false);
 
-		given(diaryRepository.searchDiaries(
+		given(diaryRepository.searchDiariesByCursor(
 			eq(keyword),
 			eq(List.of(VisibilityType.PUBLIC)),
 			eq(sort),
+			eq(Long.MAX_VALUE),
 			any(PageRequest.class)
-		)).willReturn(diaryPage);
+		)).willReturn(diarySlice);
 
 		Map<Long, List<Media>> mediaMap = new HashMap<>();
 		for (Diary diary : diaries) {
@@ -108,20 +112,19 @@ public class DiaryServiceTest {
 		given(mediaService.getMediaMapByDiaryIds(anyList())).willReturn(mediaMap);
 
 		// when
-		PageResponse<DiaryResponseDto> result = diaryService.searchDiaries(keyword, sort, page, size);
+		PageResponse<DiaryResponseDto> result = diaryService.searchDiariesByCursor(keyword, sort, cursorId, size);
 
 		// then
-		assertThat(result.content()).hasSize(3);
-		assertThat(result.pageInfo().totalPages()).isEqualTo(1);
-		assertThat(result.pageInfo().totalElements()).isEqualTo(3);
+		assertThat(result.list()).hasSize(3);
+		assertThat(result.pageInfo().hasNext()).isFalse();
 
-		assertThat(result.content()).allSatisfy(diary -> {
+		assertThat(result.list()).allSatisfy(diary -> {
 			assertThat(diary.title().contains(keyword) || diary.content().contains(keyword))
 				.as("다이어리 제목 또는 내용에 키워드 '%s'가 포함되어야 합니다.", keyword)
 				.isTrue();
 		});
 
-		DiaryResponseDto firstDiary = result.content().get(0);
+		DiaryResponseDto firstDiary = result.list().get(0);
 		assertThat(firstDiary.diaryId()).isEqualTo(diaries.get(0).getDiaryId());
 		assertThat(firstDiary.title()).isEqualTo(diaries.get(0).getTitle());
 		assertThat(firstDiary.content()).isEqualTo(diaries.get(0).getContent());
@@ -266,7 +269,7 @@ public class DiaryServiceTest {
 		PageResponse<DiaryResponseDto> result = diaryService.getDiariesByCursor(userId, targetUserId, cursorId, size);
 
 		// then
-		assertThat(result.content()).hasSize(3);
+		assertThat(result.list()).hasSize(3);
 		assertThat(result.pageInfo().hasNext()).isFalse();
 	}
 
