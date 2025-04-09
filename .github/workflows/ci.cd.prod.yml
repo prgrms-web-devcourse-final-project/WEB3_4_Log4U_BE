@@ -57,11 +57,15 @@ jobs:
 
       - name: Docker Compose 실행
         run: |
+          chmod /docker
           docker-compose -f docker-compose.yml up -d
+
+      - name: 실행중인 컨테이너 확인
+        run: docker ps
 
       - name: PostgreSQL 컨테이너 로그 확인
         run: docker logs log4u_postgres
-
+      -
       - name: 컨테이너 실행 대기
         run: |
           echo "Waiting for MySQL to be ready..."
