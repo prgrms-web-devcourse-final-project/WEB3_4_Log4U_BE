@@ -2,6 +2,7 @@ package com.example.log4u.domain.hashtag.service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -80,6 +81,40 @@ public class HashtagService {
 			.map(diaryHashtag -> hashtagMap.get(diaryHashtag.getHashtagId()))
 			.filter(name -> name != null && !name.isEmpty())
 			.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public Map<Long, List<String>> getHashtagMapByDiaryIds(List<Long> diaryIds) {
+		if (diaryIds == null || diaryIds.isEmpty()) {
+			return Map.of();
+		}
+
+		// 다이어리 ID로 DiaryHashtag 조회
+		List<DiaryHashtag> diaryHashtags = diaryHashtagRepository.findByDiaryIdIn(diaryIds);
+
+		if (diaryHashtags.isEmpty()) {
+			return Map.of();
+		}
+
+		// 해시태그 ID 목록 추출
+		List<Long> hashtagIds = diaryHashtags.stream()
+			.map(DiaryHashtag::getHashtagId)
+			.distinct()
+			.toList();
+
+		// 해시태그 조회 및 (ID, HashtagName) 맵 생성
+		Map<Long, String> hashtagNameMap = hashtagRepository.findAllById(hashtagIds).stream()
+			.collect(Collectors.toMap(Hashtag::getHashtagId, Hashtag::getName));
+
+		// 다이어리별 해시태그 이름 목록 생성
+		return diaryHashtags.stream()
+			.collect(Collectors.groupingBy(
+				DiaryHashtag::getDiaryId,
+				Collectors.mapping(
+					diaryHashtag -> hashtagNameMap.get(diaryHashtag.getHashtagId()),
+					Collectors.filtering(Objects::nonNull, Collectors.toList())
+				)
+			));
 	}
 
 	// 해시태그 이름 처리 (# 제거)

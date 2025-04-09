@@ -17,4 +17,6 @@ public interface DiaryHashtagRepository extends JpaRepository<DiaryHashtag, Long
 
 	@Query("SELECT dh.diaryId FROM DiaryHashtag dh WHERE dh.hashtagId = :hashtagId")
 	List<Long> findDiaryIdsByHashtagId(Long hashtagId);
+
+	List<DiaryHashtag> findByDiaryIdIn(List<Long> diaryIds);
 }
