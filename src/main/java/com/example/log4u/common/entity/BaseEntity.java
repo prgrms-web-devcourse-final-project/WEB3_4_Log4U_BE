@@ -21,7 +21,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-abstract public class BaseEntity {
+public abstract class BaseEntity {
 
 	@CreatedDate
 	@Column(nullable = false, updatable = false)
