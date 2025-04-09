@@ -34,8 +34,8 @@ public class LikeController {
 	}
 
 	@DeleteMapping("/{diaryId}")
-	public ResponseEntity<LikeCancelResponseDto> cancelLike(@PathVariable Long diaryId){
-		Long userId = 1L;// 실제 구현에서는 토큰에서 추출
+	public ResponseEntity<LikeCancelResponseDto> cancelLike(@PathVariable Long diaryId) {
+		Long userId = 1L; // 실제 구현에서는 토큰에서 추출
 
 		LikeCancelResponseDto response = likeService.cancelLike(userId, diaryId);
 		return ResponseEntity.ok(response);

@@ -9,6 +9,19 @@ DEPLOY_LOG="$PROJECT_ROOT/deploy.log"
 
 TIME_NOW=$(date +%c)
 
+# Docker Compose로 postgres 실행
+echo "$TIME_NOW > Docker Compose postgres 서비스 실행" >> $DEPLOY_LOG
+docker-compose up -d postgres
+
+# Docker Compose 서비스 확인
+POSTGRES_STATUS=$(docker ps --filter "name=log4u_postgres" --format "{{.Status}}")
+if [[ "$POSTGRES_STATUS" == *"Up"* ]]; then
+    echo "$TIME_NOW > PostgreSQL 서비스가 성공적으로 실행되었습니다." >> $DEPLOY_LOG
+else
+    echo "$TIME_NOW > PostgreSQL 서비스 실행 실패!" >> $DEPLOY_LOG
+    exit 1
+fi
+
 # build 파일 복사
 echo "$TIME_NOW > $JAR_FILE 파일 복사" >> $DEPLOY_LOG
 cp $PROJECT_ROOT/build/libs/Log4U-0.0.1-SNAPSHOT.jar $JAR_FILE

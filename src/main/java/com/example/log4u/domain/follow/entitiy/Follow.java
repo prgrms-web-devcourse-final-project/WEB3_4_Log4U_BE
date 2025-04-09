@@ -12,7 +12,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity
+@Entity(name = "Follow")
 @Getter
 @Builder
 @AllArgsConstructor
@@ -22,7 +22,18 @@ public class Follow extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private Long followerId;
+	// 팔로우를 누른 주체
+	private Long initiatorId;
 
-	private Long followingId;
+	// 팔로우를 받은 대상
+	private Long targetId;
+
+	// dto 넣기 애매해서 엔티티 내부에 static 함수 구현
+	public static Follow of(Long initiatorId, Long targetId) {
+		return new Follow(
+			null,
+			initiatorId,
+			targetId
+		);
+	}
 }

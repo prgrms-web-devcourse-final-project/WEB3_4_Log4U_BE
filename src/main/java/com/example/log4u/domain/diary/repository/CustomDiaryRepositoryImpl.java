@@ -7,22 +7,31 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.entity.QDiary;
+import com.example.log4u.domain.like.entity.QLike;
+import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
 
+@Repository
 @RequiredArgsConstructor
 public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
+
 	private final JPAQueryFactory queryFactory;
+
+	private final QDiary diary = QDiary.diary;
+	private final QLike like = QLike.like;
 
 	@Override
 	public Page<Diary> searchDiaries(
@@ -31,7 +40,7 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 		SortType sort,
 		Pageable pageable
 	) {
-		QDiary diary = QDiary.diary;
+		// QDiary diary = QDiary.diary;
 
 		// 조건 생성
 		BooleanExpression condition = createCondition(diary, keyword, visibilities, null);
@@ -203,4 +212,95 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 
 		return new SliceImpl<>(content, pageable, hasNext);
 	}
+
+	@Override
+	public Slice<Diary> getLikeDiarySliceByUserId(
+		Long userId,
+		List<VisibilityType> visibilities,
+		Long cursorId,
+		Pageable pageable) {
+		QDiary diary = QDiary.diary;
+
+		// 조건 생성
+		BooleanExpression condition = createCondition(diary, null, visibilities, userId);
+
+		// limit + 1로 다음 페이지 존재 여부 확인
+		List<Diary> content = queryFactory
+			.selectFrom(diary)
+			.innerJoin(like)
+			.on(like.diaryId.eq(diary.diaryId))
+			.where(like.userId.eq(userId)
+				.and(condition)
+				.and(like.likeId.lt(cursorId)))
+			.orderBy(like.createdAt.desc())
+			.limit(pageable.getPageSize() + 1)
+			.fetch();
+
+		// 다음 페이지 여부를 계산하여 반환
+		return checkAndCreateSlice(content, pageable);
+	}
+
+	@Override
+	public List<DiaryMarkerResponseDto> findDiariesInBounds(double south, double north, double west, double east) {
+		QDiary d = QDiary.diary;
+
+		return queryFactory
+			.select(Projections.constructor(DiaryMarkerResponseDto.class,
+				d.diaryId,
+				d.title,
+				d.thumbnailUrl,
+				d.likeCount,
+				d.location.latitude,
+				d.location.longitude,
+				d.createdAt
+			))
+			.from(d)
+			.where(
+				d.visibility.eq(VisibilityType.PUBLIC),
+				d.location.latitude.between(south, north),
+				d.location.longitude.between(west, east)
+			)
+			.orderBy(d.createdAt.asc())
+			.fetch();
+	}
+
+	@Override
+	public List<Diary> findInBoundsByUserId(Long userId, double south, double north, double west, double east) {
+		QDiary d = QDiary.diary;
+
+		return queryFactory
+			.selectFrom(d)
+			.where(
+				d.userId.eq(userId),
+				d.location.latitude.between(south, north),
+				d.location.longitude.between(west, east)
+			)
+			.fetch();
+	}
+
+	@Override
+	public List<DiaryMarkerResponseDto> findMyDiariesInBounds(Long userId, double south, double north, double west,
+		double east) {
+		QDiary d = QDiary.diary;
+
+		return queryFactory
+			.select(Projections.constructor(DiaryMarkerResponseDto.class,
+				d.diaryId,
+				d.title,
+				d.thumbnailUrl,
+				d.likeCount,
+				d.location.latitude,
+				d.location.longitude,
+				d.createdAt
+			))
+			.from(d)
+			.where(
+				d.userId.eq(userId),
+				d.location.latitude.between(south, north),
+				d.location.longitude.between(west, east)
+			)
+			.orderBy(d.createdAt.asc())
+			.fetch();
+	}
+
 }

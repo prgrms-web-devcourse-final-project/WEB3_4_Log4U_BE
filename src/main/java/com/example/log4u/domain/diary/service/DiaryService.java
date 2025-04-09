@@ -23,9 +23,9 @@ import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
 import com.example.log4u.domain.hashtag.service.HashtagService;
 import com.example.log4u.domain.like.repository.LikeRepository;
+import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
-import com.example.log4u.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,9 +36,9 @@ import lombok.extern.slf4j.Slf4j;
 public class DiaryService {
 
 	private final DiaryRepository diaryRepository;
-	private final UserRepository userRepository;
 	private final FollowRepository followRepository;
 	private final MediaService mediaService;
+	private final MapService mapService;
 	private final LikeRepository likeRepository;
 	private final HashtagService hashtagService;
 
@@ -51,6 +51,7 @@ public class DiaryService {
 		);
 		mediaService.saveMedia(diary.getDiaryId(), request.mediaList());
 		hashtagService.saveHashtag(diary.getDiaryId(), request.hashtagList());
+		mapService.increaseRegionDiaryCount(request.location().latitude(), request.location().longitude());
 	}
 
 	// 다이어리 검색
@@ -189,7 +190,7 @@ public class DiaryService {
 			return List.of(VisibilityType.PUBLIC, VisibilityType.PRIVATE, VisibilityType.FOLLOWER);
 		}
 
-		if (followRepository.existsByFollowerIdAndFollowingId(userId, targetUserId)) {
+		if (followRepository.existsByInitiatorIdAndTargetId(userId, targetUserId)) {
 			return List.of(VisibilityType.PUBLIC, VisibilityType.FOLLOWER);
 		}
 
@@ -206,7 +207,7 @@ public class DiaryService {
 
 		if (diary.getVisibility() == VisibilityType.FOLLOWER) {
 			if (!diary.getUserId().equals(userId)
-				&& !followRepository.existsByFollowerIdAndFollowingId(userId, diary.getUserId())) {
+				&& !followRepository.existsByInitiatorIdAndTargetId(userId, diary.getUserId())) {
 				throw new NotFoundDiaryException();
 			}
 		}
@@ -236,5 +237,45 @@ public class DiaryService {
 		if (!diaryRepository.existsById(diaryId)) {
 			throw new NotFoundDiaryException();
 		}
+	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<DiaryResponseDto> getMyDiariesByCursor(Long userId, VisibilityType visibilityType,
+		Long cursorId, int size) {
+		List<VisibilityType> visibilities =
+			visibilityType == null ? List.of(VisibilityType.PUBLIC, VisibilityType.PRIVATE, VisibilityType.FOLLOWER) :
+				List.of(visibilityType);
+
+		Slice<Diary> diaries = diaryRepository.findByUserIdAndVisibilityInAndCursorId(
+			userId,
+			visibilities,
+			cursorId != null ? cursorId : Long.MAX_VALUE,
+			PageRequest.of(0, size)
+		);
+
+		Slice<DiaryResponseDto> dtoSlice = mapToDtoSlice(diaries);
+
+		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
+
+		return PageResponse.of(dtoSlice, nextCursor);
+	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<DiaryResponseDto> getLikeDiariesByCursor(Long userId, Long targetUserId, Long cursorId,
+		int size) {
+		List<VisibilityType> visibilities = determineAccessibleVisibilities(userId, targetUserId);
+
+		Slice<Diary> diaries = diaryRepository.getLikeDiarySliceByUserId(
+			targetUserId,
+			visibilities,
+			cursorId != null ? cursorId : Long.MAX_VALUE,
+			PageRequest.of(0, size)
+		);
+
+		Slice<DiaryResponseDto> dtoSlice = mapToDtoSlice(diaries);
+
+		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
+
+		return PageResponse.of(dtoSlice, nextCursor);
 	}
 }

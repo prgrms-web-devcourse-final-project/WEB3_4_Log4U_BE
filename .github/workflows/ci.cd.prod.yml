@@ -50,34 +50,78 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
-      - name: MySQL 컨테이너 실행
+      - name: S3에서 init.sql 다운로드
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         run: |
-          docker run --name log4u-mysql \
-            -e MYSQL_ROOT_PASSWORD=root \
-            -e MYSQL_DATABASE=log4u \
-            -e MYSQL_USER=dev \
-            -e MYSQL_PASSWORD=devcos4-team08 \
-            -d \
-            -p 3307:3306 \
-            mysql:8.0.33
+          mkdir -p docker
+          aws s3 cp s3://devcos4-team08-bucket/db/init.sql ./docker/init.sql
+
+      - name: Docker Compose 설치
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+
+      - name: Docker Compose 실행
+        run: |
+          chmod -R 755 ./docker
+          docker-compose -f docker-compose.yml up -d
+
+      - name: 컨테이너 실행 대기
+        run: |
+          echo "Waiting for MySQL to be ready..."
+          for i in {1..10}; do
+            if docker-compose exec mysql mysqladmin ping -h "127.0.0.1" --silent; then
+              echo "MySQL is ready!"
+              break
+            fi
+            sleep 1
+          done
+          if ! docker-compose exec mysql mysqladmin ping -h "127.0.0.1" --silent; then
+            echo "MySQL did not start in time!"
+            exit 1
+          fi
+          
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in {1..10}; do
+            if docker-compose exec -T postgres pg_isready -d gis_db -U postgres; then
+              echo "PostgreSQL is ready!"
+              break
+            fi
+            sleep 2
+          done
+          if ! docker-compose exec -T postgres pg_isready -d gis_db -U postgres; then
+            echo "PostgreSQL did not start in time!"
+            docker-compose logs postgres
+            exit 1
+          fi
+
+
 
       - name: Build and analyze
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           DB_URL: jdbc:mysql://localhost:3307/log4u
           DB_USERNAME: dev
           DB_PASSWORD: devcos4-team08
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_ACCESS_TOKEN_EXPIRE_TIME_SECONDS: ${{ secrets.JWT_ACCESS_TOKEN_EXPIRE_TIME_SECONDS }}
+          JWT_REFRESH_TOKEN_EXPIRE_TIME_SECONDS: ${{ secrets.JWT_ACCESS_TOKEN_EXPIRE_TIME_SECONDS }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
 
         # 테스트용으로 dev 프로필 사용(시크릿 제외하고 prod 와 동일)
         run: |
-          chmod +x ./gradlew        
-          ./gradlew build jacocoTestReport -Pprofile=dev 
+          chmod +x ./gradlew
+          # 소나클라우드 임시 비활성화 ./gradlew build jacocoTestReport sonar --info -Pprofile=dev -Dsonar.branch.name=${{ github.ref_name }}
+          ./gradlew build -i jacocoTestReport -Pprofile=dev 
 
-      - name: Docker MySQL 종료 및 제거
-        run: |
-          docker stop log4u-mysql
-          docker rm log4u-mysql
+      - name: Docker Compose 종료
+        run: docker-compose -f docker-compose.yml down
 
       # AWS 인증 (IAM 사용자 Access Key, Secret Key 활용)
       - name: Configure AWS credentials
@@ -87,19 +131,32 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Secret 파일 수동 생성
+      - name: Secret 파일 수동 생성(gitignore 무시)
         run: |
           mkdir -p ./src/main/resources
           echo "${{ secrets.PROD_SECRET }}" | base64 --decode > ./src/main/resources/application-prod-secret.yml
           
           mkdir -p ./deploy-package/src/main/resources
           rsync -av --exclude='deploy-package' ./ ./deploy-package
+          
           cp ./src/main/resources/application-prod-secret.yml ./deploy-package/src/main/resources/application-prod-secret.yml
+          cp ./src/main/resources/application-prod.yml ./deploy-package/src/main/resources/application-prod.yml
+
+      - name: Docker Compose 및 Init.sql 파일 추가
+        run: |
+          mkdir -p ./deploy-package/docker
+          cp ./docker-compose.yml ./deploy-package/docker-compose.yml
+          cp ./docker/init.sql ./deploy-package/docker/init.sql
 
       - name: 빌드 결과 수동 생성
         run: |
           mkdir -p ./deploy-package/build/libs
           cp build/libs/Log4U-0.0.1-SNAPSHOT.jar ./deploy-package/build/libs/
+
+      - name: 배포 디렉토리 구조 출력
+        run: |
+          sudo apt-get update && sudo apt-get install -y tree
+          tree ./deploy-package
 
       # 빌드 결과물을 S3 버킷에 업로드
       - name: Upload to AWS S3
@@ -111,7 +168,7 @@ jobs:
             --source ./deploy-package
 
       # S3 버킷에 있는 파일을 대상으로 CodeDeploy 실행
-      - name: Deploy to AWS EC2 from S3g
+      - name: Deploy to AWS EC2 from S3
         run: |
           aws deploy create-deployment \
             --application-name ${{ secrets.CODE_DEPLOY_APP_NAME }} \

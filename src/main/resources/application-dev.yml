@@ -1,3 +1,9 @@
+jwt:
+  secret: ${JWT_SECRET:${jwt.secret}}
+  access-token-expire-time-seconds: ${JWT_ACCESS_TOKEN_EXPIRE_TIME_SECONDS:${jwt.access-token-expire-time-seconds}}
+  refresh-token-expire-time-seconds: ${JWT_REFRESH_TOKEN_EXPIRE_TIME_SECONDS:${jwt.refresh-token-expire-time-seconds}}
+
+
 logging:
   level:
     org:
@@ -7,13 +13,26 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
+
+
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
 
   datasource:
-    url: jdbc:mysql://localhost:3307/log4u
-    username: dev
-    password: devcos4-team08
+    jdbc-url: ${DB_URL:jdbc:mysql://localhost:3307/log4u}
+    username: ${DB_USERNAME:dev}
+    password: ${DB_PASSWORD:devcos4-team08}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  second-datasource:
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: 1234
+    jdbc-url: jdbc:postgresql://localhost:5432/gis_db
+
   aws:
     s3:
       bucket: ${S3_BUCKET_NAME}  # S3 버킷 이름을 GitHub Secrets에서 참조
@@ -25,9 +44,9 @@ spring:
         registration:
           naver:
             client-name: naver
-            client-id: ${naver.dev.client-id}
-            client-secret: ${naver.dev.client-secret}
-            redirect-uri: ${naver.dev.redirect-uri}
+            client-id: ${NAVER_DEV_CLIENT_ID:${naver.dev.client-id}} # 로컬 기본값
+            client-secret: ${NAVER_DEV_CLIENT_SECRET:${naver.dev.client-secret}}
+            redirect-uri: ${NAVER_DEV_REDIRECT_URI:${naver.dev.redirect-uri}}
             authorization-grant-type: authorization_code
             scope:
               - name
@@ -36,18 +55,18 @@ spring:
 
           google:
             client-name: google
-            client-id: ${google.dev.client-id}
-            client-secret: ${google.dev.client-secret}
-            redirect-uri: ${google.dev.redirect-uri}
+            client-id: ${GOOGLE_DEV_CLIENT_ID:${google.dev.client-id}}
+            client-secret: ${GOOGLE_DEV_CLIENT_SECRET:${google.dev.client-secret}}
+            redirect-uri: ${GOOGLE_DEV_REDIRECT_URI:${google.dev.redirect-uri}}
             authorization-grant-type: authorization_code
             scope:
               - profile
               - email
 
           kakao:
-            client-id: ${kakao.dev.client-id}
-            client-secret: ${kakao.dev.client-secret}
-            redirect-uri: ${kakao.dev.redirect-uri}
+            client-id: ${KAKAO_DEV_CLIENT_ID:${kakao.dev.client-id}}
+            client-secret: ${KAKAO_DEV_CLIENT_SECRET:${kakao.dev.client-secret}}
+            redirect-uri: ${KAKAO_DEV_REDIRECT_URI:${kakao.dev.redirect-uri}}
             client-authentication-method: client_secret_post
             authorization-grant-type: authorization_code
             scope:

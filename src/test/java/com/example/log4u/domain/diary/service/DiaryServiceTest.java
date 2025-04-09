@@ -31,6 +31,7 @@ import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
 import com.example.log4u.domain.hashtag.service.HashtagService;
 import com.example.log4u.domain.like.repository.LikeRepository;
+import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
 import com.example.log4u.fixture.DiaryFixture;
@@ -57,6 +58,9 @@ public class DiaryServiceTest {
 	@InjectMocks
 	private DiaryService diaryService;
 
+	@Mock
+	private MapService mapService;
+
 	private static final int CURSOR_PAGE_SIZE = 12;
 
 	private static final int SEARCH_PAGE_SIZE = 6;
@@ -79,6 +83,7 @@ public class DiaryServiceTest {
 
 		// then
 		verify(mediaService).saveMedia(eq(diary.getDiaryId()), eq(request.mediaList()));
+		verify(mapService).increaseRegionDiaryCount(request.location().latitude(), request.location().longitude());
 	}
 
 	@Test
@@ -167,7 +172,7 @@ public class DiaryServiceTest {
 		List<Media> mediaList = List.of(MediaFixture.createMediaFixture(10L, diaryId));
 
 		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
-		given(followRepository.existsByFollowerIdAndFollowingId(userId, authorId)).willReturn(true);
+		given(followRepository.existsByInitiatorIdAndTargetId(userId, authorId)).willReturn(true);
 		given(mediaService.getMediaByDiaryId(diaryId)).willReturn(mediaList);
 
 		// when
@@ -190,7 +195,7 @@ public class DiaryServiceTest {
 		Diary diary = DiaryFixture.createFollowerDiaryFixture(diaryId, authorId); // 다른 사용자의 팔로워 다이어리
 
 		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
-		given(followRepository.existsByFollowerIdAndFollowingId(userId, authorId)).willReturn(false);
+		given(followRepository.existsByInitiatorIdAndTargetId(userId, authorId)).willReturn(false);
 
 		// when & then
 		assertThatThrownBy(() -> diaryService.getDiary(userId, diaryId))

@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: log4u_postgres
+    environment:
+      POSTGRES_DB: gis_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - log4u-net
+
+  mysql:
+    image: mysql:8.0.33
+    container_name: log4u_mysql
+    environment:
+      TZ: Asia/Seoul
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: devcos4-team08
+      MYSQL_DATABASE: log4u
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - log4u-net
+
+volumes:
+  pgdata:
+  mysql_data:
+
+networks:
+  log4u-net:

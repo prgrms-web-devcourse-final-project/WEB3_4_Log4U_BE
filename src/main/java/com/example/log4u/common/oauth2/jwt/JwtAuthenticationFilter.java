@@ -34,16 +34,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		@NonNull HttpServletResponse response,
 		@NonNull FilterChain filterChain
 	) throws ServletException, IOException {
-
 		// 필터 스킵이 필요한지 확인
+		log.debug("필터 스킵 확인\n");
 		if (shouldSkipFilter(request.getRequestURI())) {
 			filterChain.doFilter(request, response);
 			return;
 		}
 
-		String accessToken = extractAccessTokenFromCookie(request);
+		// 헤더에서 개발용 토큰 추출 가져오기
+		String accessToken = request.getHeader("Authorization");
+		if (accessToken != null && accessToken.startsWith("Bearer ")) {
+			log.debug("개발용 헤더 토큰 확인");
+			accessToken = accessToken.substring(7); // "Bearer " 이후의 값 추출
+		} else {
+			accessToken = extractAccessTokenFromCookie(request); // 쿠키에서 가져오기 시도
+		}
+
 		// 엑세스 토큰이 없을 경우 통과해서 발급 절차
 		if (accessToken == null) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+
+		if (accessToken.equals("devtoken")) {
+			log.debug("개발용 토큰 확인\n");
+			addDevUserToContextHolder();
 			filterChain.doFilter(request, response);
 			return;
 		}
@@ -113,6 +128,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		CustomOAuth2User customOAuth2User = new CustomOAuth2User(userService.getUserById(userId));
 		log.debug("필터에서 추출한 userId: " + userId);
 		log.debug("생성된 CustomOAuth2User ID: " + customOAuth2User.getUserId());
+
+		// security context holder 에 추가해줌
+		Authentication oAuth2Token = new UsernamePasswordAuthenticationToken(
+			customOAuth2User,
+			null,
+			customOAuth2User.getAuthorities());
+		SecurityContextHolder.getContext().setAuthentication(oAuth2Token);
+	}
+
+	private void addDevUserToContextHolder() {
+		Long userId = 1L;
+		CustomOAuth2User customOAuth2User = new CustomOAuth2User(userService.getUserById(userId));
 
 		// security context holder 에 추가해줌
 		Authentication oAuth2Token = new UsernamePasswordAuthenticationToken(

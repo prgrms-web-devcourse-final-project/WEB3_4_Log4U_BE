@@ -1,5 +1,6 @@
 package com.example.log4u.common.advice;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -8,6 +9,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -94,15 +96,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	private ApiErrorResponse makeErrorResponse(BindException e, ErrorCode errorCode) {
-		List<ApiErrorResponse.ValidationError> validationErrorList = e.getBindingResult()
-			.getFieldErrors()
-			.stream()
-			.map(ApiErrorResponse.ValidationError::of)
-			.collect(Collectors.toList());
+		List<ApiErrorResponse.ValidationError> validationErrorList = new ArrayList<>();
+		for (FieldError fieldError : e.getBindingResult()
+			.getFieldErrors()) {
+			ApiErrorResponse.ValidationError validationError = ApiErrorResponse.ValidationError.of(fieldError);
+			validationErrorList.add(validationError);
+		}
 
 		return ApiErrorResponse.builder()
-            .errorMessage(errorCode.getErrorMessage())
-            .errorCode(errorCode.getHttpStatus().value())
+			.errorMessage(errorCode.getErrorMessage())
+			.errorCode(errorCode.getHttpStatus().value())
 			.errors(validationErrorList)
 			.build();
 	}
