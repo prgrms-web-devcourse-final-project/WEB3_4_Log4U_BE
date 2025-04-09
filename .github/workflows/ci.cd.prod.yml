@@ -153,6 +153,11 @@ jobs:
           mkdir -p ./deploy-package/build/libs
           cp build/libs/Log4U-0.0.1-SNAPSHOT.jar ./deploy-package/build/libs/
 
+      - name: 배포 디렉토리 구조 출력
+        run: |
+          sudo apt-get update && sudo apt-get install -y tree
+          tree ./deploy-package
+
       # 빌드 결과물을 S3 버킷에 업로드
       - name: Upload to AWS S3
         run: |
