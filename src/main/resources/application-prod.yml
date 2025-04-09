@@ -5,7 +5,7 @@ logging:
 
 spring:
   datasource:
-    url: ${aws-mysql.url}
+    jdbc-url: ${aws-mysql.url}
     username: ${aws-mysql.username}
     password: ${aws-mysql.password}
     driver-class-name: com.mysql.cj.jdbc.Driver
