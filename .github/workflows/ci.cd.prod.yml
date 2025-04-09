@@ -84,7 +84,7 @@ jobs:
               echo "PostgreSQL is ready!"
               break
             fi
-          sleep 2
+            sleep 2
           done
           if ! docker-compose exec -T postgres pg_isready -d gis_db -U postgres
             echo "PostgreSQL did not start in time!"
