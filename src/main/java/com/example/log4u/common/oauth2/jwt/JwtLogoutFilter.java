@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import org.springframework.web.filter.GenericFilterBean;
 
 import com.example.log4u.common.oauth2.repository.RefreshTokenRepository;
+import com.example.log4u.common.util.CookieUtil;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -129,20 +130,7 @@ public class JwtLogoutFilter extends GenericFilterBean {
 		// DB 에서 리프레시 토큰 제거
 		refreshTokenRepository.deleteByRefresh(refresh);
 		// 쿠키 제거
-		deleteCookie(response);
+		CookieUtil.deleteCookie(response);
 	}
 
-	public void deleteCookie(HttpServletResponse response) {
-		Cookie access = new Cookie("access", null);
-		Cookie refresh = new Cookie("refresh", null);
-
-		access.setMaxAge(0);
-		access.setPath("/");
-		refresh.setMaxAge(0);
-		refresh.setPath("/");
-
-		response.addCookie(access);
-		response.addCookie(refresh);
-		response.setStatus(HttpServletResponse.SC_OK);
-	}
 }

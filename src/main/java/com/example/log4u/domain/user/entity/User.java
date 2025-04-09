@@ -1,7 +1,11 @@
 package com.example.log4u.domain.user.entity;
 
+import java.util.Objects;
+
 import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.common.oauth2.dto.OAuth2Response;
+import com.example.log4u.domain.user.dto.UserProfileMakeRequestDto;
+import com.example.log4u.domain.user.dto.UserProfileUpdateRequestDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -61,4 +65,37 @@ public class User extends BaseEntity {
 		this.nickname = oAuth2Response.getNickname();
 		this.profileImage = oAuth2Response.getProfileImage();
 	}
+
+	public void updateMyProfile(UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
+		this.profileImage = userProfileUpdateRequestDto.profileImage();
+		this.statusMessage = userProfileUpdateRequestDto.statusMessage();
+	}
+
+	public void createMyProfile(UserProfileMakeRequestDto userProfileMakeRequestDto) {
+		this.nickname = userProfileMakeRequestDto.nickname();
+		this.statusMessage = userProfileMakeRequestDto.statusMessage();
+		this.profileImage = userProfileMakeRequestDto.profileImage();
+		this.role = "ROLE_USER";
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
+		User user = (User)obj;
+		return isPremium() == user.isPremium() && Objects.equals(getName(), user.getName())
+			&& Objects.equals(getNickname(), user.getNickname()) && Objects.equals(getEmail(),
+			user.getEmail()) && Objects.equals(getProviderId(), user.getProviderId()) && Objects.equals(
+			getProfileImage(), user.getProfileImage()) && Objects.equals(getRole(), user.getRole())
+			&& getSocialType() == user.getSocialType() && Objects.equals(getStatusMessage(),
+			user.getStatusMessage());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(getName(), getNickname(), getEmail(), getProviderId(), getProfileImage(), getRole(),
+			getSocialType(), getStatusMessage(), isPremium());
+	}
+
 }

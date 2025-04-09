@@ -35,6 +35,15 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+      - name: S3에서 init.sql 다운로드
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          mkdir -p docker
+          aws s3 cp s3://devcos4-team08-bucket/db/init.sql ./docker/init.sql
+
 
       - name: Docker Compose 설치
         run: |

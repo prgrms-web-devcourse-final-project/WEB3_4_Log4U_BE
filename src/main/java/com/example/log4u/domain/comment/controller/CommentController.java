@@ -50,7 +50,8 @@ public class CommentController {
 		@RequestParam(required = false) Long cursorCommentId,
 		@RequestParam(defaultValue = "5") int size
 	) {
-		PageResponse<CommentResponseDto> response = commentService.getCommentListByDiary(diaryId, cursorCommentId, size);
+		PageResponse<CommentResponseDto> response =
+			commentService.getCommentListByDiary(diaryId, cursorCommentId, size);
 		return ResponseEntity.ok(response);
 	}
 }

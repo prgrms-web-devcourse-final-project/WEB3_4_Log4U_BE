@@ -6,27 +6,26 @@ import lombok.Builder;
 
 @Builder
 public record UserProfileResponseDto(
+	Long userId,
 	String name,
 	String nickname,
 	String statusMessage,
 	String profileImage,
-	Long diaryCount,
 	Long followers,
 	Long followings
 ) {
-	
+
 	public static UserProfileResponseDto fromUser(
 		User user,
-		Long diaryCount,
 		Long followers,
 		Long followings
 	) {
 		return builder()
+			.userId(user.getUserId())
 			.name(user.getName())
 			.nickname(user.getNickname())
 			.statusMessage(user.getStatusMessage())
 			.profileImage(user.getProfileImage())
-			.diaryCount(diaryCount)
 			.followers(followers)
 			.followings(followings)
 			.build();

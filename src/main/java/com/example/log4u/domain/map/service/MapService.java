@@ -9,9 +9,9 @@ import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.example.log4u.domain.map.repository.sido.SidoAreasDiaryCountRepository;
-import com.example.log4u.domain.map.repository.sigg.SiggAreasRepository;
 import com.example.log4u.domain.map.repository.sido.SidoAreasRepository;
 import com.example.log4u.domain.map.repository.sigg.SiggAreasDiaryCountRepository;
+import com.example.log4u.domain.map.repository.sigg.SiggAreasRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +26,8 @@ public class MapService {
 	private final DiaryRepository diaryRepository;
 
 	@Transactional(readOnly = true)
-	public List<DiaryClusterResponseDto> getDiaryClusters(double south, double north, double west, double east, int zoom) {
+	public List<DiaryClusterResponseDto> getDiaryClusters(
+		double south, double north, double west, double east, int zoom) {
 		if (zoom <= 10) {
 			return getSidoAreasClusters(south, north, west, east);
 		} else {

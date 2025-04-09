@@ -2,7 +2,6 @@ package com.example.log4u.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -16,7 +15,7 @@ public class PostgresQuerydslConfig {
 	private EntityManager postgresEntityManager;
 
 	@Bean(name = "postgresJPAQueryFactory")
-	public JPAQueryFactory postgresJPAQueryFactory() {
+	public JPAQueryFactory postgresJpaQueryFactory() {
 		return new JPAQueryFactory(postgresEntityManager);
 	}
 }

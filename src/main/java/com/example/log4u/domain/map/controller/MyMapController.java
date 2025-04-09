@@ -32,7 +32,8 @@ public class MyMapController {
 		@RequestParam int zoom,
 		@RequestParam Long userId // 실무에서는 인증 기반으로 가져오겠지만 지금은 param 사용
 	) {
-		List<DiaryClusterResponseDto> clusters = myMapService.getMyDiaryClusters(south, north, west, east, zoom, userId);
+		List<DiaryClusterResponseDto> clusters =
+			myMapService.getMyDiaryClusters(south, north, west, east, zoom, userId);
 		return ResponseEntity.ok(clusters);
 	}
 

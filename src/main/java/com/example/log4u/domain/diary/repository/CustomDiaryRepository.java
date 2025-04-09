@@ -44,5 +44,10 @@ public interface CustomDiaryRepository {
 
 	List<Diary> findInBoundsByUserId(Long userId, double south, double north, double west, double east);
 
-	List<DiaryMarkerResponseDto> findMyDiariesInBounds(Long userId, double south, double north, double west, double east);
+	List<DiaryMarkerResponseDto> findMyDiariesInBounds(
+		Long userId,
+		double south,
+		double north,
+		double west,
+		double east);
 }
