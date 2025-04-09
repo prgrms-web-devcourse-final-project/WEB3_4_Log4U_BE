@@ -57,7 +57,7 @@ jobs:
 
       - name: Docker Compose 실행
         run: |
-          chmod /docker
+          chmod -R 755 ./docker
           docker-compose -f docker-compose.yml up -d
 
       - name: 실행중인 컨테이너 확인
