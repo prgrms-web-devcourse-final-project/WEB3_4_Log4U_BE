@@ -58,6 +58,7 @@ public class UserService {
 			userRepository.existsByNickname(nickname));
 	}
 
+	@Transactional
 	public void updateMyProfile(
 		Long userId,
 		UserProfileUpdateRequestDto userProfileUpdateRequestDto
