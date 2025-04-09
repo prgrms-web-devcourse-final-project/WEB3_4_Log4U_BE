@@ -131,14 +131,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Secret 파일 수동 생성
+      - name: Secret 파일 수동 생성(gitignore 무시)
         run: |
           mkdir -p ./src/main/resources
           echo "${{ secrets.PROD_SECRET }}" | base64 --decode > ./src/main/resources/application-prod-secret.yml
           
           mkdir -p ./deploy-package/src/main/resources
           rsync -av --exclude='deploy-package' ./ ./deploy-package
+          
           cp ./src/main/resources/application-prod-secret.yml ./deploy-package/src/main/resources/application-prod-secret.yml
+          cp ./src/main/resources/application-prod.yml ./deploy-package/src/main/resources/application-prod.yml
 
       - name: Docker Compose 및 Init.sql 파일 추가
         run: |
