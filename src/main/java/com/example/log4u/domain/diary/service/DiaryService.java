@@ -50,7 +50,7 @@ public class DiaryService {
 			DiaryRequestDto.toEntity(userId, request, thumbnailUrl)
 		);
 		mediaService.saveMedia(diary.getDiaryId(), request.mediaList());
-		hashtagService.saveHashtag(diary.getDiaryId(), request.hashtagList());
+		hashtagService.saveOrUpdateHashtag(diary.getDiaryId(), request.hashtagList());
 		mapService.increaseRegionDiaryCount(request.location().latitude(), request.location().longitude());
 	}
 
@@ -121,7 +121,7 @@ public class DiaryService {
 		}
 
 		if (request.hashtagList() != null) {
-			hashtagService.saveHashtag(diary.getDiaryId(), request.hashtagList());
+			hashtagService.saveOrUpdateHashtag(diary.getDiaryId(), request.hashtagList());
 		}
 
 		String newThumbnailUrl = mediaService.extractThumbnailUrl(request.mediaList());
@@ -134,7 +134,7 @@ public class DiaryService {
 		Diary diary = findDiaryOrThrow(diaryId);
 		validateOwner(diary, userId);
 		mediaService.deleteMediaByDiaryId(diaryId);
-		hashtagService.saveHashtag(diary.getDiaryId(), List.of());
+		hashtagService.saveOrUpdateHashtag(diary.getDiaryId(), List.of());
 		diaryRepository.delete(diary);
 	}
 

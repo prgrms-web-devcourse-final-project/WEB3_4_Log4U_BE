@@ -54,7 +54,7 @@ public class MyPageServiceTest {
 	public void setUp() {
 		diaries = DiaryFixture.createDiariesFixture()
 			.stream()
-			.map(diary -> DiaryResponseDto.of(diary, new ArrayList<>()))
+			.map(diary -> DiaryResponseDto.of(diary, new ArrayList<>(), new ArrayList<>()))
 			.toList();
 	}
 

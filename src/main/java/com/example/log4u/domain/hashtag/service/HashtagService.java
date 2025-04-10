@@ -1,8 +1,11 @@
 package com.example.log4u.domain.hashtag.service;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -25,41 +28,63 @@ public class HashtagService {
 	private final DiaryHashtagRepository diaryHashtagRepository;
 
 	@Transactional
-	public List<String> saveHashtag(Long diaryId, List<String> hashtagNames) {
-		// 1. 기존 해시태그 연결 삭제
-		diaryHashtagRepository.deleteByDiaryId(diaryId);
-
-		if (hashtagNames == null || hashtagNames.isEmpty()) {
-			return List.of();
-		}
-
-		// 2. 해시태그 이름 정제 (# 제거, 중복 제거, 빈 문자열 제거)
-		List<String> processedTags = hashtagNames.stream()
+	public List<String> saveOrUpdateHashtag(Long diaryId, List<String> newHashtagNames) {
+		// 1. 새 해시태그 이름 처리 (# 제거, 중복 제거)
+		List<String> processedTags = newHashtagNames.stream()
 			.map(this::processHashtag)
-			.filter(hashtag -> !hashtag.isEmpty())
+			.filter(tag -> !tag.isEmpty())
+			.distinct()
 			.toList();
 
-		if (processedTags.isEmpty()) {
-			return List.of();
-		}
+		// 2. 기존 다이어리-해시태그 연결 조회
+		List<DiaryHashtag> existingLinks = diaryHashtagRepository.findByDiaryId(diaryId);
 
-		// 3. 각 해시태그 처리
-		for (String hashtagName : processedTags) {
-			Hashtag hashtag = hashtagRepository.findByName(hashtagName)
+		// 3. 기존 해시태그 ID 목록
+		Set<Long> existingHashtagIds = existingLinks.stream()
+			.map(DiaryHashtag::getHashtagId)
+			.collect(Collectors.toSet());
+
+		// 4. 새 해시태그 처리 및 ID 목록 생성
+		Set<Long> newHashtagIds = new HashSet<>();
+		List<DiaryHashtag> newLinks = new ArrayList<>();
+
+		for (String tagName : processedTags) {
+			// 해시태그 조회 또는 생성
+			Hashtag hashtag = hashtagRepository.findByName(tagName)
 				.orElseGet(() -> hashtagRepository.save(
-					Hashtag.builder()
-						.name(hashtagName)
-						.build()
+					Hashtag.builder().name(tagName).build()
 				));
 
-			diaryHashtagRepository.save(
-				DiaryHashtag.builder()
+			Long hashtagId = hashtag.getHashtagId();
+			newHashtagIds.add(hashtagId);
+
+			// 기존에 없는 연결만 추가
+			if (!existingHashtagIds.contains(hashtagId)) {
+				newLinks.add(DiaryHashtag.builder()
 					.diaryId(diaryId)
-					.hashtagId(hashtag.getHashtagId())
-					.build()
-			);
+					.hashtagId(hashtagId)
+					.build());
+			}
 		}
-		return processedTags;
+
+		// 새 연결 저장
+		if (!newLinks.isEmpty()) {
+			diaryHashtagRepository.saveAll(newLinks);
+		}
+
+		// 5. 삭제할 연결 처리
+		List<DiaryHashtag> linksToDelete = existingLinks.stream()
+			.filter(link -> !newHashtagIds.contains(link.getHashtagId()))
+			.toList();
+
+		if (!linksToDelete.isEmpty()) {
+			diaryHashtagRepository.deleteAll(linksToDelete);
+		}
+
+		// 6. 응답용 해시태그 목록 생성 (# 추가)
+		return processedTags.stream()
+			.map(tag -> "#" + tag)
+			.toList();
 	}
 
 	// 다이어리의 해시태그 조회
