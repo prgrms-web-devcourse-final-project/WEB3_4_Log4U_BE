@@ -72,8 +72,9 @@ public class SecurityConfig {
 			.authorizeHttpRequests(auth -> auth
 				// 소셜 로그인 경로
 				.requestMatchers("/oauth2/**").permitAll()
-				// Swagger UI 관련 경로 (swagger-ui.html 추가)
+				// 테스트용 인증/인가 경로
 				.requestMatchers("/users/dev").permitAll()
+				// Swagger UI 관련 경로 (swagger-ui.html 추가)
 				.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
 				.anyRequest().authenticated());
 

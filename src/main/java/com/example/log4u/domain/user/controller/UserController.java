@@ -66,7 +66,7 @@ public class UserController {
 	}
 
 	@GetMapping("/test")
-	public ResponseEntity<Void> loginAsDevTest(
+	public ResponseEntity<String> loginAsDevTest(
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User
 	) {
 		if (customOAuth2User == null) {
@@ -75,7 +75,7 @@ public class UserController {
 			log.debug("customOAuth2UserId: {}", customOAuth2User.getUserId());
 		}
 
-		return ResponseEntity.ok().build();
+		return ResponseEntity.ok("test login");
 	}
 
 	@GetMapping("/me")
