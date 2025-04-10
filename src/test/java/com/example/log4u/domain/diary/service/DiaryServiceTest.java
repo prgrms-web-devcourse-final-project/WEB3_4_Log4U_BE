@@ -1,12 +1,11 @@
 package com.example.log4u.domain.diary.service;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -19,7 +18,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 
-import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
@@ -30,20 +28,16 @@ import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
 import com.example.log4u.domain.like.repository.LikeRepository;
-import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
 import com.example.log4u.fixture.DiaryFixture;
 import com.example.log4u.fixture.MediaFixture;
 
 @ExtendWith(MockitoExtension.class)
-public class DiaryServiceTest {
+class DiaryServiceTest {
 
 	@Mock
 	private DiaryRepository diaryRepository;
-
-	@Mock
-	private LikeRepository likeRepository;
 
 	@Mock
 	private FollowRepository followRepository;
@@ -51,35 +45,33 @@ public class DiaryServiceTest {
 	@Mock
 	private MediaService mediaService;
 
+	@Mock
+	private LikeRepository likeRepository;
+
 	@InjectMocks
 	private DiaryService diaryService;
 
-	@Mock
-	private MapService mapService;
-
-	private static final int CURSOR_PAGE_SIZE = 12;
-
-	private static final int SEARCH_PAGE_SIZE = 6;
-
 	@Test
-	@DisplayName("다이어리 생성 성공")
-	void saveDiary() {
+	@DisplayName("다이어리 생성 - 성공")
+	void saveDiary_success() {
 		// given
 		Long userId = 1L;
+		String thumbnailUrl = "https://example.com/thumb.jpg";
+
 		DiaryRequestDto request = DiaryFixture.createDiaryRequestDtoFixture();
 
-		String thumbnailUrl = "https://example.com/image1.jpg";
-		Diary diary = DiaryFixture.createPublicDiaryFixture(1L, userId);
-
-		given(mediaService.extractThumbnailUrl(request.mediaList())).willReturn(thumbnailUrl);
-		given(diaryRepository.save(any(Diary.class))).willReturn(diary);
+		given(diaryRepository.save(any(Diary.class))).willAnswer(invocation -> invocation.getArgument(0));
 
 		// when
-		diaryService.saveDiary(userId, request);
+		Diary result = diaryService.saveDiary(userId, request, thumbnailUrl);
 
 		// then
-		verify(mediaService).saveMedia(eq(diary.getDiaryId()), eq(request.mediaList()));
-		verify(mapService).increaseRegionDiaryCount(request.location().latitude(), request.location().longitude());
+		assertThat(result.getUserId()).isEqualTo(userId);
+		assertThat(result.getTitle()).isEqualTo(request.title());
+		assertThat(result.getContent()).isEqualTo(request.content());
+		assertThat(result.getThumbnailUrl()).isEqualTo(thumbnailUrl);
+
+		verify(diaryRepository).save(any(Diary.class));
 	}
 
 	@Test
@@ -98,40 +90,24 @@ public class DiaryServiceTest {
 			eq(keyword),
 			eq(List.of(VisibilityType.PUBLIC)),
 			eq(sort),
-			eq(Long.MAX_VALUE),
+			anyLong(),
 			any(PageRequest.class)
 		)).willReturn(diarySlice);
 
-		Map<Long, List<Media>> mediaMap = new HashMap<>();
-		for (Diary diary : diaries) {
-			mediaMap.put(diary.getDiaryId(), List.of(
-				MediaFixture.createMediaFixture(diary.getDiaryId() * 10, diary.getDiaryId())
-			));
-		}
-
-		given(mediaService.getMediaMapByDiaryIds(anyList())).willReturn(mediaMap);
-
 		// when
-		PageResponse<DiaryResponseDto> result = diaryService.searchDiariesByCursor(keyword, sort, cursorId, size);
+		Slice<DiaryResponseDto> result = diaryService.searchDiariesByCursor(keyword, sort, cursorId, size);
 
 		// then
-		assertThat(result.list()).hasSize(3);
-		assertThat(result.pageInfo().hasNext()).isFalse();
+		assertEquals(6, result.getSize());
+		assertFalse(result.hasNext());
 
-		assertThat(result.list()).allSatisfy(diary -> {
-			assertThat(diary.title().contains(keyword) || diary.content().contains(keyword))
-				.as("다이어리 제목 또는 내용에 키워드 '%s'가 포함되어야 합니다.", keyword)
-				.isTrue();
-		});
-
-		DiaryResponseDto firstDiary = result.list().get(0);
-		assertThat(firstDiary.diaryId()).isEqualTo(diaries.get(0).getDiaryId());
-		assertThat(firstDiary.title()).isEqualTo(diaries.get(0).getTitle());
-		assertThat(firstDiary.content()).isEqualTo(diaries.get(0).getContent());
-		assertThat(firstDiary.userId()).isEqualTo(diaries.get(0).getUserId());
-		assertThat(firstDiary.visibility()).isEqualTo(diaries.get(0).getVisibility().name());
-		assertThat(firstDiary.weatherInfo()).isEqualTo(diaries.get(0).getWeatherInfo().name());
-		assertThat(firstDiary.mediaList()).hasSize(1);
+		verify(diaryRepository).searchDiariesByCursor(
+			eq(keyword),
+			eq(List.of(VisibilityType.PUBLIC)),
+			eq(sort),
+			anyLong(),
+			any(PageRequest.class)
+		);
 	}
 
 	@Test
@@ -247,71 +223,62 @@ public class DiaryServiceTest {
 		int size = 12;
 
 		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
-		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, CURSOR_PAGE_SIZE), false);
+		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), true);
 
+		// mocking
+		given(followRepository.existsByInitiatorIdAndTargetId(userId, targetUserId)).willReturn(true);
 		given(diaryRepository.findByUserIdAndVisibilityInAndCursorId(
 			eq(targetUserId),
-			eq(List.of(VisibilityType.PUBLIC)),
+			anyList(),
 			eq(cursorId),
 			any(PageRequest.class)
 		)).willReturn(diarySlice);
 
-		Map<Long, List<Media>> mediaMap = new HashMap<>();
-		for (Diary diary : diaries) {
-			mediaMap.put(diary.getDiaryId(), List.of(
-				MediaFixture.createMediaFixture(diary.getDiaryId() * 10, diary.getDiaryId())
-			));
-		}
-
-		given(mediaService.getMediaMapByDiaryIds(anyList())).willReturn(mediaMap);
-
 		// when
-		PageResponse<DiaryResponseDto> result = diaryService.getDiariesByCursor(userId, targetUserId, cursorId, size);
+		Slice<DiaryResponseDto> result = diaryService.getDiaryResponseDtoSlice(userId, targetUserId, cursorId, size);
 
 		// then
-		assertThat(result.list()).hasSize(3);
-		assertThat(result.pageInfo().hasNext()).isFalse();
+		assertThat(result).hasSize(3);
+		assertThat(result.hasNext()).isTrue();
+		verify(diaryRepository).findByUserIdAndVisibilityInAndCursorId(
+			eq(targetUserId),
+			anyList(),
+			eq(cursorId),
+			any(PageRequest.class)
+		);
 	}
 
 	@Test
 	@DisplayName("다이어리 수정 성공")
 	void updateDiary() {
 		// given
-		Long userId = 1L;
-		Long diaryId = 1L;
+		Diary diary = mock(Diary.class);
 		DiaryRequestDto request = DiaryFixture.createPublicDiaryRequestDtoFixture();
 
-		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, userId);
 		String newThumbnailUrl = "https://example.com/public.jpg";
 
-		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
-		given(mediaService.extractThumbnailUrl(request.mediaList())).willReturn(newThumbnailUrl);
-
 		// when
-		diaryService.updateDiary(userId, diaryId, request);
+		diaryService.updateDiary(diary, request, newThumbnailUrl);
 
 		// then
-		verify(mediaService).updateMediaByDiaryId(eq(diaryId), eq(request.mediaList()));
-		assertThat(diary.getTitle()).isEqualTo(request.title());
-		assertThat(diary.getContent()).isEqualTo(request.content());
-		assertThat(diary.getThumbnailUrl()).isEqualTo(newThumbnailUrl);
+		verify(diary).update(request, newThumbnailUrl); // update 메서드 호출 확인
+		verify(diaryRepository).save(diary); // save 호출 확인
 	}
 
 	@Test
-	@DisplayName("다이어리 수정 실패 - 작성자가 아닌 경우")
+	@DisplayName("다이어리 수정 실패(검증 로직 실패) - 작성자가 아닌 경우")
 	void updateDiary_notOwner() {
 		// given
 		Long userId = 1L;
 		Long authorId = 2L;
 		Long diaryId = 1L;
-		DiaryRequestDto request = DiaryFixture.createPublicDiaryRequestDtoFixture();
 
 		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, authorId);
 
 		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
 
 		// when & then
-		assertThatThrownBy(() -> diaryService.updateDiary(userId, diaryId, request))
+		assertThatThrownBy(() -> diaryService.getDiaryAfterValidateOwnership(diaryId, userId))
 			.isInstanceOf(OwnerAccessDeniedException.class);
 	}
 
@@ -324,18 +291,15 @@ public class DiaryServiceTest {
 
 		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, userId);
 
-		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
-
 		// when
-		diaryService.deleteDiary(userId, diaryId);
+		diaryService.deleteDiary(diary);
 
 		// then
-		verify(mediaService).deleteMediaByDiaryId(diaryId);
 		verify(diaryRepository).delete(diary);
 	}
 
 	@Test
-	@DisplayName("다이어리 삭제 실패 - 작성자가 아닌 경우")
+	@DisplayName("다이어리 삭제전 소유자 검증  - 작성자가 아닌 경우")
 	void deleteDiary_notOwner() {
 		// given
 		Long userId = 1L;
@@ -346,8 +310,8 @@ public class DiaryServiceTest {
 
 		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
 
-		// when & then
-		assertThatThrownBy(() -> diaryService.deleteDiary(userId, diaryId))
+		// when & then  (서비스 검증로직)
+		assertThatThrownBy(() -> diaryService.getDiaryAfterValidateOwnership(userId, diaryId))
 			.isInstanceOf(OwnerAccessDeniedException.class);
 	}
 
