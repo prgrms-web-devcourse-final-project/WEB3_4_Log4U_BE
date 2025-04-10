@@ -22,15 +22,15 @@ import org.springframework.data.domain.SliceImpl;
 import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.VisibilityType;
+import com.example.log4u.domain.diary.diary.DiaryFacade;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
-import com.example.log4u.domain.follow.repository.FollowRepository;
+import com.example.log4u.domain.follow.service.FollowService;
 import com.example.log4u.domain.hashtag.service.HashtagService;
-import com.example.log4u.domain.like.repository.LikeRepository;
 import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
@@ -44,16 +44,16 @@ public class DiaryServiceTest {
 	private DiaryRepository diaryRepository;
 
 	@Mock
-	private LikeRepository likeRepository;
-
-	@Mock
-	private FollowRepository followRepository;
+	private FollowService followService;
 
 	@Mock
 	private MediaService mediaService;
 
 	@Mock
 	private HashtagService hashtagService;
+
+	@Mock
+	private DiaryFacade diaryFacade;
 
 	@InjectMocks
 	private DiaryService diaryService;
@@ -161,7 +161,7 @@ public class DiaryServiceTest {
 		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
 		given(mediaService.getMediaByDiaryId(diaryId)).willReturn(mediaList);
 		given(hashtagService.getHashtagsByDiaryId(diaryId)).willReturn(hashtagList);
-		given(likeRepository.existsByUserIdAndDiaryId(userId, diaryId)).willReturn(false);
+		given(diaryFacade.existsLike(userId, diaryId)).willReturn(false);
 
 		// when
 		DiaryResponseDto result = diaryService.getDiary(userId, diaryId);
@@ -187,10 +187,10 @@ public class DiaryServiceTest {
 		List<String> hashtagList = List.of("#여행", "#맛집");
 
 		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
-		given(followRepository.existsByInitiatorIdAndTargetId(userId, authorId)).willReturn(true);
+		given(followService.existsFollow(userId, authorId)).willReturn(true);
 		given(mediaService.getMediaByDiaryId(diaryId)).willReturn(mediaList);
 		given(hashtagService.getHashtagsByDiaryId(diaryId)).willReturn(hashtagList);
-		given(likeRepository.existsByUserIdAndDiaryId(userId, diaryId)).willReturn(false);
+		given(diaryFacade.existsLike(userId, diaryId)).willReturn(false);
 
 		// when
 		DiaryResponseDto result = diaryService.getDiary(userId, diaryId);
@@ -213,7 +213,7 @@ public class DiaryServiceTest {
 		Diary diary = DiaryFixture.createFollowerDiaryFixture(diaryId, authorId); // 다른 사용자의 팔로워 다이어리
 
 		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
-		given(followRepository.existsByInitiatorIdAndTargetId(userId, authorId)).willReturn(false);
+		given(followService.existsFollow(userId, authorId)).willReturn(false);
 
 		// when & then
 		assertThatThrownBy(() -> diaryService.getDiary(userId, diaryId))
@@ -234,7 +234,7 @@ public class DiaryServiceTest {
 		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
 		given(mediaService.getMediaByDiaryId(diaryId)).willReturn(mediaList);
 		given(hashtagService.getHashtagsByDiaryId(diaryId)).willReturn(hashtagList);
-		given(likeRepository.existsByUserIdAndDiaryId(userId, diaryId)).willReturn(true);
+		given(diaryFacade.existsLike(userId, diaryId)).willReturn(true);
 
 		// when
 		DiaryResponseDto result = diaryService.getDiary(userId, diaryId);
@@ -397,14 +397,13 @@ public class DiaryServiceTest {
 		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, 1L);
 		Long initialLikeCount = diary.getLikeCount();
 
-		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
+		given(diaryFacade.incrementLikeCount(diaryId)).willReturn(initialLikeCount + 1);
 
 		// when
-		Long newLikeCount = diaryService.incrementLikeCount(diaryId);
+		Long newLikeCount = diaryFacade.incrementLikeCount(diaryId);
 
 		// then
 		assertThat(newLikeCount).isEqualTo(initialLikeCount + 1);
-		assertThat(diary.getLikeCount()).isEqualTo(initialLikeCount + 1);
 	}
 
 	@Test
@@ -412,17 +411,16 @@ public class DiaryServiceTest {
 	void decreaseLikeCount() {
 		// given
 		Long diaryId = 1L;
-		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, 1L);
+		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, 1L); // 좋아요 5
 		Long initialLikeCount = diary.getLikeCount();
 
-		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
+		given(diaryFacade.decrementLikeCount(diaryId)).willReturn(initialLikeCount - 1);
 
 		// when
-		Long newLikeCount = diaryService.decreaseLikeCount(diaryId);
+		Long newLikeCount = diaryFacade.decrementLikeCount(diaryId);
 
 		// then
 		assertThat(newLikeCount).isEqualTo(initialLikeCount - 1);
-		assertThat(diary.getLikeCount()).isEqualTo(initialLikeCount - 1);
 	}
 
 	@Test
@@ -432,10 +430,10 @@ public class DiaryServiceTest {
 		Long diaryId = 1L;
 		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, 1L);
 
-		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
+		given(diaryFacade.getLikeCount(diaryId)).willReturn(diary.getLikeCount());
 
 		// when
-		Long likeCount = diaryService.getLikeCount(diaryId);
+		Long likeCount = diaryFacade.getLikeCount(diaryId);
 
 		// then
 		assertThat(likeCount).isEqualTo(diary.getLikeCount());

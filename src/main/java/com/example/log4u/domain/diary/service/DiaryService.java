@@ -14,15 +14,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.VisibilityType;
+import com.example.log4u.domain.diary.diary.DiaryFacade;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
-import com.example.log4u.domain.follow.repository.FollowRepository;
+import com.example.log4u.domain.follow.service.FollowService;
 import com.example.log4u.domain.hashtag.service.HashtagService;
-import com.example.log4u.domain.like.repository.LikeRepository;
 import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
@@ -36,10 +36,10 @@ import lombok.extern.slf4j.Slf4j;
 public class DiaryService {
 
 	private final DiaryRepository diaryRepository;
-	private final FollowRepository followRepository;
+	private final FollowService followService;
 	private final MediaService mediaService;
 	private final MapService mapService;
-	private final LikeRepository likeRepository;
+	private final DiaryFacade diaryFacade;
 	private final HashtagService hashtagService;
 
 	// 다이어리 생성
@@ -85,7 +85,7 @@ public class DiaryService {
 
 		validateDiaryAccess(diary, userId);
 
-		boolean isLiked = likeRepository.existsByUserIdAndDiaryId(userId, diaryId);
+		boolean isLiked = diaryFacade.existsLike(userId, diaryId);
 		List<Media> media = mediaService.getMediaByDiaryId(diary.getDiaryId());
 		List<String> hashtags = hashtagService.getHashtagsByDiaryId(diary.getDiaryId());
 		return DiaryResponseDto.of(diary, media, hashtags, isLiked);
@@ -190,7 +190,7 @@ public class DiaryService {
 			return List.of(VisibilityType.PUBLIC, VisibilityType.PRIVATE, VisibilityType.FOLLOWER);
 		}
 
-		if (followRepository.existsByInitiatorIdAndTargetId(userId, targetUserId)) {
+		if (followService.existsFollow(userId, targetUserId)) {
 			return List.of(VisibilityType.PUBLIC, VisibilityType.FOLLOWER);
 		}
 
@@ -207,32 +207,12 @@ public class DiaryService {
 
 		if (diary.getVisibility() == VisibilityType.FOLLOWER) {
 			if (!diary.getUserId().equals(userId)
-				&& !followRepository.existsByInitiatorIdAndTargetId(userId, diary.getUserId())) {
+				&& !followService.existsFollow(userId, diary.getUserId())) {
 				throw new NotFoundDiaryException();
 			}
 		}
 	}
-
-	public Diary getDiary(Long diaryId) {
-		return diaryRepository.findById(diaryId)
-			.orElseThrow(NotFoundDiaryException::new);
-	}
-
-	public Long incrementLikeCount(Long diaryId) {
-		Diary diary = getDiary(diaryId);
-		return diary.incrementLikeCount();
-	}
-
-	public Long decreaseLikeCount(Long diaryId) {
-		Diary diary = getDiary(diaryId);
-		return diary.decreaseLikeCount();
-	}
-
-	public Long getLikeCount(Long diaryId) {
-		Diary diary = getDiary(diaryId);
-		return diary.getLikeCount();
-	}
-
+	
 	public void checkDiaryExists(Long diaryId) {
 		if (!diaryRepository.existsById(diaryId)) {
 			throw new NotFoundDiaryException();

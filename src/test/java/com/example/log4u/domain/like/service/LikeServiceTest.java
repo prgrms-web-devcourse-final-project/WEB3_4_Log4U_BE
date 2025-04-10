@@ -13,7 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.example.log4u.domain.diary.entity.Diary;
+import com.example.log4u.domain.diary.diary.DiaryFacade;
 import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.like.dto.request.LikeAddRequestDto;
@@ -22,10 +22,7 @@ import com.example.log4u.domain.like.dto.response.LikeCancelResponseDto;
 import com.example.log4u.domain.like.entity.Like;
 import com.example.log4u.domain.like.exception.DuplicateLikeException;
 import com.example.log4u.domain.like.repository.LikeRepository;
-import com.example.log4u.domain.user.entity.User;
-import com.example.log4u.fixture.DiaryFixture;
 import com.example.log4u.fixture.LikeFixture;
-import com.example.log4u.fixture.UserFixture;
 
 @DisplayName("좋아요 API 단위 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -40,6 +37,9 @@ public class LikeServiceTest {
 	@Mock
 	private DiaryService diaryService;
 
+	@Mock
+	private DiaryFacade diaryFacade;
+
 	@Test
 	@DisplayName("성공 테스트: 좋아요 추가 ")
 	void likeSuccess() {
@@ -53,7 +53,7 @@ public class LikeServiceTest {
 
 		given(likeRepository.existsByUserIdAndDiaryId(userId, diaryId)).willReturn(false);
 		given(likeRepository.save(any(Like.class))).willReturn(like);
-		given(diaryService.incrementLikeCount(diaryId)).willReturn(updatedLikeCount);
+		given(diaryFacade.incrementLikeCount(diaryId)).willReturn(updatedLikeCount);
 
 		// when
 		LikeAddResponseDto response = likeService.addLike(userId, requestDto);
@@ -73,7 +73,7 @@ public class LikeServiceTest {
 		LikeAddRequestDto requestDto = new LikeAddRequestDto(diaryId);
 
 		given(likeRepository.existsByUserIdAndDiaryId(userId, diaryId)).willReturn(false);
-		given(diaryService.incrementLikeCount(diaryId)).willThrow(new NotFoundDiaryException());
+		given(diaryFacade.incrementLikeCount(diaryId)).willThrow(new NotFoundDiaryException());
 
 		// when & then
 		assertThrows(NotFoundDiaryException.class, () -> {
@@ -112,14 +112,14 @@ public class LikeServiceTest {
 
 		given(likeRepository.findByUserIdAndDiaryId(userId, diaryId)).willReturn(Optional.of(like));
 		doNothing().when(likeRepository).delete(like);
-		given(diaryService.decreaseLikeCount(diaryId)).willReturn(updatedLikeCount);
+		given(diaryFacade.decrementLikeCount(diaryId)).willReturn(updatedLikeCount);
 
 		// when
 		LikeCancelResponseDto response = likeService.cancelLike(userId, diaryId);
 
 		// then
 		verify(likeRepository).delete(like);
-		verify(diaryService).decreaseLikeCount(diaryId);
+		verify(diaryFacade).decrementLikeCount(diaryId);
 
 		assertThat(response.liked()).isFalse();
 		assertThat(response.likeCount()).isEqualTo(updatedLikeCount);
@@ -134,14 +134,14 @@ public class LikeServiceTest {
 		Long currentCount = 5L;
 
 		given(likeRepository.findByUserIdAndDiaryId(userId, diaryId)).willReturn(Optional.empty());
-		given(diaryService.getLikeCount(diaryId)).willReturn(currentCount);
+		given(diaryFacade.getLikeCount(diaryId)).willReturn(currentCount);
 
 		// when
 		LikeCancelResponseDto response = likeService.cancelLike(userId, diaryId);
 
 		// then
 		verify(likeRepository, never()).delete(any());
-		verify(diaryService).getLikeCount(diaryId);
+		verify(diaryFacade).getLikeCount(diaryId);
 
 		assertThat(response.liked()).isFalse();
 		assertThat(response.likeCount()).isEqualTo(currentCount);
