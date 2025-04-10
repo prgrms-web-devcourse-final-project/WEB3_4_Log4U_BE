@@ -54,10 +54,12 @@ class HashtagServiceTest {
 		when(hashtagRepository.save(any(Hashtag.class)))
 			.thenAnswer(invocation -> {
 				Hashtag hashtag = invocation.getArgument(0);
-				if (hashtag.getName().equals("여행"))
+				if (hashtag.getName().equals("여행")) {
 					return HashtagFixture.TRAVEL;
-				if (hashtag.getName().equals("맛집"))
+				}
+				if (hashtag.getName().equals("맛집")) {
 					return HashtagFixture.FOOD;
+				}
 				return HashtagFixture.DAILY;
 			});
 

@@ -155,7 +155,7 @@ public class DiaryService {
 		return new SliceImpl<>(content, slice.getPageable(), slice.hasNext());
 	}
 
-	// 다이어리 + 미디어 같이 반환
+	// 다이어리 + (미디어 + 해시태그) 같이 반환
 	private List<DiaryResponseDto> getDiaryResponsesWithMediaAndHashTags(List<Diary> diaries) {
 		if (diaries.isEmpty()) {
 			return List.of();

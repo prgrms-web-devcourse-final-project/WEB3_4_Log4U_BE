@@ -83,6 +83,9 @@ public class DiaryServiceTest {
 
 		// then
 		verify(mediaService).saveMedia(eq(diary.getDiaryId()), eq(request.mediaList()));
+		// 해시태그 서비스 호출 검증 추가
+		verify(hashtagService).saveOrUpdateHashtag(eq(diary.getDiaryId()), eq(request.hashtagList()));
+		// 맵 서비스 호출 검증 추가
 		verify(mapService).increaseRegionDiaryCount(request.location().latitude(), request.location().longitude());
 	}
 
@@ -107,13 +110,17 @@ public class DiaryServiceTest {
 		)).willReturn(diarySlice);
 
 		Map<Long, List<Media>> mediaMap = new HashMap<>();
+		Map<Long, List<String>> hashtagMap = new HashMap<>();
+
 		for (Diary diary : diaries) {
 			mediaMap.put(diary.getDiaryId(), List.of(
 				MediaFixture.createMediaFixture(diary.getDiaryId() * 10, diary.getDiaryId())
 			));
+			hashtagMap.put(diary.getDiaryId(), List.of("#여행", "#맛집"));
 		}
 
 		given(mediaService.getMediaMapByDiaryIds(anyList())).willReturn(mediaMap);
+		given(hashtagService.getHashtagMapByDiaryIds(anyList())).willReturn(hashtagMap);
 
 		// when
 		PageResponse<DiaryResponseDto> result = diaryService.searchDiariesByCursor(keyword, sort, cursorId, size);
@@ -136,6 +143,8 @@ public class DiaryServiceTest {
 		assertThat(firstDiary.visibility()).isEqualTo(diaries.get(0).getVisibility().name());
 		assertThat(firstDiary.weatherInfo()).isEqualTo(diaries.get(0).getWeatherInfo().name());
 		assertThat(firstDiary.mediaList()).hasSize(1);
+		// 해시태그 검증 추가
+		assertThat(firstDiary.hashtagList()).containsExactly("#여행", "#맛집");
 	}
 
 	@Test
@@ -147,9 +156,12 @@ public class DiaryServiceTest {
 
 		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, 2L); // 다른 사용자의 공개 다이어리
 		List<Media> mediaList = List.of(MediaFixture.createMediaFixture(10L, diaryId));
+		List<String> hashtagList = List.of("#여행", "#맛집");
 
 		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
 		given(mediaService.getMediaByDiaryId(diaryId)).willReturn(mediaList);
+		given(hashtagService.getHashtagsByDiaryId(diaryId)).willReturn(hashtagList);
+		given(likeRepository.existsByUserIdAndDiaryId(userId, diaryId)).willReturn(false);
 
 		// when
 		DiaryResponseDto result = diaryService.getDiary(userId, diaryId);
@@ -158,6 +170,8 @@ public class DiaryServiceTest {
 		assertThat(result.diaryId()).isEqualTo(diaryId);
 		assertThat(result.userId()).isEqualTo(2L);
 		assertThat(result.visibility()).isEqualTo(VisibilityType.PUBLIC.name());
+		assertThat(result.hashtagList()).isEqualTo(hashtagList);
+		assertThat(result.isLiked()).isFalse();
 	}
 
 	@Test
@@ -170,10 +184,13 @@ public class DiaryServiceTest {
 
 		Diary diary = DiaryFixture.createFollowerDiaryFixture(diaryId, authorId); // 다른 사용자의 팔로워 다이어리
 		List<Media> mediaList = List.of(MediaFixture.createMediaFixture(10L, diaryId));
+		List<String> hashtagList = List.of("#여행", "#맛집");
 
 		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
 		given(followRepository.existsByInitiatorIdAndTargetId(userId, authorId)).willReturn(true);
 		given(mediaService.getMediaByDiaryId(diaryId)).willReturn(mediaList);
+		given(hashtagService.getHashtagsByDiaryId(diaryId)).willReturn(hashtagList);
+		given(likeRepository.existsByUserIdAndDiaryId(userId, diaryId)).willReturn(false);
 
 		// when
 		DiaryResponseDto result = diaryService.getDiary(userId, diaryId);
@@ -182,6 +199,7 @@ public class DiaryServiceTest {
 		assertThat(result.diaryId()).isEqualTo(diaryId);
 		assertThat(result.userId()).isEqualTo(authorId);
 		assertThat(result.visibility()).isEqualTo(VisibilityType.FOLLOWER.name());
+		assertThat(result.hashtagList()).isEqualTo(hashtagList);
 	}
 
 	@Test
@@ -211,9 +229,12 @@ public class DiaryServiceTest {
 
 		Diary diary = DiaryFixture.createPrivateDiaryFixture(diaryId, userId); // 자신의 비공개 다이어리
 		List<Media> mediaList = List.of(MediaFixture.createMediaFixture(10L, diaryId));
+		List<String> hashtagList = List.of("#여행", "#맛집");
 
 		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
 		given(mediaService.getMediaByDiaryId(diaryId)).willReturn(mediaList);
+		given(hashtagService.getHashtagsByDiaryId(diaryId)).willReturn(hashtagList);
+		given(likeRepository.existsByUserIdAndDiaryId(userId, diaryId)).willReturn(true);
 
 		// when
 		DiaryResponseDto result = diaryService.getDiary(userId, diaryId);
@@ -222,6 +243,8 @@ public class DiaryServiceTest {
 		assertThat(result.diaryId()).isEqualTo(diaryId);
 		assertThat(result.userId()).isEqualTo(userId);
 		assertThat(result.visibility()).isEqualTo(VisibilityType.PRIVATE.name());
+		assertThat(result.hashtagList()).isEqualTo(hashtagList);
+		assertThat(result.isLiked()).isTrue();
 	}
 
 	@Test
@@ -261,13 +284,17 @@ public class DiaryServiceTest {
 		)).willReturn(diarySlice);
 
 		Map<Long, List<Media>> mediaMap = new HashMap<>();
+		Map<Long, List<String>> hashtagMap = new HashMap<>();
+
 		for (Diary diary : diaries) {
 			mediaMap.put(diary.getDiaryId(), List.of(
 				MediaFixture.createMediaFixture(diary.getDiaryId() * 10, diary.getDiaryId())
 			));
+			hashtagMap.put(diary.getDiaryId(), List.of("#여행", "#맛집"));
 		}
 
 		given(mediaService.getMediaMapByDiaryIds(anyList())).willReturn(mediaMap);
+		given(hashtagService.getHashtagMapByDiaryIds(anyList())).willReturn(hashtagMap);
 
 		// when
 		PageResponse<DiaryResponseDto> result = diaryService.getDiariesByCursor(userId, targetUserId, cursorId, size);
@@ -275,6 +302,9 @@ public class DiaryServiceTest {
 		// then
 		assertThat(result.list()).hasSize(3);
 		assertThat(result.pageInfo().hasNext()).isFalse();
+
+		// 해시태그 검증 추가
+		assertThat(result.list().get(0).hashtagList()).containsExactly("#여행", "#맛집");
 	}
 
 	@Test
@@ -296,6 +326,8 @@ public class DiaryServiceTest {
 
 		// then
 		verify(mediaService).updateMediaByDiaryId(eq(diaryId), eq(request.mediaList()));
+		// 해시태그 서비스 호출 검증 추가
+		verify(hashtagService).saveOrUpdateHashtag(eq(diaryId), eq(request.hashtagList()));
 		assertThat(diary.getTitle()).isEqualTo(request.title());
 		assertThat(diary.getContent()).isEqualTo(request.content());
 		assertThat(diary.getThumbnailUrl()).isEqualTo(newThumbnailUrl);
@@ -335,6 +367,8 @@ public class DiaryServiceTest {
 
 		// then
 		verify(mediaService).deleteMediaByDiaryId(diaryId);
+		// 해시태그 서비스 호출 검증 추가
+		verify(hashtagService).saveOrUpdateHashtag(eq(diaryId), eq(List.of()));
 		verify(diaryRepository).delete(diary);
 	}
 
@@ -431,5 +465,93 @@ public class DiaryServiceTest {
 		// when & then
 		assertThatThrownBy(() -> diaryService.checkDiaryExists(diaryId))
 			.isInstanceOf(NotFoundDiaryException.class);
+	}
+
+	@Test
+	@DisplayName("내 다이어리 목록 조회 성공")
+	void getMyDiariesByCursor() {
+		// given
+		Long userId = 1L;
+		Long cursorId = 5L;
+		int size = 12;
+		VisibilityType visibilityType = VisibilityType.PUBLIC;
+
+		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
+		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, CURSOR_PAGE_SIZE), false);
+
+		given(diaryRepository.findByUserIdAndVisibilityInAndCursorId(
+			eq(userId),
+			eq(List.of(visibilityType)),
+			eq(cursorId),
+			any(PageRequest.class)
+		)).willReturn(diarySlice);
+
+		Map<Long, List<Media>> mediaMap = new HashMap<>();
+		Map<Long, List<String>> hashtagMap = new HashMap<>();
+
+		for (Diary diary : diaries) {
+			mediaMap.put(diary.getDiaryId(), List.of(
+				MediaFixture.createMediaFixture(diary.getDiaryId() * 10, diary.getDiaryId())
+			));
+			hashtagMap.put(diary.getDiaryId(), List.of("#여행", "#맛집"));
+		}
+
+		given(mediaService.getMediaMapByDiaryIds(anyList())).willReturn(mediaMap);
+		given(hashtagService.getHashtagMapByDiaryIds(anyList())).willReturn(hashtagMap);
+
+		// when
+		PageResponse<DiaryResponseDto> result = diaryService.getMyDiariesByCursor(userId, visibilityType, cursorId,
+			size);
+
+		// then
+		assertThat(result.list()).hasSize(3);
+		assertThat(result.pageInfo().hasNext()).isFalse();
+
+		// 해시태그 검증 추가
+		assertThat(result.list().get(0).hashtagList()).containsExactly("#여행", "#맛집");
+	}
+
+	@Test
+	@DisplayName("좋아요한 다이어리 목록 조회 성공")
+	void getLikeDiariesByCursor() {
+		// given
+		Long userId = 1L;
+		Long targetUserId = 2L;
+		Long cursorId = 5L;
+		int size = 12;
+
+		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
+		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, CURSOR_PAGE_SIZE), false);
+
+		given(diaryRepository.getLikeDiarySliceByUserId(
+			eq(targetUserId),
+			eq(List.of(VisibilityType.PUBLIC)),
+			eq(cursorId),
+			any(PageRequest.class)
+		)).willReturn(diarySlice);
+
+		Map<Long, List<Media>> mediaMap = new HashMap<>();
+		Map<Long, List<String>> hashtagMap = new HashMap<>();
+
+		for (Diary diary : diaries) {
+			mediaMap.put(diary.getDiaryId(), List.of(
+				MediaFixture.createMediaFixture(diary.getDiaryId() * 10, diary.getDiaryId())
+			));
+			hashtagMap.put(diary.getDiaryId(), List.of("#여행", "#맛집"));
+		}
+
+		given(mediaService.getMediaMapByDiaryIds(anyList())).willReturn(mediaMap);
+		given(hashtagService.getHashtagMapByDiaryIds(anyList())).willReturn(hashtagMap);
+
+		// when
+		PageResponse<DiaryResponseDto> result = diaryService.getLikeDiariesByCursor(userId, targetUserId, cursorId,
+			size);
+
+		// then
+		assertThat(result.list()).hasSize(3);
+		assertThat(result.pageInfo().hasNext()).isFalse();
+
+		// 해시태그 검증 추가
+		assertThat(result.list().get(0).hashtagList()).containsExactly("#여행", "#맛집");
 	}
 }
