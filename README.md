@@ -1,23 +1,23 @@
 ## 개발 환경 설정
 
 [AWS API SERVER](http://ec2-13-209-127-186.ap-northeast-2.compute.amazonaws.com:8080)
+
+[카카오 로그인](http://ec2-13-209-127-186.ap-northeast-2.compute.amazonaws.com:8080/oauth2/authorization/kakao)
+
+[네이버 로그인](http://ec2-13-209-127-186.ap-northeast-2.compute.amazonaws.com:8080/oauth2/authorization/naver)
+
+[구글 로그인](http://ec2-13-209-127-186.ap-northeast-2.compute.amazonaws.com:8080/oauth2/authorization/google)
+
 ---
 
 * 루트 디렉토리(WEB3_4_Log4U_BE)에서 다음 명령 실행
-* 개발용 MYSQL 빌드
+* 개발용 DB 컨테이너 실행
 
 ```
-# 이미지 빌드
-cd docker
-docker build -t log4u-mysql .
+# postgresql mysql 모두 실행
+docker-compose up -d
 
-# 최초 실행 1(볼륨 존재)
-docker run -d --name log4u-mysql -p 3307:3306 -v {file}:/var/lib/mysql log4u-mysql
-
-# 최초 실행 2(볼륨 없이)
-docker run -d --name log4u-mysql -p 3307:3306  log4u-mysql
-
-# 이미 존재할 경우 
-docker start log4u-mysql
+# postgresql 만 실행
+docker-compose up -d postgres
 
 ```
