@@ -82,7 +82,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	private void redirectTo(HttpServletResponse response, CustomOAuth2User customOAuth2User) throws IOException {
 		String redirectUrl = switch (customOAuth2User.getRole()) {
 			case "ROLE_GUEST" -> PROFILE_CREATE_URL;
-			case "ROLE_USER" -> FRONT_SUB_DOMAIN_URL;
+			case "ROLE_USER" -> FRONT_VERCEL_ORIGIN;
 			default -> LOGIN_URL;
 		};
 		response.sendRedirect(redirectUrl);
