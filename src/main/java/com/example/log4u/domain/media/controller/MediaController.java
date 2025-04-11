@@ -17,7 +17,7 @@ import com.example.log4u.domain.media.dto.PresignedUrlRequestDto;
 import com.example.log4u.domain.media.dto.PresignedUrlResponseDto;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
-import com.example.log4u.domain.media.service.PresignedUrlService;
+import com.example.log4u.domain.media.service.S3Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MediaController {
 
 	private final MediaService mediaService;
-	private final PresignedUrlService presignedUrlService;
+	private final S3Service presignedUrlService;
 
 	@PostMapping("/presigned-url")
 	public ResponseEntity<PresignedUrlResponseDto> getPresignedUrl(

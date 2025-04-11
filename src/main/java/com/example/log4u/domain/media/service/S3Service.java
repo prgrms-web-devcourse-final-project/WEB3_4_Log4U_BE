@@ -1,10 +1,13 @@
 package com.example.log4u.domain.media.service;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.log4u.domain.media.MediaStatus;
@@ -15,6 +18,8 @@ import com.example.log4u.domain.media.repository.MediaRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -22,9 +27,10 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PresignedUrlService {
+public class S3Service {
 
 	private final S3Presigner s3Presigner;
+	private final S3Client s3Client;
 	private final MediaRepository mediaRepository;
 
 	@Value("${S3_BUCKET_NAME}")
@@ -33,6 +39,9 @@ public class PresignedUrlService {
 	@Value("${AWS_REGION}")
 	private String s3Region;
 
+	/**
+	 * Presigned URL 생성 및 임시 미디어 엔티티 저장
+	 */
 	@Transactional
 	public PresignedUrlResponseDto generatePresignedUrl(PresignedUrlRequestDto request) {
 		// 파일명 생성
@@ -81,6 +90,34 @@ public class PresignedUrlService {
 			presignedUrl,
 			accessUrl
 		);
+	}
+
+	/**
+	 * S3에서 파일 삭제 (비동기)
+	 */
+	@Async("mediaTaskExecutor")
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void deleteFilesFromS3(List<Media> mediaList) {
+		for (Media media : mediaList) {
+			try {
+				// S3에서 파일 삭제
+				DeleteObjectRequest request = DeleteObjectRequest.builder()
+					.bucket(bucketName)
+					.key(media.getStoredName())
+					.build();
+
+				s3Client.deleteObject(request);
+
+				// 성공하면 DB에서도 삭제
+				mediaRepository.delete(media);
+				log.info("Successfully deleted media from S3 and DB: {}", media.getMediaId());
+			} catch (Exception e) {
+				// 실패하면 FAILED_DELETE 상태로 변경
+				media.markAsFailedDelete();
+				mediaRepository.save(media);
+				log.error("Failed to delete media from S3: {}", media.getMediaId(), e);
+			}
+		}
 	}
 
 	private String getFileExtension(String fileName) {
