@@ -18,6 +18,7 @@ import com.example.log4u.domain.hashtag.entity.QDiaryHashtag;
 import com.example.log4u.domain.hashtag.entity.QHashtag;
 import com.example.log4u.domain.like.entity.QLike;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
+import com.example.log4u.domain.media.entity.QMedia;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -37,6 +38,7 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 	private final QLike like = QLike.like;
 	private final QDiaryHashtag diaryHashtag = QDiaryHashtag.diaryHashtag;
 	private final QHashtag hashtag = QHashtag.hashtag;
+	private final QMedia media = QMedia.media;
 
 	@Override
 	public Page<Diary> searchDiaries(

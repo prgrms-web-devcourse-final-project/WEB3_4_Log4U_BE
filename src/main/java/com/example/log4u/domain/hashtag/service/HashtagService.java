@@ -29,6 +29,10 @@ public class HashtagService {
 
 	@Transactional
 	public List<String> saveOrUpdateHashtag(Long diaryId, List<String> newHashtagNames) {
+		if (newHashtagNames == null) {
+			return List.of();
+		}
+
 		// 1. 새 해시태그 이름 처리 (# 제거, 중복 제거)
 		List<String> processedTags = newHashtagNames.stream()
 			.map(this::processHashtag)
@@ -77,8 +81,16 @@ public class HashtagService {
 			.filter(link -> !newHashtagIds.contains(link.getHashtagId()))
 			.toList();
 
+		// 삭제될 연결의 해시태그 ID 목록
+		List<Long> potentiallyUnusedHashtagIds = linksToDelete.stream()
+			.map(DiaryHashtag::getHashtagId)
+			.toList();
+
 		if (!linksToDelete.isEmpty()) {
 			diaryHashtagRepository.deleteAll(linksToDelete);
+
+			// 삭제된 연결의 해시태그 중 더 이상 사용되지 않는 것 정리 (공통 메서드 호출)
+			cleanupUnusedHashtags(potentiallyUnusedHashtagIds);
 		}
 
 		// 6. 응답용 해시태그 목록 생성 (# 추가)
@@ -105,6 +117,7 @@ public class HashtagService {
 		return diaryHashtags.stream()
 			.map(diaryHashtag -> hashtagMap.get(diaryHashtag.getHashtagId()))
 			.filter(name -> name != null && !name.isEmpty())
+			.map(name -> "#" + name)
 			.toList();
 	}
 
@@ -142,6 +155,21 @@ public class HashtagService {
 			));
 	}
 
+	@Transactional
+	public void deleteHashtagsByDiaryId(Long diaryId) {
+		// 1. 삭제될 다이어리에 연결된 해시태그 ID 목록 조회
+		List<Long> affectedHashtagIds = diaryHashtagRepository.findByDiaryId(diaryId)
+			.stream()
+			.map(DiaryHashtag::getHashtagId)
+			.toList();
+
+		// 2. 다이어리-해시태그 연결 정보 삭제
+		diaryHashtagRepository.deleteByDiaryId(diaryId);
+
+		// 3. 영향받은 해시태그 중 더 이상 사용되지 않는 것만 삭제 (공통 메서드 호출)
+		cleanupUnusedHashtags(affectedHashtagIds);
+	}
+
 	// 해시태그 이름 처리 (# 제거)
 	private String processHashtag(String hashtag) {
 		if (hashtag == null || hashtag.isEmpty()) {
@@ -156,4 +184,26 @@ public class HashtagService {
 
 		return processed.trim();
 	}
+
+	// 사용되지 않는 해시태그 정리
+	private void cleanupUnusedHashtags(List<Long> hashtagIds) {
+		if (hashtagIds == null || hashtagIds.isEmpty()) {
+			return;
+		}
+
+		// 여전히 사용 중인 해시태그 ID 조회
+		List<Long> stillUsedHashtagIds = diaryHashtagRepository.findHashtagIdsInUse(hashtagIds);
+
+		// 사용되지 않는 해시태그 ID 필터링
+		List<Long> unusedHashtagIds = hashtagIds.stream()
+			.filter(id -> !stillUsedHashtagIds.contains(id))
+			.toList();
+
+		// 사용되지 않는 해시태그 삭제
+		if (!unusedHashtagIds.isEmpty()) {
+			log.info("Cleaning up {} unused hashtags", unusedHashtagIds.size());
+			hashtagRepository.deleteAllById(unusedHashtagIds);
+		}
+	}
+
 }

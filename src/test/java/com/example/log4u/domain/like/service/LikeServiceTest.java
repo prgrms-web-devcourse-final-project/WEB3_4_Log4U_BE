@@ -13,7 +13,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.example.log4u.domain.diary.diary.DiaryFacade;
 import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.like.dto.request.LikeAddRequestDto;
@@ -37,9 +36,6 @@ public class LikeServiceTest {
 	@Mock
 	private DiaryService diaryService;
 
-	@Mock
-	private DiaryFacade diaryFacade;
-
 	@Test
 	@DisplayName("성공 테스트: 좋아요 추가 ")
 	void likeSuccess() {
@@ -53,7 +49,7 @@ public class LikeServiceTest {
 
 		given(likeRepository.existsByUserIdAndDiaryId(userId, diaryId)).willReturn(false);
 		given(likeRepository.save(any(Like.class))).willReturn(like);
-		given(diaryFacade.incrementLikeCount(diaryId)).willReturn(updatedLikeCount);
+		given(diaryService.incrementLikeCount(diaryId)).willReturn(updatedLikeCount);
 
 		// when
 		LikeAddResponseDto response = likeService.addLike(userId, requestDto);
@@ -73,7 +69,7 @@ public class LikeServiceTest {
 		LikeAddRequestDto requestDto = new LikeAddRequestDto(diaryId);
 
 		given(likeRepository.existsByUserIdAndDiaryId(userId, diaryId)).willReturn(false);
-		given(diaryFacade.incrementLikeCount(diaryId)).willThrow(new NotFoundDiaryException());
+		given(diaryService.incrementLikeCount(diaryId)).willThrow(new NotFoundDiaryException());
 
 		// when & then
 		assertThrows(NotFoundDiaryException.class, () -> {
@@ -112,14 +108,14 @@ public class LikeServiceTest {
 
 		given(likeRepository.findByUserIdAndDiaryId(userId, diaryId)).willReturn(Optional.of(like));
 		doNothing().when(likeRepository).delete(like);
-		given(diaryFacade.decrementLikeCount(diaryId)).willReturn(updatedLikeCount);
+		given(diaryService.decreaseLikeCount(diaryId)).willReturn(updatedLikeCount);
 
 		// when
 		LikeCancelResponseDto response = likeService.cancelLike(userId, diaryId);
 
 		// then
 		verify(likeRepository).delete(like);
-		verify(diaryFacade).decrementLikeCount(diaryId);
+		verify(diaryService).decreaseLikeCount(diaryId);
 
 		assertThat(response.liked()).isFalse();
 		assertThat(response.likeCount()).isEqualTo(updatedLikeCount);
@@ -134,14 +130,14 @@ public class LikeServiceTest {
 		Long currentCount = 5L;
 
 		given(likeRepository.findByUserIdAndDiaryId(userId, diaryId)).willReturn(Optional.empty());
-		given(diaryFacade.getLikeCount(diaryId)).willReturn(currentCount);
+		given(diaryService.getLikeCount(diaryId)).willReturn(currentCount);
 
 		// when
 		LikeCancelResponseDto response = likeService.cancelLike(userId, diaryId);
 
 		// then
 		verify(likeRepository, never()).delete(any());
-		verify(diaryFacade).getLikeCount(diaryId);
+		verify(diaryService).getLikeCount(diaryId);
 
 		assertThat(response.liked()).isFalse();
 		assertThat(response.likeCount()).isEqualTo(currentCount);
