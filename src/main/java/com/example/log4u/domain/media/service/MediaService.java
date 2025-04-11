@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +16,6 @@ import com.example.log4u.domain.media.repository.MediaRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import software.amazon.awssdk.services.s3.S3Client;
 
 @Service
 @RequiredArgsConstructor
@@ -25,10 +23,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 public class MediaService {
 
 	private final MediaRepository mediaRepository;
-	private final S3Client s3Client;
-
-	@Value("${S3_BUCKET_NAME}")
-	private String bucketName;
+	private final S3Service s3Service;
 
 	@Transactional
 	public void saveMedia(Long diaryId, List<MediaRequestDto> mediaList) {
@@ -66,14 +61,18 @@ public class MediaService {
 
 	@Transactional
 	public void deleteMediaByDiaryId(Long diaryId) {
+		// 1. 미디어 목록 조회
 		List<Media> mediaList = mediaRepository.findByDiaryId(diaryId);
 
-		// 미디어 삭제 상태로 변경
-		for (Media media : mediaList) {
-			media.markAsDeleted();
+		if (mediaList.isEmpty()) {
+			return;
 		}
 
-		mediaRepository.saveAll(mediaList);
+		// 2. DB에서 미디어 정보 삭제 (트랜잭션 내에서)
+		mediaRepository.deleteByDiaryId(diaryId);
+
+		// 3. S3에서 파일 비동기 삭제 (별도 트랜잭션에서)
+		s3Service.deleteFilesFromS3(mediaList);
 	}
 
 	@Transactional
@@ -92,11 +91,20 @@ public class MediaService {
 			.toList();
 
 		// 삭제할 미디어(기존에 있지만 새 목록에 없는 것)
+		List<Media> mediaToDelete = new ArrayList<>();
 		for (Media media : existingMedia) {
 			if (!newMediaIds.contains(media.getMediaId())) {
-				media.markAsDeleted();
-				allMediaToSave.add(media);
+				mediaToDelete.add(media);
 			}
+		}
+
+		// 삭제할 미디어가 있으면 비동기로 S3에서 삭제
+		if (!mediaToDelete.isEmpty()) {
+			// DB에서 연결 해제
+			mediaRepository.deleteAll(mediaToDelete);
+
+			// S3에서 비동기 삭제
+			s3Service.deleteFilesFromS3(mediaToDelete);
 		}
 
 		// 새 미디어 연결
@@ -151,8 +159,12 @@ public class MediaService {
 	public void deleteMediaById(Long mediaId) {
 		Media media = mediaRepository.findById(mediaId)
 			.orElseThrow(NotFoundMediaException::new);
-		media.markAsDeleted();
-		mediaRepository.save(media);
+
+		// DB에서 삭제
+		mediaRepository.delete(media);
+
+		// S3에서 비동기 삭제
+		s3Service.deleteFilesFromS3(List.of(media));
 	}
 
 	// 미디어 개수 검증 로직

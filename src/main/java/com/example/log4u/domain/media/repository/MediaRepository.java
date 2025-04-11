@@ -16,8 +16,6 @@ public interface MediaRepository extends JpaRepository<Media, Long> {
 
 	List<Media> findByDiaryId(Long diaryId);
 
-	List<Media> findByDiaryIdIn(List<Long> diaryIds);
-
 	// 임시 상태이면서 특정 시간 이전에 생성된 미디어 조회
 	List<Media> findByStatusAndCreatedAtBefore(MediaStatus status, LocalDateTime dateTime);
 

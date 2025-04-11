@@ -13,7 +13,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.like.dto.request.LikeAddRequestDto;
@@ -22,10 +21,7 @@ import com.example.log4u.domain.like.dto.response.LikeCancelResponseDto;
 import com.example.log4u.domain.like.entity.Like;
 import com.example.log4u.domain.like.exception.DuplicateLikeException;
 import com.example.log4u.domain.like.repository.LikeRepository;
-import com.example.log4u.domain.user.entity.User;
-import com.example.log4u.fixture.DiaryFixture;
 import com.example.log4u.fixture.LikeFixture;
-import com.example.log4u.fixture.UserFixture;
 
 @DisplayName("좋아요 API 단위 테스트")
 @ExtendWith(MockitoExtension.class)

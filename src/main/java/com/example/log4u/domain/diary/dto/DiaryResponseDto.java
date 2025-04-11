@@ -24,9 +24,10 @@ public record DiaryResponseDto(
 	String thumbnailUrl,
 	Long likeCount,
 	List<MediaResponseDto> mediaList,
+	List<String> hashtagList,
 	boolean isLiked
 ) {
-	public static DiaryResponseDto of(Diary diary, List<Media> media, boolean isLiked) {
+	public static DiaryResponseDto of(Diary diary, List<Media> media, List<String> hashtagList, boolean isLiked) {
 		return DiaryResponseDto.builder()
 			.diaryId(diary.getDiaryId())
 			.userId(diary.getUserId())
@@ -41,12 +42,13 @@ public record DiaryResponseDto(
 			.likeCount(diary.getLikeCount())
 			.mediaList(media.stream()
 				.map(MediaResponseDto::of).toList())
+			.hashtagList(hashtagList)
 			.isLiked(isLiked)
 			.build();
 	}
 
 	// 다이어리 목록 반환 시 사용 (isLiked false 기본값)
-	public static DiaryResponseDto of(Diary diary, List<Media> media) {
-		return DiaryResponseDto.of(diary, media, false);
+	public static DiaryResponseDto of(Diary diary, List<Media> media, List<String> hashtagList) {
+		return DiaryResponseDto.of(diary, media, hashtagList, false);
 	}
 }

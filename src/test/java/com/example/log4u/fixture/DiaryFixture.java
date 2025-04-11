@@ -93,7 +93,8 @@ public class DiaryFixture {
 			LocationFixture.createDefaultLocationDto(),
 			WeatherInfo.SUNNY,
 			VisibilityType.PUBLIC,
-			mediaList
+			mediaList,
+			List.of("여행", "일상") // 해시태그 목록 추가
 		);
 	}
 
@@ -111,7 +112,8 @@ public class DiaryFixture {
 			LocationFixture.createDefaultLocationDto(),
 			WeatherInfo.SUNNY,
 			VisibilityType.PUBLIC,
-			mediaList
+			mediaList,
+			List.of("공개", "테스트") // 해시태그 목록 추가
 		);
 	}
 
@@ -129,7 +131,8 @@ public class DiaryFixture {
 			LocationFixture.createGangnamLocationDto(),
 			WeatherInfo.CLOUDY,
 			VisibilityType.PRIVATE,
-			mediaList
+			mediaList,
+			List.of("비공개") // 해시태그 목록 추가
 		);
 	}
 
@@ -147,7 +150,8 @@ public class DiaryFixture {
 			LocationFixture.createHongdaeLocationDto(),
 			WeatherInfo.RAINY,
 			VisibilityType.FOLLOWER,
-			mediaList
+			mediaList,
+			List.of("팔로워", "친구") // 해시태그 목록 추가
 		);
 	}
 
@@ -169,7 +173,8 @@ public class DiaryFixture {
 			LocationFixture.createJejuLocationDto(),
 			WeatherInfo.SUNNY,
 			VisibilityType.PUBLIC,
-			mediaList
+			mediaList,
+			List.of("여행", "제주도", "사진") // 해시태그 목록 추가
 		);
 	}
 

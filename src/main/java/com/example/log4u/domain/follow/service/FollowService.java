@@ -57,4 +57,9 @@ public class FollowService {
 	public Long getFollowingCount(Long userId) {
 		return followRepository.countByInitiatorId(userId);
 	}
+
+	@Transactional(readOnly = true)
+	public boolean existsFollow(Long initiatorId, Long targetId) {
+		return followRepository.existsByInitiatorIdAndTargetId(initiatorId, targetId);
+	}
 }

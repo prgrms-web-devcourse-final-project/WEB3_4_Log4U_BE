@@ -22,8 +22,6 @@ import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.repository.MediaRepository;
 import com.example.log4u.fixture.MediaFixture;
 
-import software.amazon.awssdk.services.s3.S3Client;
-
 @ExtendWith(MockitoExtension.class)
 public class MediaServiceTest {
 
@@ -31,7 +29,7 @@ public class MediaServiceTest {
 	private MediaRepository mediaRepository;
 
 	@Mock
-	private S3Client s3Client;
+	private S3Service s3Service;
 
 	@InjectMocks
 	private MediaService mediaService;
@@ -108,8 +106,8 @@ public class MediaServiceTest {
 		mediaService.deleteMediaByDiaryId(diaryId);
 
 		// then
-		verify(mediaRepository).saveAll(anyList());
-		assertThat(mediaList).allMatch(media -> media.getStatus() == MediaStatus.DELETED);
+		verify(mediaRepository).deleteByDiaryId(diaryId);
+		verify(s3Service).deleteFilesFromS3(mediaList);
 	}
 
 	@Test
@@ -146,13 +144,19 @@ public class MediaServiceTest {
 		mediaService.updateMediaByDiaryId(diaryId, newMediaList);
 
 		// then
+		// 삭제할 미디어 확인 (ID가 1인 미디어)
+		ArgumentCaptor<List<Media>> deleteCaptor = ArgumentCaptor.forClass(List.class);
+		verify(mediaRepository).deleteAll(deleteCaptor.capture());
+		List<Media> deletedMedia = deleteCaptor.getValue();
+		assertThat(deletedMedia).hasSize(1);
+		assertThat(deletedMedia.get(0).getMediaId()).isEqualTo(1L);
+
+		// S3 삭제 요청 확인
+		verify(s3Service).deleteFilesFromS3(deletedMedia);
+
+		// 저장할 미디어 확인 (ID가 2, 3, 4인 미디어)
 		verify(mediaRepository).saveAll(mediaListCaptor.capture());
 		List<Media> savedMedia = mediaListCaptor.getValue();
-
-		// 미디어 1은 삭제 상태로 변경되어야 함
-		boolean hasDeletedMedia = savedMedia.stream()
-			.anyMatch(m -> m.getMediaId().equals(1L) && m.getStatus() == MediaStatus.DELETED);
-		assertThat(hasDeletedMedia).isTrue();
 
 		// 미디어 4는 다이어리와 연결되어야 함
 		boolean hasConnectedMedia = savedMedia.stream()
@@ -209,6 +213,26 @@ public class MediaServiceTest {
 		assertThat(result).hasSize(2);
 		assertThat(result.get(diaryId1)).hasSize(2);
 		assertThat(result.get(diaryId2)).hasSize(1);
+	}
+
+	@Test
+	@DisplayName("미디어 ID로 삭제 성공")
+	void deleteMediaById() {
+		// given
+		Long mediaId = 1L;
+		Media media = MediaFixture.createMediaFixture(mediaId, 1L);
+
+		given(mediaRepository.findById(mediaId)).willReturn(java.util.Optional.of(media));
+
+		// when
+		mediaService.deleteMediaById(mediaId);
+
+		// then
+		// DB에서 삭제 확인
+		verify(mediaRepository).delete(media);
+
+		// S3 삭제 요청 확인
+		verify(s3Service).deleteFilesFromS3(List.of(media));
 	}
 
 	@Test
