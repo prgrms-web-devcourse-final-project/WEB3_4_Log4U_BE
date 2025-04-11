@@ -6,19 +6,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import com.example.log4u.common.util.PageableUtil;
 import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.entity.QDiary;
+import com.example.log4u.domain.hashtag.entity.QDiaryHashtag;
+import com.example.log4u.domain.hashtag.entity.QHashtag;
 import com.example.log4u.domain.like.entity.QLike;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -32,6 +35,8 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 
 	private final QDiary diary = QDiary.diary;
 	private final QLike like = QLike.like;
+	private final QDiaryHashtag diaryHashtag = QDiaryHashtag.diaryHashtag;
+	private final QHashtag hashtag = QHashtag.hashtag;
 
 	@Override
 	public Page<Diary> searchDiaries(
@@ -40,10 +45,8 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 		SortType sort,
 		Pageable pageable
 	) {
-		// QDiary diary = QDiary.diary;
-
 		// 조건 생성
-		BooleanExpression condition = createCondition(diary, keyword, visibilities, null);
+		BooleanExpression condition = createSearchCondition(keyword, visibilities, null);
 
 		// 쿼리 실행
 		JPAQuery<Diary> query = queryFactory
@@ -59,7 +62,7 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 
 		// 데이터 조회
 		List<Diary> content = query
-			.orderBy(createOrderSpecifier(diary, sort))
+			.orderBy(createOrderSpecifier(sort))
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize())
 			.fetch();
@@ -74,10 +77,8 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 		Long cursorId,
 		Pageable pageable
 	) {
-		QDiary diary = QDiary.diary;
-
 		// 조건 생성
-		BooleanExpression condition = createCondition(diary, null, visibilities, userId);
+		BooleanExpression condition = createSearchCondition(null, visibilities, userId);
 
 		if (cursorId != null) {
 			condition = condition.and(diary.diaryId.lt(cursorId)); // 커서 ID보다 작은 ID만 조회
@@ -92,7 +93,7 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 			.fetch();
 
 		// 다음 페이지 여부를 계산하여 반환
-		return checkAndCreateSlice(content, pageable);
+		return PageableUtil.checkAndCreateSlice(content, pageable);
 	}
 
 	@Override
@@ -103,94 +104,59 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 		Long cursorId,
 		Pageable pageable
 	) {
-		QDiary diary = QDiary.diary;
-
 		// 기본 조건 생성(키워드 + 공개 범위)
-		BooleanExpression condition = createCondition(diary, keyword, visibilities, null);
+		BooleanExpression condition = createSearchCondition(keyword, visibilities, null);
 
+		// 커서 ID가 있으면 조건 추가
 		if (cursorId != null) {
-			// 정렬 방식에 따라 커서 조건 다르게 적용
-			if (sort == SortType.POPULAR) {
-				// 인기순 정렬일 경우 (좋아요 수 내림차순, 같으면 ID 내림차순)
-				condition = condition.and(
-					diary.likeCount.lt(getCursorLikeCount(cursorId))
-						.or(
-							diary.likeCount.eq(getCursorLikeCount(cursorId))
-								.and(diary.diaryId.lt(cursorId))
-						)
-				);
-			} else {
-				// 최신순 정렬일 경우 (ID 내림차순)
-				condition = condition.and(diary.diaryId.lt(cursorId));
-			}
+			condition = condition.and(diary.diaryId.lt(cursorId));
 		}
-		// 정렬 조건 생성
-		OrderSpecifier<?>[] orderSpecifiers = createOrderSpecifiersForSearch(diary, sort);
 
-		// 쿼리 실행 (limit + 1로 다음 페이지 존재 여부 확인)
+		// limit + 1로 다음 페이지 존재 여부 확인
 		List<Diary> content = queryFactory
 			.selectFrom(diary)
 			.where(condition)
-			.orderBy(orderSpecifiers)
+			.orderBy(createOrderSpecifier(sort))
 			.limit(pageable.getPageSize() + 1)
 			.fetch();
 
-		// 다음 페이지 여부를 계산하여 반환
-		return checkAndCreateSlice(content, pageable);
-	}
-
-	// 커서 ID에 해당하는 다이어리의 좋아요 수 조회
-	private Long getCursorLikeCount(Long cursorId) {
-		QDiary diary = QDiary.diary;
-		Long likeCount = queryFactory
-			.select(diary.likeCount)
-			.from(diary)
-			.where(diary.diaryId.eq(cursorId))
-			.fetchOne();
-
-		return likeCount != null ? likeCount : 0L;
-	}
-
-	// 검색용 정렬 조건 생성 (복합 정렬 지원)
-	private OrderSpecifier<?>[] createOrderSpecifiersForSearch(QDiary diary, SortType sort) {
-		if (sort == null || sort == SortType.LATEST) {
-			return new OrderSpecifier<?>[] {diary.diaryId.desc()};
-		} else if (sort == SortType.POPULAR) {
-			return new OrderSpecifier<?>[] {
-				diary.likeCount.desc(),  // 좋아요 수 내림차순
-				diary.diaryId.desc()     // 같은 좋아요 수면 최신순
-			};
-		}
-
-		// 기본값
-		return new OrderSpecifier<?>[] {diary.diaryId.desc()};
+		// PageableUtil 사용하여 Slice 생성
+		return PageableUtil.checkAndCreateSlice(content, pageable);
 	}
 
 	// 하나의 메소드로 조건 생성
-	private BooleanExpression createCondition(
-		QDiary diary,
+	private BooleanExpression createSearchCondition(
 		String keyword,
 		List<VisibilityType> visibilities,
 		Long userId
 	) {
-		BooleanExpression condition = diary.visibility.in(visibilities);
+		BooleanExpression condition = diary.visibility.in(visibilities)
+			.and(userId != null ? diary.userId.eq(userId) : null);
 
-		// keyword가 있을 경우
+		// keyword가 있을 경우 (제목, 내용, 해시태그 검색)
 		if (StringUtils.hasText(keyword)) {
-			condition = condition.and(diary.title.containsIgnoreCase(keyword)
-				.or(diary.content.containsIgnoreCase(keyword)));
-		}
+			// 제목 또는 내용에 키워드가 포함되는 경우
+			BooleanExpression contentCondition = diary.title.containsIgnoreCase(keyword)
+				.or(diary.content.containsIgnoreCase(keyword));
 
-		// userId가 있을 경우
-		if (userId != null) {
-			condition = condition.and(diary.userId.eq(userId));
+			// 해시태그에 키워드가 포함되는 경우
+			BooleanExpression hashtagCondition = diary.diaryId.in(
+				JPAExpressions
+					.select(diaryHashtag.diaryId)
+					.from(diaryHashtag)
+					.join(hashtag).on(diaryHashtag.hashtagId.eq(hashtag.hashtagId))
+					.where(hashtag.name.containsIgnoreCase(keyword))
+			);
+
+			// 제목/내용 조건과 해시태그 조건을 OR로 연결
+			condition = condition.and(contentCondition.or(hashtagCondition));
 		}
 
 		return condition;
 	}
 
 	// 정렬 조건 생성
-	private OrderSpecifier<?> createOrderSpecifier(QDiary diary, SortType sort) {
+	private OrderSpecifier<?> createOrderSpecifier(SortType sort) {
 		if (sort == null) {
 			return diary.createdAt.desc();
 		}
@@ -201,28 +167,14 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 		};
 	}
 
-	// Slice 생성 및 hasNext 처리
-	private Slice<Diary> checkAndCreateSlice(List<Diary> content, Pageable pageable) {
-		boolean hasNext = content.size() > pageable.getPageSize();
-
-		// 다음 페이지가 있으면 마지막 항목 제거
-		if (hasNext) {
-			content.remove(content.size() - 1);  // removeLast() 대신 인덱스로 처리
-		}
-
-		return new SliceImpl<>(content, pageable, hasNext);
-	}
-
 	@Override
 	public Slice<Diary> getLikeDiarySliceByUserId(
 		Long userId,
 		List<VisibilityType> visibilities,
 		Long cursorId,
 		Pageable pageable) {
-		QDiary diary = QDiary.diary;
-
 		// 조건 생성
-		BooleanExpression condition = createCondition(diary, null, visibilities, userId);
+		BooleanExpression condition = createSearchCondition(null, visibilities, userId);
 
 		// limit + 1로 다음 페이지 존재 여부 확인
 		List<Diary> content = queryFactory
@@ -237,43 +189,41 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 			.fetch();
 
 		// 다음 페이지 여부를 계산하여 반환
-		return checkAndCreateSlice(content, pageable);
+		return PageableUtil.checkAndCreateSlice(content, pageable);
 	}
 
 	@Override
 	public List<DiaryMarkerResponseDto> findDiariesInBounds(double south, double north, double west, double east) {
-		QDiary d = QDiary.diary;
 
 		return queryFactory
 			.select(Projections.constructor(DiaryMarkerResponseDto.class,
-				d.diaryId,
-				d.title,
-				d.thumbnailUrl,
-				d.likeCount,
-				d.location.latitude,
-				d.location.longitude,
-				d.createdAt
+				diary.diaryId,
+				diary.title,
+				diary.thumbnailUrl,
+				diary.likeCount,
+				diary.location.latitude,
+				diary.location.longitude,
+				diary.createdAt
 			))
-			.from(d)
+			.from(diary)
 			.where(
-				d.visibility.eq(VisibilityType.PUBLIC),
-				d.location.latitude.between(south, north),
-				d.location.longitude.between(west, east)
+				diary.visibility.eq(VisibilityType.PUBLIC),
+				diary.location.latitude.between(south, north),
+				diary.location.longitude.between(west, east)
 			)
-			.orderBy(d.createdAt.asc())
+			.orderBy(diary.createdAt.asc())
 			.fetch();
 	}
 
 	@Override
 	public List<Diary> findInBoundsByUserId(Long userId, double south, double north, double west, double east) {
-		QDiary d = QDiary.diary;
 
 		return queryFactory
-			.selectFrom(d)
+			.selectFrom(diary)
 			.where(
-				d.userId.eq(userId),
-				d.location.latitude.between(south, north),
-				d.location.longitude.between(west, east)
+				diary.userId.eq(userId),
+				diary.location.latitude.between(south, north),
+				diary.location.longitude.between(west, east)
 			)
 			.fetch();
 	}
@@ -281,26 +231,23 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 	@Override
 	public List<DiaryMarkerResponseDto> findMyDiariesInBounds(Long userId, double south, double north, double west,
 		double east) {
-		QDiary d = QDiary.diary;
-
 		return queryFactory
 			.select(Projections.constructor(DiaryMarkerResponseDto.class,
-				d.diaryId,
-				d.title,
-				d.thumbnailUrl,
-				d.likeCount,
-				d.location.latitude,
-				d.location.longitude,
-				d.createdAt
+				diary.diaryId,
+				diary.title,
+				diary.thumbnailUrl,
+				diary.likeCount,
+				diary.location.latitude,
+				diary.location.longitude,
+				diary.createdAt
 			))
-			.from(d)
+			.from(diary)
 			.where(
-				d.userId.eq(userId),
-				d.location.latitude.between(south, north),
-				d.location.longitude.between(west, east)
+				diary.userId.eq(userId),
+				diary.location.latitude.between(south, north),
+				diary.location.longitude.between(west, east)
 			)
-			.orderBy(d.createdAt.asc())
+			.orderBy(diary.createdAt.asc())
 			.fetch();
 	}
-
 }
