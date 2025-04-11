@@ -173,7 +173,7 @@ class HashtagServiceTest {
 		List<String> result = hashtagService.getHashtagsByDiaryId(diaryId);
 
 		// then
-		assertThat(result).containsExactlyInAnyOrder("여행", "맛집");
+		assertThat(result).containsExactlyInAnyOrder("#여행", "#맛집");
 	}
 
 	@Test

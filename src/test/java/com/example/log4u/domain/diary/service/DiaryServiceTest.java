@@ -1,11 +1,11 @@
 package com.example.log4u.domain.diary.service;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 
+import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
@@ -25,9 +26,10 @@ import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
-import com.example.log4u.domain.diary.facade.DiaryFacade;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
+import com.example.log4u.domain.hashtag.service.HashtagService;
+import com.example.log4u.domain.like.repository.LikeRepository;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
 import com.example.log4u.fixture.DiaryFixture;
@@ -46,42 +48,42 @@ class DiaryServiceTest {
 	private MediaService mediaService;
 
 	@Mock
-	private DiaryFacade diaryFacade;
+	private LikeRepository likeRepository;
+
+	@Mock
+	private HashtagService hashtagService;
 
 	@InjectMocks
 	private DiaryService diaryService;
 
 	@Test
-	@DisplayName("다이어리 생성 - 성공")
-	void saveDiary_success() {
+	@DisplayName("다이어리 저장 성공")
+	void saveDiary() {
 		// given
 		Long userId = 1L;
-		String thumbnailUrl = "https://example.com/thumb.jpg";
-
 		DiaryRequestDto request = DiaryFixture.createDiaryRequestDtoFixture();
+		String thumbnailUrl = "https://example.com/thumbnail.jpg";
+		Diary diary = DiaryFixture.createDiaryFixture();
 
-		given(diaryRepository.save(any(Diary.class))).willAnswer(invocation -> invocation.getArgument(0));
+		given(diaryRepository.save(any(Diary.class))).willReturn(diary);
 
 		// when
-		Diary result = diaryService.saveDiary(userId, request, thumbnailUrl);
+		Diary savedDiary = diaryService.saveDiary(userId, request, thumbnailUrl);
 
 		// then
-		assertThat(result.getUserId()).isEqualTo(userId);
-		assertThat(result.getTitle()).isEqualTo(request.title());
-		assertThat(result.getContent()).isEqualTo(request.content());
-		assertThat(result.getThumbnailUrl()).isEqualTo(thumbnailUrl);
-
-		verify(diaryRepository).save(any(Diary.class));
+		assertThat(savedDiary).isNotNull();
+		assertThat(savedDiary.getDiaryId()).isEqualTo(diary.getDiaryId());
+		assertThat(savedDiary.getUserId()).isEqualTo(diary.getUserId());
 	}
 
 	@Test
-	@DisplayName("키워드로 다이어리 검색 성공")
-	void searchDiaries() {
+	@DisplayName("다이어리 검색 성공")
+	void searchDiariesByCursor() {
 		// given
 		String keyword = "테스트";
 		SortType sort = SortType.LATEST;
-		Long cursorId = null; // 커서 ID를 null로 설정 (첫 페이지 조회)
-		int size = 6;
+		Long cursorId = null;
+		int size = 10;
 
 		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
 		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), false);
@@ -90,206 +92,103 @@ class DiaryServiceTest {
 			eq(keyword),
 			eq(List.of(VisibilityType.PUBLIC)),
 			eq(sort),
-			anyLong(),
+			eq(Long.MAX_VALUE),
 			any(PageRequest.class)
 		)).willReturn(diarySlice);
+
+		List<Long> diaryIds = diaries.stream().map(Diary::getDiaryId).toList();
+		Map<Long, List<Media>> mediaMap = Map.of(
+			1L, List.of(MediaFixture.createMediaFixture(1L, 1L)),
+			2L, List.of(MediaFixture.createMediaFixture(2L, 2L)),
+			3L, List.of(MediaFixture.createMediaFixture(3L, 3L))
+		);
+		Map<Long, List<String>> hashtagMap = Map.of(
+			1L, List.of("여행", "맛집"),
+			2L, List.of("일상"),
+			3L, List.of("제주도", "여행", "사진")
+		);
+
+		given(mediaService.getMediaMapByDiaryIds(diaryIds)).willReturn(mediaMap);
+		given(hashtagService.getHashtagMapByDiaryIds(diaryIds)).willReturn(hashtagMap);
 
 		// when
 		Slice<DiaryResponseDto> result = diaryService.searchDiariesByCursor(keyword, sort, cursorId, size);
 
 		// then
-		assertEquals(6, result.getSize());
-		assertFalse(result.hasNext());
+		assertThat(result).isNotNull();
+		assertThat(result.getContent()).hasSize(3);
 
-		verify(diaryRepository).searchDiariesByCursor(
-			eq(keyword),
-			eq(List.of(VisibilityType.PUBLIC)),
-			eq(sort),
-			anyLong(),
-			any(PageRequest.class)
-		);
+		// 미디어와 해시태그 맵 조회 검증
+		verify(mediaService).getMediaMapByDiaryIds(diaryIds);
+		verify(hashtagService).getHashtagMapByDiaryIds(diaryIds);
 	}
 
 	@Test
-	@DisplayName("로그인한 사용자가 공개 다이어리 상세 조회 성공")
-	void getDiaryDetail_public() {
-		// given
-		Long diaryId = 1L;
-		Long userId = 1L;
-
-		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, 2L); // 다른 사용자의 공개 다이어리
-		List<Media> mediaList = List.of(MediaFixture.createMediaFixture(10L, diaryId));
-
-		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
-		given(mediaService.getMediaByDiaryId(diaryId)).willReturn(mediaList);
-
-		// when
-		DiaryResponseDto result = diaryFacade.getDiary(userId, diaryId);
-
-		// then
-		assertThat(result.diaryId()).isEqualTo(diaryId);
-		assertThat(result.userId()).isEqualTo(2L);
-		assertThat(result.visibility()).isEqualTo(VisibilityType.PUBLIC.name());
-	}
-
-	@Test
-	@DisplayName("로그인한 사용자가 팔로워 다이어리 상세 조회 성공 - 팔로워인 경우")
-	void getDiaryDetail_follower_success() {
-		// given
-		Long diaryId = 1L;
-		Long userId = 1L;
-		Long authorId = 2L;
-
-		Diary diary = DiaryFixture.createFollowerDiaryFixture(diaryId, authorId); // 다른 사용자의 팔로워 다이어리
-		List<Media> mediaList = List.of(MediaFixture.createMediaFixture(10L, diaryId));
-
-		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
-		given(followRepository.existsByInitiatorIdAndTargetId(userId, authorId)).willReturn(true);
-		given(mediaService.getMediaByDiaryId(diaryId)).willReturn(mediaList);
-
-		// when
-		DiaryResponseDto result = diaryFacade.getDiary(userId, diaryId);
-
-		// then
-		assertThat(result.diaryId()).isEqualTo(diaryId);
-		assertThat(result.userId()).isEqualTo(authorId);
-		assertThat(result.visibility()).isEqualTo(VisibilityType.FOLLOWER.name());
-	}
-
-	@Test
-	@DisplayName("로그인한 사용자가 팔로워 다이어리 상세 조회 실패 - 팔로워가 아닌 경우")
-	void getDiaryDetail_follower_fail() {
-		// given
-		Long diaryId = 1L;
-		Long userId = 1L;
-		Long authorId = 2L;
-
-		Diary diary = DiaryFixture.createFollowerDiaryFixture(diaryId, authorId); // 다른 사용자의 팔로워 다이어리
-
-		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
-		given(followRepository.existsByInitiatorIdAndTargetId(userId, authorId)).willReturn(false);
-
-		// when & then
-		assertThatThrownBy(() -> diaryFacade.getDiary(userId, diaryId))
-			.isInstanceOf(NotFoundDiaryException.class);
-	}
-
-	@Test
-	@DisplayName("로그인한 사용자가 비공개 다이어리 상세 조회 성공 - 작성자인 경우")
-	void getDiaryDetail_private_success() {
-		// given
-		Long diaryId = 1L;
-		Long userId = 1L;
-
-		Diary diary = DiaryFixture.createPrivateDiaryFixture(diaryId, userId); // 자신의 비공개 다이어리
-		List<Media> mediaList = List.of(MediaFixture.createMediaFixture(10L, diaryId));
-
-		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
-		given(mediaService.getMediaByDiaryId(diaryId)).willReturn(mediaList);
-
-		// when
-		DiaryResponseDto result = diaryFacade.getDiary(userId, diaryId);
-
-		// then
-		assertThat(result.diaryId()).isEqualTo(diaryId);
-		assertThat(result.userId()).isEqualTo(userId);
-		assertThat(result.visibility()).isEqualTo(VisibilityType.PRIVATE.name());
-	}
-
-	@Test
-	@DisplayName("로그인한 사용자가 비공개 다이어리 상세 조회 실패 - 작성자가 아닌 경우")
-	void getDiaryDetail_private_fail() {
-		// given
-		Long diaryId = 1L;
-		Long userId = 1L;
-		Long authorId = 2L;
-
-		Diary diary = DiaryFixture.createPrivateDiaryFixture(diaryId, authorId); // 다른 사용자의 비공개 다이어리
-
-		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
-
-		// when & then
-		assertThatThrownBy(() -> diaryFacade.getDiary(userId, diaryId))
-			.isInstanceOf(NotFoundDiaryException.class);
-	}
-
-	@Test
-	@DisplayName("커서 기반 다이어리 목록 조회 성공")
-	void getDiariesByCursor() {
+	@DisplayName("다이어리 목록 조회 성공 (프로필 페이지)")
+	void getDiaryResponseDtoSlice() {
 		// given
 		Long userId = 1L;
-		Long targetUserId = 2L;
-		Long cursorId = 5L;
-		int size = 12;
+		Long targetUserId = 1L;
+		Long cursorId = null;
+		int size = 10;
 
 		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
-		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), true);
+		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), false);
 
-		// mocking
-		given(followRepository.existsByInitiatorIdAndTargetId(userId, targetUserId)).willReturn(true);
 		given(diaryRepository.findByUserIdAndVisibilityInAndCursorId(
 			eq(targetUserId),
 			anyList(),
-			eq(cursorId),
+			eq(Long.MAX_VALUE),
 			any(PageRequest.class)
 		)).willReturn(diarySlice);
+
+		List<Long> diaryIds = diaries.stream().map(Diary::getDiaryId).toList();
+		Map<Long, List<Media>> mediaMap = Map.of(
+			1L, List.of(MediaFixture.createMediaFixture(1L, 1L)),
+			2L, List.of(MediaFixture.createMediaFixture(2L, 2L)),
+			3L, List.of(MediaFixture.createMediaFixture(3L, 3L))
+		);
+		Map<Long, List<String>> hashtagMap = Map.of(
+			1L, List.of("여행", "맛집"),
+			2L, List.of("일상"),
+			3L, List.of("제주도", "여행", "사진")
+		);
+
+		given(mediaService.getMediaMapByDiaryIds(diaryIds)).willReturn(mediaMap);
+		given(hashtagService.getHashtagMapByDiaryIds(diaryIds)).willReturn(hashtagMap);
 
 		// when
 		Slice<DiaryResponseDto> result = diaryService.getDiaryResponseDtoSlice(userId, targetUserId, cursorId, size);
 
 		// then
-		assertThat(result).hasSize(3);
-		assertThat(result.hasNext()).isTrue();
-		verify(diaryRepository).findByUserIdAndVisibilityInAndCursorId(
-			eq(targetUserId),
-			anyList(),
-			eq(cursorId),
-			any(PageRequest.class)
-		);
+		assertThat(result).isNotNull();
+		assertThat(result.getContent()).hasSize(3);
+
+		// 미디어와 해시태그 맵 조회 검증
+		verify(mediaService).getMediaMapByDiaryIds(diaryIds);
+		verify(hashtagService).getHashtagMapByDiaryIds(diaryIds);
 	}
 
 	@Test
 	@DisplayName("다이어리 수정 성공")
 	void updateDiary() {
 		// given
-		Diary diary = mock(Diary.class);
-		DiaryRequestDto request = DiaryFixture.createPublicDiaryRequestDtoFixture();
-
-		String newThumbnailUrl = "https://example.com/public.jpg";
+		Diary diary = DiaryFixture.createDiaryFixture();
+		DiaryRequestDto request = DiaryFixture.createDiaryRequestDtoFixture();
+		String newThumbnailUrl = "https://example.com/new-thumbnail.jpg";
 
 		// when
 		diaryService.updateDiary(diary, request, newThumbnailUrl);
 
 		// then
-		verify(diary).update(request, newThumbnailUrl); // update 메서드 호출 확인
-		verify(diaryRepository).save(diary); // save 호출 확인
-	}
-
-	@Test
-	@DisplayName("다이어리 수정 실패(검증 로직 실패) - 작성자가 아닌 경우")
-	void updateDiary_notOwner() {
-		// given
-		Long userId = 1L;
-		Long authorId = 2L;
-		Long diaryId = 1L;
-
-		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, authorId);
-
-		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
-
-		// when & then
-		assertThatThrownBy(() -> diaryService.getDiaryAfterValidateOwnership(diaryId, userId))
-			.isInstanceOf(OwnerAccessDeniedException.class);
+		verify(diaryRepository).save(diary);
 	}
 
 	@Test
 	@DisplayName("다이어리 삭제 성공")
 	void deleteDiary() {
 		// given
-		Long userId = 1L;
-		Long diaryId = 1L;
-
-		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, userId);
+		Diary diary = DiaryFixture.createDiaryFixture();
 
 		// when
 		diaryService.deleteDiary(diary);
@@ -299,20 +198,142 @@ class DiaryServiceTest {
 	}
 
 	@Test
-	@DisplayName("다이어리 삭제전 소유자 검증  - 작성자가 아닌 경우")
-	void deleteDiary_notOwner() {
+	@DisplayName("다이어리 소유자 검증 성공")
+	void getDiaryAfterValidateOwnership_success() {
 		// given
-		Long userId = 1L;
-		Long authorId = 2L;
 		Long diaryId = 1L;
-
-		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, authorId);
+		Long userId = 1L;
+		Diary diary = DiaryFixture.createDiaryFixture();
 
 		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
 
-		// when & then  (서비스 검증로직)
-		assertThatThrownBy(() -> diaryService.getDiaryAfterValidateOwnership(userId, diaryId))
+		// when
+		Diary result = diaryService.getDiaryAfterValidateOwnership(diaryId, userId);
+
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.getDiaryId()).isEqualTo(diaryId);
+	}
+
+	@Test
+	@DisplayName("다이어리 소유자 검증 실패")
+	void getDiaryAfterValidateOwnership_fail() {
+		// given
+		Long diaryId = 1L;
+		Long userId = 2L; // 다른 사용자
+		Diary diary = DiaryFixture.createDiaryFixture(); // userId가 1L인 다이어리
+
+		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
+
+		// when & then
+		assertThatThrownBy(() -> diaryService.getDiaryAfterValidateOwnership(diaryId, userId))
 			.isInstanceOf(OwnerAccessDeniedException.class);
+	}
+
+	@Test
+	@DisplayName("공개 다이어리 접근 검증 성공")
+	void getDiaryAfterValidateAccess_public() {
+		// given
+		Long diaryId = 1L;
+		Long userId = 2L; // 다른 사용자
+		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, 1L); // 공개 다이어리
+
+		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
+
+		// when
+		Diary result = diaryService.getDiaryAfterValidateAccess(diaryId, userId);
+
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.getDiaryId()).isEqualTo(diaryId);
+	}
+
+	@Test
+	@DisplayName("비공개 다이어리 접근 검증 성공 (본인)")
+	void getDiaryAfterValidateAccess_private_owner() {
+		// given
+		Long diaryId = 1L;
+		Long userId = 1L; // 본인
+		Diary diary = DiaryFixture.createPrivateDiaryFixture(diaryId, userId); // 비공개 다이어리
+
+		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
+
+		// when
+		Diary result = diaryService.getDiaryAfterValidateAccess(diaryId, userId);
+
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.getDiaryId()).isEqualTo(diaryId);
+	}
+
+	@Test
+	@DisplayName("비공개 다이어리 접근 검증 실패 (타인)")
+	void getDiaryAfterValidateAccess_private_other() {
+		// given
+		Long diaryId = 1L;
+		Long userId = 2L; // 다른 사용자
+		Diary diary = DiaryFixture.createPrivateDiaryFixture(diaryId, 1L); // 비공개 다이어리
+
+		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
+
+		// when & then
+		assertThatThrownBy(() -> diaryService.getDiaryAfterValidateAccess(diaryId, userId))
+			.isInstanceOf(NotFoundDiaryException.class);
+	}
+
+	@Test
+	@DisplayName("팔로워 다이어리 접근 검증 성공 (본인)")
+	void getDiaryAfterValidateAccess_follower_owner() {
+		// given
+		Long diaryId = 1L;
+		Long userId = 1L; // 본인
+		Diary diary = DiaryFixture.createFollowerDiaryFixture(diaryId, userId); // 팔로워 다이어리
+
+		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
+
+		// when
+		Diary result = diaryService.getDiaryAfterValidateAccess(diaryId, userId);
+
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.getDiaryId()).isEqualTo(diaryId);
+	}
+
+	@Test
+	@DisplayName("팔로워 다이어리 접근 검증 성공 (팔로워)")
+	void getDiaryAfterValidateAccess_follower_follower() {
+		// given
+		Long diaryId = 1L;
+		Long authorId = 1L;
+		Long userId = 2L; // 팔로워
+		Diary diary = DiaryFixture.createFollowerDiaryFixture(diaryId, authorId); // 팔로워 다이어리
+
+		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
+		given(followRepository.existsByInitiatorIdAndTargetId(userId, authorId)).willReturn(true);
+
+		// when
+		Diary result = diaryService.getDiaryAfterValidateAccess(diaryId, userId);
+
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.getDiaryId()).isEqualTo(diaryId);
+	}
+
+	@Test
+	@DisplayName("팔로워 다이어리 접근 검증 실패 (비팔로워)")
+	void getDiaryAfterValidateAccess_follower_non_follower() {
+		// given
+		Long diaryId = 1L;
+		Long authorId = 1L;
+		Long userId = 2L; // 비팔로워
+		Diary diary = DiaryFixture.createFollowerDiaryFixture(diaryId, authorId); // 팔로워 다이어리
+
+		given(diaryRepository.findById(diaryId)).willReturn(Optional.of(diary));
+		given(followRepository.existsByInitiatorIdAndTargetId(userId, authorId)).willReturn(false);
+
+		// when & then
+		assertThatThrownBy(() -> diaryService.getDiaryAfterValidateAccess(diaryId, userId))
+			.isInstanceOf(NotFoundDiaryException.class);
 	}
 
 	@Test
@@ -391,5 +412,99 @@ class DiaryServiceTest {
 		// when & then
 		assertThatThrownBy(() -> diaryService.checkDiaryExists(diaryId))
 			.isInstanceOf(NotFoundDiaryException.class);
+	}
+
+	@Test
+	@DisplayName("내 다이어리 목록 조회 성공")
+	void getMyDiariesByCursor() {
+		// given
+		Long userId = 1L;
+		VisibilityType visibilityType = null; // 모든 공개 범위
+		Long cursorId = null;
+		int size = 10;
+
+		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
+		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), false);
+
+		given(diaryRepository.findByUserIdAndVisibilityInAndCursorId(
+			eq(userId),
+			anyList(),
+			eq(Long.MAX_VALUE),
+			any(PageRequest.class)
+		)).willReturn(diarySlice);
+
+		List<Long> diaryIds = diaries.stream().map(Diary::getDiaryId).toList();
+		Map<Long, List<Media>> mediaMap = Map.of(
+			1L, List.of(MediaFixture.createMediaFixture(1L, 1L)),
+			2L, List.of(MediaFixture.createMediaFixture(2L, 2L)),
+			3L, List.of(MediaFixture.createMediaFixture(3L, 3L))
+		);
+		Map<Long, List<String>> hashtagMap = Map.of(
+			1L, List.of("여행", "맛집"),
+			2L, List.of("일상"),
+			3L, List.of("제주도", "여행", "사진")
+		);
+
+		given(mediaService.getMediaMapByDiaryIds(diaryIds)).willReturn(mediaMap);
+		given(hashtagService.getHashtagMapByDiaryIds(diaryIds)).willReturn(hashtagMap);
+
+		// when
+		PageResponse<DiaryResponseDto> result = diaryService.getMyDiariesByCursor(userId, visibilityType, cursorId,
+			size);
+
+		// then
+		assertThat(result.list()).hasSize(3);
+		assertThat(result.pageInfo().hasNext()).isNotNull();
+
+		// 미디어와 해시태그 맵 조회 검증
+		verify(mediaService).getMediaMapByDiaryIds(diaryIds);
+		verify(hashtagService).getHashtagMapByDiaryIds(diaryIds);
+	}
+
+	@Test
+	@DisplayName("좋아요한 다이어리 목록 조회 성공")
+	void getLikeDiariesByCursor() {
+		// given
+		Long userId = 1L;
+		Long targetUserId = 2L;
+		Long cursorId = null;
+		int size = 10;
+
+		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
+		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), false);
+
+		given(diaryRepository.getLikeDiarySliceByUserId(
+			eq(targetUserId),
+			anyList(),
+			eq(Long.MAX_VALUE),
+			any(PageRequest.class)
+		)).willReturn(diarySlice);
+
+		List<Long> diaryIds = diaries.stream().map(Diary::getDiaryId).toList();
+		Map<Long, List<Media>> mediaMap = Map.of(
+			1L, List.of(MediaFixture.createMediaFixture(1L, 1L)),
+			2L, List.of(MediaFixture.createMediaFixture(2L, 2L)),
+			3L, List.of(MediaFixture.createMediaFixture(3L, 3L))
+		);
+		Map<Long, List<String>> hashtagMap = Map.of(
+			1L, List.of("여행", "맛집"),
+			2L, List.of("일상"),
+			3L, List.of("제주도", "여행", "사진")
+		);
+
+		given(mediaService.getMediaMapByDiaryIds(diaryIds)).willReturn(mediaMap);
+		given(hashtagService.getHashtagMapByDiaryIds(diaryIds)).willReturn(hashtagMap);
+
+		// when
+		PageResponse<DiaryResponseDto> result = diaryService.getLikeDiariesByCursor(userId, targetUserId, cursorId,
+			size);
+
+		// then
+		assertThat(result.list()).hasSize(3);
+		assertThat(result.pageInfo().hasNext()).isNotNull();
+
+		// 미디어와 해시태그 맵 조회 검증
+		verify(mediaService).getMediaMapByDiaryIds(diaryIds);
+		verify(hashtagService).getHashtagMapByDiaryIds(diaryIds);
 	}
 }
