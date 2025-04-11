@@ -1,7 +1,5 @@
 package com.example.log4u.domain.like.service;
 
-import java.util.Optional;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,5 +49,10 @@ public class LikeService {
 		if (likeRepository.existsByUserIdAndDiaryId(userId, diaryId)) {
 			throw new DuplicateLikeException();
 		}
+	}
+
+	// 파사드 패턴에서 사용할 함수
+	public boolean isLiked(Long userId, Long diaryId) {
+		return likeRepository.existsByUserIdAndDiaryId(userId, diaryId);
 	}
 }
