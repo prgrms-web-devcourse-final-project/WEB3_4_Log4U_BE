@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +16,6 @@ import com.example.log4u.domain.media.repository.MediaRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import software.amazon.awssdk.services.s3.S3Client;
 
 @Service
 @RequiredArgsConstructor
@@ -25,10 +23,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 public class MediaService {
 
 	private final MediaRepository mediaRepository;
-	private final S3Client s3Client;
-
-	@Value("${S3_BUCKET_NAME}")
-	private String bucketName;
 
 	@Transactional
 	public void saveMedia(Long diaryId, List<MediaRequestDto> mediaList) {
