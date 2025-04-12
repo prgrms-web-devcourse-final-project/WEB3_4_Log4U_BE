@@ -3,6 +3,9 @@ logging:
     org:
       springframework: debug
 
+server:
+  forward-headers-strategy: FRAMEWORK
+  
 spring:
   datasource:
     jdbc-url: ${aws-mysql.url}
