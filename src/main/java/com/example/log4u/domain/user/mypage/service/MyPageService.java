@@ -44,10 +44,11 @@ public class MyPageService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<UserThumbnailResponseDto> getMyFollowers(Long userId, Long cursorId) {
+	public PageResponse<UserThumbnailResponseDto> getMyFollowers(Long userId, Long cursorId, String keyword) {
 		Slice<UserThumbnailResponseDto> slice = followQuerydsl.getFollowerSliceByUserId(
 			userId,
 			cursorId,
+			keyword,
 			PageRequest.of(0, defaultPageSize));
 
 		Long nextCursor = !slice.isEmpty() ? slice.getContent().getLast().userId() : null;
@@ -56,10 +57,11 @@ public class MyPageService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<UserThumbnailResponseDto> getMyFollowings(Long userId, Long cursorId) {
+	public PageResponse<UserThumbnailResponseDto> getMyFollowings(Long userId, Long cursorId, String keyword) {
 		Slice<UserThumbnailResponseDto> slice = followQuerydsl.getFollowingSliceByUserId(
 			userId,
 			cursorId,
+			keyword,
 			PageRequest.of(0, defaultPageSize));
 
 		Long nextCursor = !slice.isEmpty() ? slice.getContent().getLast().userId() : null;

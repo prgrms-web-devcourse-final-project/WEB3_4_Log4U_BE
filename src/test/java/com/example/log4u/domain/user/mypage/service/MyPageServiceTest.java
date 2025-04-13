@@ -94,10 +94,10 @@ public class MyPageServiceTest {
 	void getMyFollowers_returnsCorrectData() {
 		var slice = new SliceImpl<>(List.of(new UserThumbnailResponseDto(userId, "nick", "image")));
 
-		when(followQuerydsl.getFollowerSliceByUserId(eq(userId), eq(cursorId), any(PageRequest.class)))
+		when(followQuerydsl.getFollowerSliceByUserId(eq(userId), eq(cursorId), any(), any(PageRequest.class)))
 			.thenReturn(slice);
 
-		PageResponse<UserThumbnailResponseDto> result = myPageService.getMyFollowers(userId, cursorId);
+		PageResponse<UserThumbnailResponseDto> result = myPageService.getMyFollowers(userId, cursorId, null);
 
 		assertThat(result).isNotNull();
 	}
@@ -107,10 +107,10 @@ public class MyPageServiceTest {
 	void getMyFollowings_returnsCorrectData() {
 		var slice = new SliceImpl<>(List.of(new UserThumbnailResponseDto(userId, "nick", "image")));
 
-		when(followQuerydsl.getFollowingSliceByUserId(eq(userId), eq(cursorId), any(PageRequest.class)))
+		when(followQuerydsl.getFollowingSliceByUserId(eq(userId), eq(cursorId), any(), any(PageRequest.class)))
 			.thenReturn(slice);
 
-		PageResponse<UserThumbnailResponseDto> result = myPageService.getMyFollowings(userId, cursorId);
+		PageResponse<UserThumbnailResponseDto> result = myPageService.getMyFollowings(userId, cursorId, null);
 
 		assertThat(result).isNotNull();
 	}
