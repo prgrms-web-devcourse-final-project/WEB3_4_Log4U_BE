@@ -83,14 +83,32 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 		BooleanExpression condition = createSearchCondition(null, visibilities, userId);
 
 		if (cursorId != null) {
-			condition = condition.and(diary.diaryId.lt(cursorId)); // 커서 ID보다 작은 ID만 조회
+			// 커서 다이어리 조회
+			Diary cursorDiary = queryFactory
+				.selectFrom(diary)
+				.where(diary.diaryId.eq(cursorId))
+				.fetchOne();
+
+			if (cursorDiary != null) {
+				// 생성 시간과 ID를 함께 고려
+				condition = condition.and(
+					diary.createdAt.lt(cursorDiary.getCreatedAt())
+						.or(
+							diary.createdAt.eq(cursorDiary.getCreatedAt())
+								.and(diary.diaryId.lt(cursorId))
+						)
+				);
+			} else {
+				// 커서 다이어리를 찾을 수 없는 경우 기본 ID 기준 적용
+				condition = condition.and(diary.diaryId.lt(cursorId));
+			}
 		}
 
 		// limit + 1로 다음 페이지 존재 여부 확인
 		List<Diary> content = queryFactory
 			.selectFrom(diary)
 			.where(condition)
-			.orderBy(diary.diaryId.desc())
+			.orderBy(diary.createdAt.desc(), diary.diaryId.desc())
 			.limit(pageable.getPageSize() + 1)
 			.fetch();
 
@@ -109,9 +127,39 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 		// 기본 조건 생성(키워드 + 공개 범위)
 		BooleanExpression condition = createSearchCondition(keyword, visibilities, null);
 
-		// 커서 ID가 있으면 조건 추가
+		// 커서 ID가 있으면 정렬 기준에 따라 조건 추가
 		if (cursorId != null) {
-			condition = condition.and(diary.diaryId.lt(cursorId));
+			// 커서 다이어리 조회
+			Diary cursorDiary = queryFactory
+				.selectFrom(diary)
+				.where(diary.diaryId.eq(cursorId))
+				.fetchOne();
+
+			if (cursorDiary != null) {
+				// 정렬 기준에 따라 커서 조건 다르게 적용
+				if (sort == SortType.POPULAR) {
+					// 인기순 정렬일 때는 좋아요 수와 다이어리 ID를 함께 고려
+					condition = condition.and(
+						diary.likeCount.lt(cursorDiary.getLikeCount())
+							.or(
+								diary.likeCount.eq(cursorDiary.getLikeCount())
+									.and(diary.diaryId.lt(cursorId))
+							)
+					);
+				} else {
+					// 최신순 정렬일 때는 생성 시간과 다이어리 ID를 함께 고려
+					condition = condition.and(
+						diary.createdAt.lt(cursorDiary.getCreatedAt())
+							.or(
+								diary.createdAt.eq(cursorDiary.getCreatedAt())
+									.and(diary.diaryId.lt(cursorId))
+							)
+					);
+				}
+			} else {
+				// 커서 다이어리를 찾을 수 없는 경우 기본 ID 기준 적용
+				condition = condition.and(diary.diaryId.lt(cursorId));
+			}
 		}
 
 		// limit + 1로 다음 페이지 존재 여부 확인
@@ -158,14 +206,14 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 	}
 
 	// 정렬 조건 생성
-	private OrderSpecifier<?> createOrderSpecifier(SortType sort) {
+	private OrderSpecifier<?>[] createOrderSpecifier(SortType sort) {
 		if (sort == null) {
-			return diary.createdAt.desc();
+			return new OrderSpecifier[] {diary.createdAt.desc(), diary.diaryId.desc()};
 		}
 
 		return switch (sort) {
-			case POPULAR -> diary.likeCount.desc();
-			case LATEST -> diary.createdAt.desc();
+			case POPULAR -> new OrderSpecifier[] {diary.likeCount.desc(), diary.diaryId.desc()};
+			case LATEST -> new OrderSpecifier[] {diary.createdAt.desc(), diary.diaryId.desc()};
 		};
 	}
 
