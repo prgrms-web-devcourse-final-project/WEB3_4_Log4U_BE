@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
+import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.supports.dto.SupportCreateRequestDto;
 import com.example.log4u.domain.supports.dto.SupportGetResponseDto;
 import com.example.log4u.domain.supports.dto.SupportOverviewGetResponseDto;
@@ -62,10 +63,10 @@ public class SupportServiceTest {
 		given(supportQuerydsl.getSupportOverviewGetResponseDtoPage(requesterId, pageable, supportType))
 			.willReturn(supportPage);
 
-		Page<SupportOverviewGetResponseDto> result = supportService.getSupportPage(requesterId, 1, supportType);
+		PageResponse<SupportOverviewGetResponseDto> result = supportService.getSupportPage(requesterId, 1, supportType);
 
 		assertNotNull(result);
-		assertEquals(1, result.getTotalElements());
+		assertEquals(1, result.pageInfo().totalElements());
 	}
 
 	@DisplayName("성공 테스트 : 특정 문의 상세 조회")
