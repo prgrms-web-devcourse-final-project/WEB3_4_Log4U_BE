@@ -21,6 +21,7 @@ import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
+import com.example.log4u.domain.hashtag.service.HashtagService;
 import com.example.log4u.domain.like.repository.LikeRepository;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
@@ -37,6 +38,7 @@ public class DiaryService {
 	private final FollowRepository followRepository;
 	private final MediaService mediaService;
 	private final LikeRepository likeRepository;
+	private final HashtagService hashtagService;
 
 	// 다이어리 생성
 	@Transactional
@@ -60,19 +62,6 @@ public class DiaryService {
 			PageRequest.of(0, size)
 		);
 		return mapToDtoSlice(diaries);
-	}
-
-	// 다이어리 상세 조회
-	@Transactional(readOnly = true)
-	@Deprecated(since = "파사드 패턴 도입으로 인해 불필요해짐", forRemoval = false)
-	public DiaryResponseDto getDiary(Long userId, Long diaryId) {
-		Diary diary = findDiaryOrThrow(diaryId);
-
-		validateDiaryAccess(diary, userId);
-
-		boolean isLiked = likeRepository.existsByUserIdAndDiaryId(userId, diaryId);
-		List<Media> media = mediaService.getMediaByDiaryId(diary.getDiaryId());
-		return DiaryResponseDto.of(diary, media, isLiked);
 	}
 
 	// 다이어리 목록 (프로필 페이지)
@@ -108,18 +97,18 @@ public class DiaryService {
 
 	// Page용 매핑 메서드
 	private Page<DiaryResponseDto> mapToDtoPage(Page<Diary> page) {
-		List<DiaryResponseDto> content = getDiaryResponsesWithMedia(page.getContent());
+		List<DiaryResponseDto> content = getDiaryResponsesWithMediaAndHashtags(page.getContent());
 		return new PageImpl<>(content, page.getPageable(), page.getTotalElements());
 	}
 
 	// Slice용 매핑 메서드
 	private Slice<DiaryResponseDto> mapToDtoSlice(Slice<Diary> slice) {
-		List<DiaryResponseDto> content = getDiaryResponsesWithMedia(slice.getContent());
+		List<DiaryResponseDto> content = getDiaryResponsesWithMediaAndHashtags(slice.getContent());
 		return new SliceImpl<>(content, slice.getPageable(), slice.hasNext());
 	}
 
-	// 다이어리 + 미디어 같이 반환
-	private List<DiaryResponseDto> getDiaryResponsesWithMedia(List<Diary> diaries) {
+	// 다이어리 + 미디어 + 해시태그 같이 반환
+	private List<DiaryResponseDto> getDiaryResponsesWithMediaAndHashtags(List<Diary> diaries) {
 		if (diaries.isEmpty()) {
 			return List.of();
 		}
@@ -129,11 +118,13 @@ public class DiaryService {
 			.toList();
 
 		Map<Long, List<Media>> mediaMap = mediaService.getMediaMapByDiaryIds(diaryIds);
+		Map<Long, List<String>> hashtagMap = hashtagService.getHashtagMapByDiaryIds(diaryIds);
 
 		return diaries.stream()
 			.map(diary -> DiaryResponseDto.of(
 				diary,
-				mediaMap.getOrDefault(diary.getDiaryId(), List.of())
+				mediaMap.getOrDefault(diary.getDiaryId(), List.of()),
+				hashtagMap.getOrDefault(diary.getDiaryId(), List.of())
 			))
 			.toList();
 	}

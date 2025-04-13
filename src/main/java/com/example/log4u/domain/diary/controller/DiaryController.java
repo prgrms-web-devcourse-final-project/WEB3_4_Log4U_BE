@@ -45,6 +45,18 @@ public class DiaryController {
 		return ResponseEntity.ok(response);
 	}
 
+	@GetMapping("/users/me")
+	public ResponseEntity<PageResponse<DiaryResponseDto>> getMyDiaries(
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
+		@RequestParam(required = false) Long cursorId,
+		@RequestParam(defaultValue = "12") int size
+	) {
+		PageResponse<DiaryResponseDto> response = diaryFacade.getDiariesByCursor(customOAuth2User.getUserId(),
+			customOAuth2User.getUserId(), cursorId, size);
+
+		return ResponseEntity.ok(response);
+	}
+
 	@PostMapping
 	public ResponseEntity<Void> createDiary(
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
@@ -60,7 +72,7 @@ public class DiaryController {
 		@RequestParam(required = false) String keyword,
 		@RequestParam(defaultValue = "LATEST") SortType sort,
 		@RequestParam(required = false) Long cursorId,
-		@RequestParam(defaultValue = "6") int size
+		@RequestParam(defaultValue = "12") int size
 	) {
 		return ResponseEntity.ok(
 			diaryFacade.searchDiariesByCursor(keyword, sort, cursorId, size)

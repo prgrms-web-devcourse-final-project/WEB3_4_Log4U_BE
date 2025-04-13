@@ -36,7 +36,9 @@ public record DiaryRequestDto(
 	@NotNull(message = "미디어 첨부는 필수입니다.")
 	@Size(min = 1, max = 10, message = "미디어는 최소 1개, 최대 10개까지만 업로드 가능합니다.")
 	@Valid
-	List<MediaRequestDto> mediaList
+	List<MediaRequestDto> mediaList,
+
+	List<String> hashtagList
 ) {
 	public static Diary toEntity(Long userId, DiaryRequestDto diaryRequestDto, String thumbnailUrl) {
 		return Diary.builder()
