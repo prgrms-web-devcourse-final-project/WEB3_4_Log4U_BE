@@ -26,8 +26,11 @@ import com.example.log4u.domain.like.service.LikeService;
 import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
+import com.example.log4u.domain.user.entity.User;
+import com.example.log4u.domain.user.service.UserService;
 import com.example.log4u.fixture.DiaryFixture;
 import com.example.log4u.fixture.MediaFixture;
+import com.example.log4u.fixture.UserFixture;
 
 @ExtendWith(MockitoExtension.class)
 class DiaryFacadeTest {
@@ -43,6 +46,9 @@ class DiaryFacadeTest {
 
 	@Mock
 	private LikeService likeService;
+
+	@Mock
+	private UserService userService;
 
 	@Mock
 	private HashtagService hashtagService;
@@ -123,15 +129,18 @@ class DiaryFacadeTest {
 		// given
 		Long userId = 1L;
 		Long diaryId = 1L;
-		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, 2L); // 다른 사용자의 공개 다이어리
+		Long authorId = 2L;
+		Diary diary = DiaryFixture.createPublicDiaryFixture(diaryId, authorId); // 다른 사용자의 공개 다이어리
 		List<Media> mediaList = List.of(MediaFixture.createMediaFixture(10L, diaryId));
 		List<String> hashtagList = List.of("여행", "맛집");
+		User author = UserFixture.createUserFixtureWithProfileImage(authorId);
 		boolean isLiked = true;
 
 		given(diaryService.getDiaryAfterValidateAccess(diaryId, userId)).willReturn(diary);
 		given(likeService.isLiked(userId, diaryId)).willReturn(isLiked);
 		given(mediaService.getMediaByDiaryId(diaryId)).willReturn(mediaList);
 		given(hashtagService.getHashtagsByDiaryId(diaryId)).willReturn(hashtagList);
+		given(userService.getUserById(diary.getUserId())).willReturn(author);
 
 		// when
 		DiaryResponseDto result = diaryFacade.getDiary(userId, diaryId);
@@ -139,7 +148,8 @@ class DiaryFacadeTest {
 		// then
 		assertThat(result).isNotNull();
 		assertThat(result.diaryId()).isEqualTo(diaryId);
-		assertThat(result.userId()).isEqualTo(2L);
+		assertThat(result.authorNickname()).isEqualTo(author.getNickname());
+		assertThat(result.authorId()).isEqualTo(author.getUserId());
 		assertThat(result.visibility()).isEqualTo(VisibilityType.PUBLIC.name());
 		assertThat(result.mediaList()).hasSize(1);
 		assertThat(result.hashtagList()).containsExactly("여행", "맛집");
@@ -155,24 +165,33 @@ class DiaryFacadeTest {
 		Long cursorId = null;
 		int size = 10;
 
+		Diary diary1 = DiaryFixture.createPublicDiaryFixture(1L, targetUserId);
+		Diary diary2 = DiaryFixture.createPublicDiaryFixture(2L, targetUserId);
+		Diary diary3 = DiaryFixture.createPublicDiaryFixture(3L, targetUserId);
+
+		User author = UserFixture.createUserFixtureWithProfileImage(targetUserId);
+
 		List<DiaryResponseDto> dtoList = List.of(
 			DiaryResponseDto.of(
-				DiaryFixture.createPublicDiaryFixture(1L, targetUserId),
+				diary1,
 				List.of(MediaFixture.createMediaFixture(1L, 1L)),
 				List.of("여행", "맛집"),
-				false
+				false,
+				author
 			),
 			DiaryResponseDto.of(
-				DiaryFixture.createPublicDiaryFixture(2L, targetUserId),
+				diary2,
 				List.of(MediaFixture.createMediaFixture(2L, 2L)),
 				List.of("일상"),
-				true
+				true,
+				author
 			),
 			DiaryResponseDto.of(
-				DiaryFixture.createPublicDiaryFixture(3L, targetUserId),
+				diary3,
 				List.of(MediaFixture.createMediaFixture(3L, 3L)),
 				List.of("제주도", "여행", "사진"),
-				false
+				false,
+				author
 			)
 		);
 
@@ -187,6 +206,7 @@ class DiaryFacadeTest {
 		// then
 		assertThat(result.list()).hasSize(3);
 		assertThat(result.pageInfo().nextCursor()).isEqualTo(3L);
+		assertThat(result.list().get(0).authorId()).isEqualTo(targetUserId);
 	}
 
 	@Test
@@ -198,18 +218,29 @@ class DiaryFacadeTest {
 		Long cursorId = null;
 		int size = 10;
 
+		Long author1Id = 1L;
+		Long author2Id = 2L;
+
+		Diary diary1 = DiaryFixture.createPublicDiaryFixture(1L, author1Id);
+		Diary diary2 = DiaryFixture.createPublicDiaryFixture(2L, author2Id);
+
+		User user1 = UserFixture.createUserFixtureWithProfileImage(author1Id);
+		User user2 = UserFixture.createUserFixtureWithProfileImage(author2Id);
+
 		List<DiaryResponseDto> dtoList = List.of(
 			DiaryResponseDto.of(
-				DiaryFixture.createPublicDiaryFixture(1L, 1L),
+				diary1,
 				List.of(MediaFixture.createMediaFixture(1L, 1L)),
 				List.of("여행", "맛집"),
-				false
+				false,
+				user1
 			),
 			DiaryResponseDto.of(
-				DiaryFixture.createPublicDiaryFixture(2L, 2L),
+				diary2,
 				List.of(MediaFixture.createMediaFixture(2L, 2L)),
 				List.of("여행", "제주도"),
-				false
+				false,
+				user2
 			)
 		);
 

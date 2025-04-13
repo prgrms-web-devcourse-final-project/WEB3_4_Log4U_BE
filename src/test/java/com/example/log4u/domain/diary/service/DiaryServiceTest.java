@@ -29,11 +29,13 @@ import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
 import com.example.log4u.domain.hashtag.service.HashtagService;
-import com.example.log4u.domain.like.repository.LikeRepository;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
+import com.example.log4u.domain.user.entity.User;
+import com.example.log4u.domain.user.service.UserService;
 import com.example.log4u.fixture.DiaryFixture;
 import com.example.log4u.fixture.MediaFixture;
+import com.example.log4u.fixture.UserFixture;
 
 @ExtendWith(MockitoExtension.class)
 class DiaryServiceTest {
@@ -48,7 +50,7 @@ class DiaryServiceTest {
 	private MediaService mediaService;
 
 	@Mock
-	private LikeRepository likeRepository;
+	private UserService userService;
 
 	@Mock
 	private HashtagService hashtagService;
@@ -454,7 +456,7 @@ class DiaryServiceTest {
 
 		// then
 		assertThat(result.list()).hasSize(3);
-		assertThat(result.pageInfo().hasNext()).isNotNull();
+		assertThat(result.pageInfo().hasNext()).isFalse();
 
 		// 미디어와 해시태그 맵 조회 검증
 		verify(mediaService).getMediaMapByDiaryIds(diaryIds);
@@ -492,6 +494,8 @@ class DiaryServiceTest {
 			3L, List.of("제주도", "여행", "사진")
 		);
 
+		User user = UserFixture.createUserFixtureWithProfileImage(userId);
+
 		given(mediaService.getMediaMapByDiaryIds(diaryIds)).willReturn(mediaMap);
 		given(hashtagService.getHashtagMapByDiaryIds(diaryIds)).willReturn(hashtagMap);
 
@@ -501,7 +505,7 @@ class DiaryServiceTest {
 
 		// then
 		assertThat(result.list()).hasSize(3);
-		assertThat(result.pageInfo().hasNext()).isNotNull();
+		assertThat(result.pageInfo().hasNext()).isFalse();
 
 		// 미디어와 해시태그 맵 조회 검증
 		verify(mediaService).getMediaMapByDiaryIds(diaryIds);
