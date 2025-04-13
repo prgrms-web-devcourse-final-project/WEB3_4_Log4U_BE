@@ -17,6 +17,8 @@ import com.example.log4u.domain.like.service.LikeService;
 import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.media.service.MediaService;
+import com.example.log4u.domain.user.entity.User;
+import com.example.log4u.domain.user.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,6 +31,7 @@ public class DiaryFacade {
 	private final MapService mapService;
 	private final LikeService likeService;
 	private final HashtagService hashtagService;
+	private final UserService userService;
 
 	/**
 	 * 다이어리 생성 use case
@@ -90,13 +93,11 @@ public class DiaryFacade {
 	@Transactional(readOnly = true)
 	public DiaryResponseDto getDiary(Long userId, Long diaryId) {
 		Diary diary = diaryService.getDiaryAfterValidateAccess(diaryId, userId);
+		User user = userService.getUserById(diary.getUserId());
 		boolean isLiked = likeService.isLiked(userId, diaryId);
 		List<Media> media = mediaService.getMediaByDiaryId(diary.getDiaryId());
-
-		// 해시태그 조회 추가
 		List<String> hashtags = hashtagService.getHashtagsByDiaryId(diary.getDiaryId());
-
-		return DiaryResponseDto.of(diary, media, hashtags, isLiked);
+		return DiaryResponseDto.of(diary, media, hashtags, isLiked, user);
 	}
 
 	/**

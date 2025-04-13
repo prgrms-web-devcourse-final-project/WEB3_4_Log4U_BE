@@ -7,13 +7,15 @@ import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.map.dto.LocationDto;
 import com.example.log4u.domain.media.dto.MediaResponseDto;
 import com.example.log4u.domain.media.entity.Media;
+import com.example.log4u.domain.user.dto.UserThumbnailResponseDto;
+import com.example.log4u.domain.user.entity.User;
 
 import lombok.Builder;
 
 @Builder
 public record DiaryResponseDto(
 	Long diaryId,
-	Long userId,
+	UserThumbnailResponseDto user,
 	LocationDto location,
 	String title,
 	String content,
@@ -27,10 +29,17 @@ public record DiaryResponseDto(
 	List<String> hashtagList,
 	boolean isLiked
 ) {
-	public static DiaryResponseDto of(Diary diary, List<Media> media, List<String> hashtagList, boolean isLiked) {
+	// 단건 조회용 (isLiked + User)
+	public static DiaryResponseDto of(
+		Diary diary,
+		List<Media> media,
+		List<String> hashtagList,
+		boolean isLiked,
+		User user
+	) {
 		return DiaryResponseDto.builder()
 			.diaryId(diary.getDiaryId())
-			.userId(diary.getUserId())
+			.user(UserThumbnailResponseDto.of(user))
 			.location(LocationDto.of(diary.getLocation()))
 			.title(diary.getTitle())
 			.content(diary.getContent())
@@ -47,8 +56,13 @@ public record DiaryResponseDto(
 			.build();
 	}
 
-	// 다이어리 목록 반환 시 사용 (isLiked false 기본값)
-	public static DiaryResponseDto of(Diary diary, List<Media> media, List<String> hashtagList) {
-		return DiaryResponseDto.of(diary, media, hashtagList, false);
+	// 다이어리 목록 반환 시 사용 (isLiked false, User null 기본값)
+	public static DiaryResponseDto of(
+		Diary diary,
+		List<Media> media,
+		List<String> hashtagList
+	) {
+		return DiaryResponseDto.of(diary, media, hashtagList, false, null);
 	}
+
 }
