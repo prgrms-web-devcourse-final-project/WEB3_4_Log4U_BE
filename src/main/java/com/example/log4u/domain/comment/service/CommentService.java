@@ -62,13 +62,10 @@ public class CommentService {
 	public PageResponse<CommentResponseDto> getCommentListByDiary(Long diaryId, Long cursorCommentId, int size) {
 		checkDiaryExists(diaryId);
 		Pageable pageable = PageRequest.of(0, size);
-		Slice<Comment> slice = commentRepository.findByDiaryIdWithCursor(diaryId, cursorCommentId, pageable);
+		Slice<CommentResponseDto> slice = commentRepository.findWithUserByDiaryId(diaryId, cursorCommentId, pageable);
 
-		List<CommentResponseDto> dtoList = slice.getContent().stream()
-			.map(CommentResponseDto::of)
-			.toList();
-
-		Long nextCursor = slice.hasNext() ? dtoList.getLast().commentId() : null;
-		return PageResponse.of(new SliceImpl<>(dtoList, pageable, slice.hasNext()), nextCursor);
+		Long nextCursor = slice.hasNext() ? slice.getContent().getLast().commentId() : null;
+		return PageResponse.of(slice, nextCursor);
 	}
+
 }

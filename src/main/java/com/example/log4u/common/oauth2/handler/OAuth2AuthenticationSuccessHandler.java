@@ -74,15 +74,17 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		// 리프레시 토큰 DB 저장
 		refreshTokenService.saveRefreshToken(name, refresh);
 
-		response.addCookie(CookieUtil.createCookie(ACCESS_TOKEN, access));
-		response.addCookie(CookieUtil.createCookie(REFRESH_TOKEN, refresh));
+		// SameSite=None 속성이 있는 쿠키 생성 및 추가
+		CookieUtil.createCookieWithSameSite(response, ACCESS_TOKEN, access);
+		CookieUtil.createCookieWithSameSite(response, REFRESH_TOKEN, refresh);
+
 		response.setStatus(HttpStatus.OK.value());
 	}
 
 	private void redirectTo(HttpServletResponse response, CustomOAuth2User customOAuth2User) throws IOException {
 		String redirectUrl = switch (customOAuth2User.getRole()) {
 			case "ROLE_GUEST" -> PROFILE_CREATE_URL;
-			case "ROLE_USER" -> FRONT_SUB_DOMAIN_URL;
+			case "ROLE_USER" -> FRONT_VERCEL_ORIGIN;
 			default -> LOGIN_URL;
 		};
 		response.sendRedirect(redirectUrl);

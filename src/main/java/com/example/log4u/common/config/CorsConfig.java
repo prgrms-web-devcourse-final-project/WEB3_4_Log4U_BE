@@ -15,7 +15,8 @@ public class CorsConfig {
 
 		configuration.setAllowedOrigins(List.of(
 			UrlConstants.FRONT_ORIGIN_URL,
-			UrlConstants.FRONT_SUB_DOMAIN_URL
+			UrlConstants.FRONT_SUB_DOMAIN_URL,
+			UrlConstants.FRONT_VERCEL_ORIGIN
 		));
 
 		configuration.setAllowedMethods(Collections.singletonList("*"));

@@ -47,7 +47,9 @@ public class S3Service {
 		// 파일명 생성
 		String originalFilename = request.filename();
 		String fileExtension = getFileExtension(originalFilename);
-		String storedFilename = "images/" + UUID.randomUUID() + fileExtension;
+
+		//String storedFilename = "images/" + UUID.randomUUID() + fileExtension;
+		String storedFilename = UUID.randomUUID() + fileExtension;
 
 		// S3 접근 URL 생성
 		String accessUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, s3Region, storedFilename);

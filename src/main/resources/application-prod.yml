@@ -3,6 +3,14 @@ logging:
     org:
       springframework: debug
 
+server:
+  forward-headers-strategy: native
+  tomcat:
+    use-relative-redirects: false
+    remoteip:
+      protocol-header: X-Forwarded-Proto
+      remote-ip-header: X-Forwarded-For
+
 spring:
   datasource:
     jdbc-url: ${aws-mysql.url}

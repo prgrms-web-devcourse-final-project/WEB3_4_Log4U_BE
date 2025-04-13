@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.log4u.common.constants.TokenConstants;
 import com.example.log4u.common.oauth2.jwt.JwtUtil;
 import com.example.log4u.common.oauth2.service.RefreshTokenService;
+import com.example.log4u.common.util.CookieUtil;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
@@ -75,8 +76,9 @@ public class OAuth2Controller {
 		String newAccessToken = jwtUtil.createJwt(TokenConstants.ACCESS_TOKEN, userId, name, role, 600000L);
 		String newRefreshToken = jwtUtil.createJwt(TokenConstants.REFRESH_TOKEN, userId, name, role, 600000L);
 
-		response.addCookie(createCookie(TokenConstants.REFRESH_TOKEN, newRefreshToken));
-		response.addCookie(createCookie(TokenConstants.ACCESS_TOKEN, newAccessToken));
+		// SameSite=None 속성이 있는 쿠키 생성 및 추가
+		CookieUtil.createCookieWithSameSite(response, TokenConstants.ACCESS_TOKEN, newAccessToken);
+		CookieUtil.createCookieWithSameSite(response, TokenConstants.REFRESH_TOKEN, newRefreshToken);
 
 		// 새 리프레시 토큰 저장
 		refreshTokenService.saveRefreshToken(
@@ -86,12 +88,4 @@ public class OAuth2Controller {
 
 	}
 
-	private Cookie createCookie(String key, String value) {
-		Cookie cookie = new Cookie(key, value);
-		cookie.setMaxAge(60 * 60 * 60);
-		//cookie.setSecure(true);
-		cookie.setPath("/");
-		cookie.setHttpOnly(true);
-		return cookie;
-	}
 }
