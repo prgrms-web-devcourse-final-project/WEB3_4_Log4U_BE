@@ -1,6 +1,5 @@
 package com.example.log4u.domain.supports.controller;
 
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.common.oauth2.dto.CustomOAuth2User;
 import com.example.log4u.domain.supports.dto.SupportCreateRequestDto;
 import com.example.log4u.domain.supports.dto.SupportGetResponseDto;
@@ -39,13 +39,14 @@ public class SupportController {
 	}
 
 	@GetMapping
-	public ResponseEntity<Page<SupportOverviewGetResponseDto>> getSupportOverviewPage(
+	public ResponseEntity<PageResponse<SupportOverviewGetResponseDto>> getSupportOverviewPage(
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
 		@RequestParam(defaultValue = "1") int page,
 		@RequestParam(required = false) SupportType supportType
 	) {
 		long requesterId = customOAuth2User.getUserId();
-		Page<SupportOverviewGetResponseDto> supportOverviewPage = supportService.getSupportPage(requesterId, page,
+		PageResponse<SupportOverviewGetResponseDto> supportOverviewPage = supportService.getSupportPage(requesterId,
+			page,
 			supportType);
 		return ResponseEntity.ok().body(supportOverviewPage);
 	}
