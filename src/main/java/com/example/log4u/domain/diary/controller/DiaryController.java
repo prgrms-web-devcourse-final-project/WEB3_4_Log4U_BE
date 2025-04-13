@@ -18,7 +18,7 @@ import com.example.log4u.common.oauth2.dto.CustomOAuth2User;
 import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
-import com.example.log4u.domain.diary.service.DiaryService;
+import com.example.log4u.domain.diary.facade.DiaryFacade;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DiaryController {
 
-	private final DiaryService diaryService;
+	private final DiaryFacade diaryFacade;
 
 	@GetMapping("/users/{userId}")
 	public ResponseEntity<PageResponse<DiaryResponseDto>> getDiariesByUserId(
@@ -39,8 +39,20 @@ public class DiaryController {
 		@RequestParam(required = false) Long cursorId,
 		@RequestParam(defaultValue = "12") int size
 	) {
-		PageResponse<DiaryResponseDto> response = diaryService.getDiariesByCursor(customOAuth2User.getUserId(),
+		PageResponse<DiaryResponseDto> response = diaryFacade.getDiariesByCursor(customOAuth2User.getUserId(),
 			targetUserId, cursorId, size);
+
+		return ResponseEntity.ok(response);
+	}
+
+	@GetMapping("/users/me")
+	public ResponseEntity<PageResponse<DiaryResponseDto>> getMyDiaries(
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
+		@RequestParam(required = false) Long cursorId,
+		@RequestParam(defaultValue = "12") int size
+	) {
+		PageResponse<DiaryResponseDto> response = diaryFacade.getDiariesByCursor(customOAuth2User.getUserId(),
+			customOAuth2User.getUserId(), cursorId, size);
 
 		return ResponseEntity.ok(response);
 	}
@@ -50,7 +62,7 @@ public class DiaryController {
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
 		@Valid @RequestBody DiaryRequestDto request
 	) {
-		diaryService.saveDiary(customOAuth2User.getUserId(), request);
+		diaryFacade.createDiary(customOAuth2User.getUserId(), request);
 		return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 
@@ -60,10 +72,10 @@ public class DiaryController {
 		@RequestParam(required = false) String keyword,
 		@RequestParam(defaultValue = "LATEST") SortType sort,
 		@RequestParam(required = false) Long cursorId,
-		@RequestParam(defaultValue = "6") int size
+		@RequestParam(defaultValue = "12") int size
 	) {
 		return ResponseEntity.ok(
-			diaryService.searchDiariesByCursor(keyword, sort, cursorId, size)
+			diaryFacade.searchDiariesByCursor(keyword, sort, cursorId, size)
 		);
 	}
 
@@ -72,7 +84,7 @@ public class DiaryController {
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
 		@PathVariable Long diaryId
 	) {
-		DiaryResponseDto diary = diaryService.getDiary(customOAuth2User.getUserId(), diaryId);
+		DiaryResponseDto diary = diaryFacade.getDiary(customOAuth2User.getUserId(), diaryId);
 		return ResponseEntity.ok(diary);
 	}
 
@@ -82,16 +94,16 @@ public class DiaryController {
 		@PathVariable Long diaryId,
 		@Valid @RequestBody DiaryRequestDto request
 	) {
-		diaryService.updateDiary(customOAuth2User.getUserId(), diaryId, request);
+		diaryFacade.updateDiary(customOAuth2User.getUserId(), diaryId, request);
 		return ResponseEntity.ok().build();
 	}
 
 	@DeleteMapping("/{diaryId}")
-	public ResponseEntity<?> deleteDiary(
+	public ResponseEntity<Void> deleteDiary(
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
 		@PathVariable Long diaryId
 	) {
-		diaryService.deleteDiary(customOAuth2User.getUserId(), diaryId);
+		diaryFacade.deleteDiary(customOAuth2User.getUserId(), diaryId);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 }

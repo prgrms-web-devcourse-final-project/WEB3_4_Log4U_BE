@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -149,26 +150,26 @@ public class CommonServiceTest {
 		int size = 5;
 		Long cursorCommentId = null;
 
-		List<Comment> commentList = CommentFixture.createCommentsListFixture(size + 1); // hasNext 판별 위해 +1
+		List<CommentResponseDto> dtoList = CommentFixture.createCommentDtos(size + 1);
+
 		Pageable pageable = PageRequest.of(0, size);
-		boolean hasNext = commentList.size() > size;
+		boolean hasNext = dtoList.size() > size;
+		List<CommentResponseDto> sliced = hasNext ? dtoList.subList(0, size) : dtoList;
 
-		List<Comment> sliced = hasNext ? commentList.subList(0, size) : commentList;
+		Slice<CommentResponseDto> slice = new SliceImpl<>(sliced, pageable, hasNext);
 
-		Slice<Comment> slice = new SliceImpl<>(sliced, pageable, hasNext);
-		given(commentRepository.findByDiaryIdWithCursor(diaryId, cursorCommentId, pageable))
+		given(commentRepository.findWithUserByDiaryId(diaryId, cursorCommentId, pageable))
 			.willReturn(slice);
 
 		// when
-		PageResponse<CommentResponseDto> response = commentService.getCommentListByDiary(diaryId, cursorCommentId,
-			size);
+		PageResponse<CommentResponseDto> response = commentService.getCommentListByDiary(diaryId, cursorCommentId, size);
 
 		// then
 		assertThat(response.list()).hasSize(sliced.size());
 		assertThat(response.pageInfo().hasNext()).isEqualTo(hasNext);
-		assertThat(response.pageInfo().nextCursor()).isEqualTo(hasNext ? sliced.getLast().getCommentId() : null);
+		assertThat(response.pageInfo().nextCursor()).isEqualTo(hasNext ? sliced.getLast().commentId() : null);
 
-		verify(commentRepository).findByDiaryIdWithCursor(diaryId, cursorCommentId, pageable);
+		verify(commentRepository).findWithUserByDiaryId(diaryId, cursorCommentId, pageable);
 	}
 
 }

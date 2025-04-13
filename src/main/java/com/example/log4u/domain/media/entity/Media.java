@@ -51,7 +51,7 @@ public class Media extends BaseEntity {
 		this.status = MediaStatus.PERMANENT;
 	}
 
-	public void markAsDeleted() {
-		this.status = MediaStatus.DELETED;
+	public void markAsFailedDelete() {
+		this.status = MediaStatus.FAILED_DELETE;
 	}
 }
