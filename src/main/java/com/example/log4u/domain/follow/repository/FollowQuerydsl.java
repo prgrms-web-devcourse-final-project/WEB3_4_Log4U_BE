@@ -47,7 +47,7 @@ public class FollowQuerydsl extends QuerydslRepositorySupport {
 			.select(Projections.constructor(UserThumbnailResponseDto.class,
 				getNumberPath(!isFollowerQuery),
 				user.nickname,
-				user.nickname))
+				user.profileImage))
 			.where(builder)
 			.distinct()
 			.fetch();
