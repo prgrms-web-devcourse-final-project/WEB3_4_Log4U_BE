@@ -38,5 +38,4 @@ public class FollowController {
 		followService.deleteFollow(customOAuth2User.getUserId(), nickname);
 		return ResponseEntity.ok().build();
 	}
-
 }
