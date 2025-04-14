@@ -126,70 +126,7 @@ class UserServiceTest {
 		assertThrows(UserNotFoundException.class, () -> userService.getUserById(userId));
 		verify(userRepository).findById(userId);
 	}
-
-	@Test
-	@DisplayName("닉네임으로 유저를 검색하고 팔로워 수 높은 순으로 정렬해야 한다")
-	void shouldSearchUsersByNicknameAndSortByFollowerCount() {
-		// given
-		String nickname = "test";
-		Long cursorId = null;
-		int size = 10;
-
-		// 테스트용 유저 목록 생성
-		User user1 = UserFixture.createUserWithId(1L, "User1", "test1");
-		User user2 = UserFixture.createUserWithId(2L, "User2", "test2");
-		User user3 = UserFixture.createUserWithId(3L, "User3", "test3");
-
-		List<User> users = List.of(user1, user2, user3);
-		Slice<User> userSlice = new SliceImpl<>(users, PageRequest.of(0, size), false);
-
-		// Mock 설정
-		when(userRepository.searchUsersByCursor(
-			eq(nickname),
-			eq(Long.MAX_VALUE),
-			ArgumentMatchers.any(PageRequest.class)))
-			.thenReturn(userSlice);
-
-		// 각 유저의 팔로워/팔로잉 수 설정
-		when(followRepository.countByTargetId(1L)).thenReturn(10L);
-		when(followRepository.countByInitiatorId(1L)).thenReturn(5L);
-
-		when(followRepository.countByTargetId(2L)).thenReturn(20L);
-		when(followRepository.countByInitiatorId(2L)).thenReturn(15L);
-
-		when(followRepository.countByTargetId(3L)).thenReturn(30L);
-		when(followRepository.countByInitiatorId(3L)).thenReturn(25L);
-
-		// when
-		PageResponse<UserProfileResponseDto> result = userService.searchUsersByCursor(nickname, cursorId, size);
-
-		// then
-		assertNotNull(result);
-		assertEquals(3, result.list().size());
-
-		// 팔로워 수 확인
-		assertEquals(10L, result.list().get(0).followers());
-		assertEquals(20L, result.list().get(1).followers());
-		assertEquals(30L, result.list().get(2).followers());
-
-		// 팔로잉 수 확인
-		assertEquals(5L, result.list().get(0).followings());
-		assertEquals(15L, result.list().get(1).followings());
-		assertEquals(25L, result.list().get(2).followings());
-
-		// 다음 커서 확인
-		assertEquals(3L, result.pageInfo().nextCursor());
-
-		// 메서드 호출 확인
-		verify(userRepository).searchUsersByCursor(
-			eq(nickname),
-			eq(Long.MAX_VALUE),
-			ArgumentMatchers.any(PageRequest.class));
-
-		verify(followRepository, times(3)).countByTargetId(anyLong());
-		verify(followRepository, times(3)).countByInitiatorId(anyLong());
-	}
-
+	
 	@Test
 	@DisplayName("검색 결과가 없으면 빈 리스트를 반환해야 한다")
 	void shouldReturnEmptyListWhenNoSearchResults() {

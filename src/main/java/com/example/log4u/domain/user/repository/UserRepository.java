@@ -21,13 +21,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	@Query(value = """
 		SELECT u FROM User u
-		LEFT JOIN (SELECT f.targetId, COUNT(f) as followerCount 
-		          FROM Follow f 
-		          GROUP BY f.targetId) fc 
-		ON u.userId = fc.targetId
 		WHERE (:nickname IS NULL OR LOWER(u.nickname) LIKE LOWER(CONCAT('%', :nickname, '%')))
 		AND u.userId < :cursorId
-		ORDER BY fc.followerCount DESC NULLS LAST, u.userId DESC
+		ORDER BY u.userId DESC
 		""")
 	Slice<User> searchUsersByCursor(
 		@Param("nickname") String nickname,
