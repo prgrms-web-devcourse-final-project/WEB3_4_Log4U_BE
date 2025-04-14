@@ -1,12 +1,9 @@
 ## 개발 환경 설정
 
-[AWS API SERVER](http://ec2-13-209-127-186.ap-northeast-2.compute.amazonaws.com:8080)
+[AWS API SERVER](https://log4u.site)
 
-[카카오 로그인](http://ec2-13-209-127-186.ap-northeast-2.compute.amazonaws.com:8080/oauth2/authorization/kakao)
+[프론트](https://fe-log4u.vercel.app)
 
-[네이버 로그인](http://ec2-13-209-127-186.ap-northeast-2.compute.amazonaws.com:8080/oauth2/authorization/naver)
-
-[구글 로그인](http://ec2-13-209-127-186.ap-northeast-2.compute.amazonaws.com:8080/oauth2/authorization/google)
 
 ---
 
