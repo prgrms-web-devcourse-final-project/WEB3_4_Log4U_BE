@@ -25,11 +25,13 @@ import com.example.log4u.domain.map.service.MapService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Tag(name = "지도 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/maps")
+@Slf4j
 public class MapController {
 
 	private final MapService mapService;
@@ -68,6 +70,7 @@ public class MapController {
 			ReverseGeocodingResponseDto.class
 		);
 
+		log.debug("역 지오코딩 결과 : " + String.valueOf(response) + "\n");
 		return ResponseEntity.ok(response.getBody());
 	}
 
