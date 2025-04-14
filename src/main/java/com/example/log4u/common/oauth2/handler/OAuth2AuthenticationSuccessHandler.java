@@ -84,7 +84,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	private void redirectTo(HttpServletResponse response, CustomOAuth2User customOAuth2User) throws IOException {
 		switch (customOAuth2User.getRole()) {
 			// 프론트 페이지 부재로 임시 비활성화
-			case "ROLE_GUEST" -> response.sendRedirect(PROFILE_CREATE_URL);
+			case "ROLE_GUEST" -> response.sendRedirect(FRONT_VERCEL_ORIGIN);
 			case "ROLE_USER" -> response.sendRedirect(FRONT_VERCEL_ORIGIN);
 			default -> {
 				// 로그인이 필요한 경우 401
