@@ -3,11 +3,13 @@ package com.example.log4u.domain.map.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.log4u.common.oauth2.dto.CustomOAuth2User;
 import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.example.log4u.domain.map.service.MyMapService;
@@ -30,10 +32,10 @@ public class MyMapController {
 		@RequestParam double west,
 		@RequestParam double east,
 		@RequestParam int zoom,
-		@RequestParam Long userId // 실무에서는 인증 기반으로 가져오겠지만 지금은 param 사용
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User
 	) {
 		List<DiaryClusterResponseDto> clusters =
-			myMapService.getMyDiaryClusters(south, north, west, east, zoom, userId);
+			myMapService.getMyDiaryClusters(south, north, west, east, zoom, customOAuth2User.getUserId());
 		return ResponseEntity.ok(clusters);
 	}
 
@@ -43,9 +45,10 @@ public class MyMapController {
 		@RequestParam double north,
 		@RequestParam double west,
 		@RequestParam double east,
-		@RequestParam Long userId
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User
 	) {
-		List<DiaryMarkerResponseDto> diaries = myMapService.getMyDiariesInBounds(userId, south, north, west, east);
+		List<DiaryMarkerResponseDto> diaries = myMapService.getMyDiariesInBounds(customOAuth2User.getUserId(), south,
+			north, west, east);
 		return ResponseEntity.ok(diaries);
 	}
 
