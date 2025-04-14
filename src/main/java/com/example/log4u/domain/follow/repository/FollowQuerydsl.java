@@ -25,45 +25,52 @@ public class FollowQuerydsl extends QuerydslRepositorySupport {
 		super(Follow.class);
 	}
 
-	private NumberPath<Long> getNumberPath(boolean isFollowerQuery) {
-		return isFollowerQuery ? follow.targetId : follow.initiatorId;
-	}
-
-	private BooleanBuilder getBooleanBuilder(boolean isFollowerQuery, Long userId, Long cursorId) {
+	private BooleanBuilder getBooleanBuilder(boolean isFollowTarget, Long userId, Long cursorId, String keyword) {
 		BooleanBuilder builder = new BooleanBuilder();
-		builder.and(getNumberPath(isFollowerQuery).eq(userId));
+		NumberPath<Long> numberPath = isFollowTarget ? follow.targetId : follow.initiatorId;
+
+		builder.and(numberPath.eq(userId));
 
 		if (cursorId != null) {
 			builder.and(follow.id.lt(cursorId));
 		}
 
+		if (keyword != null) {
+			builder.and(user.nickname.like(keyword));
+		}
+
 		return builder;
 	}
 
-	private List<UserThumbnailResponseDto> getContent(boolean isFollowerQuery, Long userId, Long cursorId) {
-		BooleanBuilder builder = getBooleanBuilder(isFollowerQuery, userId, cursorId);
+	private List<UserThumbnailResponseDto> getContent(boolean isFollowTarget, Long userId, Long cursorId,
+		String keyword) {
+		BooleanBuilder builder = getBooleanBuilder(isFollowTarget, userId, cursorId, keyword);
 
-		return from(follow)
-			.select(Projections.constructor(UserThumbnailResponseDto.class,
-				getNumberPath(!isFollowerQuery),
-				user.nickname,
-				user.nickname))
+		NumberPath<Long> numberPath = isFollowTarget ? follow.targetId : follow.initiatorId;
+		NumberPath<Long> numberPath2 = isFollowTarget ? follow.initiatorId : follow.targetId;
+
+		return from(follow).innerJoin(user)
+			.on(user.userId.eq(numberPath))
+			.select(
+				Projections.constructor(UserThumbnailResponseDto.class, numberPath2, user.nickname, user.profileImage))
 			.where(builder)
 			.distinct()
 			.fetch();
 	}
 
 	//내 팔로워 아이디 슬라이스
-	public Slice<UserThumbnailResponseDto> getFollowerSliceByUserId(Long userId, Long cursorId, Pageable pageable) {
-		boolean isFollowerQuery = true;
-		List<UserThumbnailResponseDto> content = getContent(isFollowerQuery, userId, cursorId);
+	public Slice<UserThumbnailResponseDto> getFollowerSliceByUserId(Long userId, Long cursorId, String keyword,
+		Pageable pageable) {
+		boolean isFollowTarget = true;
+		List<UserThumbnailResponseDto> content = getContent(isFollowTarget, userId, cursorId, keyword);
 		return PageableUtil.checkAndCreateSlice(content, pageable);
 	}
 
 	// 내가 팔로잉하는 아이디 슬라이스
-	public Slice<UserThumbnailResponseDto> getFollowingSliceByUserId(Long userId, Long cursorId, Pageable pageable) {
-		boolean isFollowerQuery = false;
-		List<UserThumbnailResponseDto> content = getContent(isFollowerQuery, userId, cursorId);
+	public Slice<UserThumbnailResponseDto> getFollowingSliceByUserId(Long userId, Long cursorId, String keyword,
+		Pageable pageable) {
+		boolean isFollowTarget = false;
+		List<UserThumbnailResponseDto> content = getContent(isFollowTarget, userId, cursorId, keyword);
 		return PageableUtil.checkAndCreateSlice(content, pageable);
 	}
 }

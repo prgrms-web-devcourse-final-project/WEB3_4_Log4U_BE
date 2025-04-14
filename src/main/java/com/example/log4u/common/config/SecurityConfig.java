@@ -22,6 +22,7 @@ import com.example.log4u.common.oauth2.repository.RefreshTokenRepository;
 import com.example.log4u.common.oauth2.service.CustomOAuth2UserService;
 import com.example.log4u.domain.user.service.UserService;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -65,7 +66,15 @@ public class SecurityConfig {
 				.successHandler(oAuth2AuthenticationSuccessHandler)
 			)
 			.addFilterBefore(new JwtAuthenticationFilter(jwtUtil, userService), OAuth2LoginAuthenticationFilter.class)
-			.addFilterBefore(new JwtLogoutFilter(jwtUtil, refreshTokenRepository), LogoutFilter.class);
+			.addFilterBefore(new JwtLogoutFilter(jwtUtil, refreshTokenRepository), LogoutFilter.class)
+			.exceptionHandling(exceptions -> exceptions
+				.authenticationEntryPoint((request, response, authException) -> {
+					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					response.setContentType("application/json");
+					response.setCharacterEncoding("UTF-8");
+					response.getWriter().write("{\"message\":\"Unauthorized\",\"message\":\"인증이 필요합니다\"}");
+				})
+			);
 
 		//경로별 인가 작업
 		http
