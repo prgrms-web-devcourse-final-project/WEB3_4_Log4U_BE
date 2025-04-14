@@ -82,12 +82,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	}
 
 	private void redirectTo(HttpServletResponse response, CustomOAuth2User customOAuth2User) throws IOException {
-		String redirectUrl = switch (customOAuth2User.getRole()) {
-			case "ROLE_GUEST" -> PROFILE_CREATE_URL;
-			case "ROLE_USER" -> FRONT_VERCEL_ORIGIN;
-			default -> LOGIN_URL;
-		};
-		response.sendRedirect(redirectUrl);
+		switch (customOAuth2User.getRole()) {
+			case "ROLE_GUEST" -> response.sendRedirect(PROFILE_CREATE_URL);
+			case "ROLE_USER" -> response.sendRedirect(FRONT_VERCEL_ORIGIN);
+			default -> {
+				// 로그인이 필요한 경우 401
+				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				response.setContentType("application/json");
+				response.setCharacterEncoding("UTF-8");
+			}
+		}
 	}
 
 }
