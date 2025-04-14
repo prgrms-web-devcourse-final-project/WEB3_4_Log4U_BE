@@ -25,13 +25,9 @@ public class FollowQuerydsl extends QuerydslRepositorySupport {
 		super(Follow.class);
 	}
 
-	private NumberPath<Long> getNumberPath(boolean isFollowTarget) {
-		return isFollowTarget ? follow.targetId : follow.initiatorId;
-	}
-
 	private BooleanBuilder getBooleanBuilder(boolean isFollowTarget, Long userId, Long cursorId, String keyword) {
 		BooleanBuilder builder = new BooleanBuilder();
-		NumberPath<Long> numberPath = getNumberPath(isFollowTarget);
+		NumberPath<Long> numberPath = isFollowTarget ? follow.targetId : follow.initiatorId;
 
 		builder.and(numberPath.eq(userId));
 
@@ -50,15 +46,13 @@ public class FollowQuerydsl extends QuerydslRepositorySupport {
 		String keyword) {
 		BooleanBuilder builder = getBooleanBuilder(isFollowTarget, userId, cursorId, keyword);
 
-		NumberPath<Long> numberPath = getNumberPath(isFollowTarget);
+		NumberPath<Long> numberPath = isFollowTarget ? follow.targetId : follow.initiatorId;
+		NumberPath<Long> numberPath2 = isFollowTarget ? follow.initiatorId : follow.targetId;
 
-		return from(follow)
-			.innerJoin(user)
+		return from(follow).innerJoin(user)
 			.on(user.userId.eq(numberPath))
-			.select(Projections.constructor(UserThumbnailResponseDto.class,
-				numberPath,
-				user.nickname,
-				user.profileImage))
+			.select(
+				Projections.constructor(UserThumbnailResponseDto.class, numberPath2, user.nickname, user.profileImage))
 			.where(builder)
 			.distinct()
 			.fetch();
