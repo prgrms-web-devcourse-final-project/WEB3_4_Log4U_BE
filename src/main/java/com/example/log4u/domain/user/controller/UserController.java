@@ -48,6 +48,7 @@ public class UserController {
 
 		// 쿠키 전달
 		Cookie accessCookie = new Cookie("access", "devtoken");
+		accessCookie.setSecure(true);
 		accessCookie.setHttpOnly(true);
 		accessCookie.setPath("/");
 		response.addCookie(accessCookie);
