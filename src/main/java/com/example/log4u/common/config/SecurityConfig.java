@@ -70,10 +70,10 @@ public class SecurityConfig {
 			.addFilterBefore(new JwtAuthenticationFilter(jwtUtil, userService), OAuth2LoginAuthenticationFilter.class)
 			.addFilterBefore(new JwtLogoutFilter(jwtUtil, refreshTokenRepository), LogoutFilter.class)
 			.logout(logout ->
-				logout.logoutUrl("/logout")
+				logout.logoutUrl("/oauth2/logout")
 					.logoutRequestMatcher(new OrRequestMatcher(
-						new AntPathRequestMatcher("/logout", "POST"),
-						new AntPathRequestMatcher("/logout", "GET")
+						new AntPathRequestMatcher("/oauth2/logout", "POST"),
+						new AntPathRequestMatcher("/oauth2/logout", "GET")
 					)) // POST와 GET 요청 모두 허용
 					.logoutSuccessHandler((request, response, authentication) -> {
 						response.setStatus(HttpServletResponse.SC_OK);
