@@ -3,24 +3,9 @@ package com.example.log4u.domain.map.dto;
 import java.util.List;
 
 public record ReverseGeocodingResponseDto(
-	List<Result> results
+	List<RegionInfo> regions
 ) {
-	public record Result(
-		String name,
-		Code code,
-		Region region,
-		Land land
-	) {
-	}
-
-	public record Code(
-		String id,
-		String type,
-		String mappingId
-	) {
-	}
-
-	public record Region(
+	public record RegionInfo(
 		Area area0,
 		Area area1,
 		Area area2,
@@ -30,15 +15,20 @@ public record ReverseGeocodingResponseDto(
 	}
 
 	public record Area(
-		String name
+		String name,
+		Coords coords
 	) {
 	}
 
-	public record Land(
-		String type,
-		String number1,
-		String number2,
-		String addition0
+	public record Coords(
+		Center center
+	) {
+	}
+
+	public record Center(
+		double x,
+		double y
 	) {
 	}
 }
+
