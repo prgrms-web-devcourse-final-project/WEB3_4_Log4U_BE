@@ -86,4 +86,31 @@ public record DiaryResponseDto(
 			.build();
 	}
 
+	// DiaryWithAuthorDto 전용 메서드
+	public static DiaryResponseDto of(
+		DiaryWithAuthorDto dto,
+		List<Media> media,
+		List<String> hashtagList
+	) {
+		return DiaryResponseDto.builder()
+			.diaryId(dto.diary().getDiaryId())
+			.authorId(dto.diary().getUserId())
+			.authorNickname(dto.authorNickname())
+			.authorProfileImage(dto.authorProfileImage())
+			.location(LocationDto.of(dto.diary().getLocation()))
+			.title(dto.diary().getTitle())
+			.content(dto.diary().getContent())
+			.weatherInfo(dto.diary().getWeatherInfo().name())
+			.visibility(dto.diary().getVisibility().name())
+			.createdAt(dto.diary().getCreatedAt())
+			.updatedAt(dto.diary().getUpdatedAt())
+			.thumbnailUrl(dto.diary().getThumbnailUrl())
+			.likeCount(dto.diary().getLikeCount())
+			.mediaList(media.stream()
+				.map(MediaResponseDto::of).toList())
+			.hashtagList(hashtagList)
+			.isLiked(false)
+			.build();
+	}
+
 }

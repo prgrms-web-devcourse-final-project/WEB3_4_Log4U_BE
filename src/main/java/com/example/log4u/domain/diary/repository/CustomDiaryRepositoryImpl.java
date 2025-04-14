@@ -2,8 +2,6 @@ package com.example.log4u.domain.diary.repository;
 
 import java.util.List;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
@@ -12,18 +10,18 @@ import org.springframework.util.StringUtils;
 import com.example.log4u.common.util.PageableUtil;
 import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.VisibilityType;
+import com.example.log4u.domain.diary.dto.DiaryWithAuthorDto;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.entity.QDiary;
 import com.example.log4u.domain.hashtag.entity.QDiaryHashtag;
 import com.example.log4u.domain.hashtag.entity.QHashtag;
 import com.example.log4u.domain.like.entity.QLike;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
-import com.example.log4u.domain.media.entity.QMedia;
+import com.example.log4u.domain.user.entity.QUser;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
@@ -38,42 +36,10 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 	private final QLike like = QLike.like;
 	private final QDiaryHashtag diaryHashtag = QDiaryHashtag.diaryHashtag;
 	private final QHashtag hashtag = QHashtag.hashtag;
-	private final QMedia media = QMedia.media;
+	private final QUser user = QUser.user;
 
 	@Override
-	public Page<Diary> searchDiaries(
-		String keyword,
-		List<VisibilityType> visibilities,
-		SortType sort,
-		Pageable pageable
-	) {
-		// 조건 생성
-		BooleanExpression condition = createSearchCondition(keyword, visibilities, null);
-
-		// 쿼리 실행
-		JPAQuery<Diary> query = queryFactory
-			.selectFrom(diary)
-			.where(condition);
-
-		// 전체 카운트 조회
-		Long total = queryFactory
-			.select(diary.count())
-			.from(diary)
-			.where(condition)
-			.fetchOne();
-
-		// 데이터 조회
-		List<Diary> content = query
-			.orderBy(createOrderSpecifier(sort))
-			.offset(pageable.getOffset())
-			.limit(pageable.getPageSize())
-			.fetch();
-
-		return new PageImpl<>(content, pageable, total != null ? total : 0);
-	}
-
-	@Override
-	public Slice<Diary> findByUserIdAndVisibilityInAndCursorId(
+	public Slice<DiaryWithAuthorDto> findByUserIdAndVisibilityInAndCursorId(
 		Long userId,
 		List<VisibilityType> visibilities,
 		Long cursorId,
@@ -104,9 +70,15 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 			}
 		}
 
-		// limit + 1로 다음 페이지 존재 여부 확인
-		List<Diary> content = queryFactory
-			.selectFrom(diary)
+		// 다이어리와 작성자 정보를 함께 조회
+		List<DiaryWithAuthorDto> content = queryFactory
+			.select(Projections.constructor(DiaryWithAuthorDto.class,
+				diary,
+				user.nickname,
+				user.profileImage
+			))
+			.from(diary)
+			.join(user).on(diary.userId.eq(user.userId))
 			.where(condition)
 			.orderBy(diary.createdAt.desc(), diary.diaryId.desc())
 			.limit(pageable.getPageSize() + 1)
@@ -117,7 +89,7 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 	}
 
 	@Override
-	public Slice<Diary> searchDiariesByCursor(
+	public Slice<DiaryWithAuthorDto> searchDiariesByCursor(
 		String keyword,
 		List<VisibilityType> visibilities,
 		SortType sort,
@@ -162,9 +134,15 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 			}
 		}
 
-		// limit + 1로 다음 페이지 존재 여부 확인
-		List<Diary> content = queryFactory
-			.selectFrom(diary)
+		// 다이어리와 작성자 정보를 함께 조회
+		List<DiaryWithAuthorDto> content = queryFactory
+			.select(Projections.constructor(DiaryWithAuthorDto.class,
+				diary,
+				user.nickname,
+				user.profileImage
+			))
+			.from(diary)
+			.join(user).on(diary.userId.eq(user.userId))
 			.where(condition)
 			.orderBy(createOrderSpecifier(sort))
 			.limit(pageable.getPageSize() + 1)

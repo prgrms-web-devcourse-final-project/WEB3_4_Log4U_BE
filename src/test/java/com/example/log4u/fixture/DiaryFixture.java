@@ -7,6 +7,7 @@ import java.util.List;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.WeatherInfo;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
+import com.example.log4u.domain.diary.dto.DiaryWithAuthorDto;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.map.entitiy.Location;
 import com.example.log4u.domain.media.dto.MediaRequestDto;
@@ -284,5 +285,51 @@ public class DiaryFixture {
 			diaries.add(diary);
 		}
 		return diaries;
+	}
+
+	// DiaryWithAuthorDto 생성 메서드 추가
+	public static DiaryWithAuthorDto createDiaryWithAuthorDtoFixture(Long diaryId, Long userId) {
+		Diary diary = createCustomDiaryFixture(
+			diaryId,
+			userId,
+			"테스트 제목",
+			"테스트 내용",
+			"https://example.com/test.jpg",
+			VisibilityType.PUBLIC,
+			LocationFixture.createDefaultLocation(),
+			WeatherInfo.SUNNY,
+			5L
+		);
+		return new DiaryWithAuthorDto(diary, "테스트닉네임", "테스트프로필이미지");
+	}
+
+	// 여러 개의 DiaryWithAuthorDto 생성 메서드 추가
+	public static List<DiaryWithAuthorDto> createDiariesWithAuthorDtoFixture(int count) {
+		List<DiaryWithAuthorDto> dtos = new ArrayList<>();
+		for (int i = 0; i < count; i++) {
+			Location location = LocationFixture.createCustomLocation(
+				37.5665 + (i * 0.001),
+				126.9780 + (i * 0.001),
+				"서울특별시",
+				"중구",
+				"명동" + (i + 1) + "가"
+			);
+
+			Diary diary = Diary.builder()
+				.diaryId((long)(i + 1))
+				.userId(1L)
+				.title("테스트 다이어리 " + (i + 1))
+				.content("테스트 내용 " + (i + 1))
+				.thumbnailUrl("https://example.com/thumbnail" + (i + 1) + ".jpg")
+				.visibility(VisibilityType.PUBLIC)
+				.location(location)
+				.weatherInfo(WeatherInfo.SUNNY)
+				.likeCount(5L + i)
+				.diaryDate(LocalDate.now().minusDays(i))
+				.build();
+
+			dtos.add(new DiaryWithAuthorDto(diary, "테스트닉네임" + (i + 1), "테스트프로필이미지" + (i + 1)));
+		}
+		return dtos;
 	}
 }

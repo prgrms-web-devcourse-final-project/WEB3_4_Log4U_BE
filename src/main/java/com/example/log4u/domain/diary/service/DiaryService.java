@@ -16,6 +16,7 @@ import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
+import com.example.log4u.domain.diary.dto.DiaryWithAuthorDto;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
@@ -54,27 +55,27 @@ public class DiaryService {
 		Long cursorId,
 		int size
 	) {
-		Slice<Diary> diaries = diaryRepository.searchDiariesByCursor(
+		Slice<DiaryWithAuthorDto> diaries = diaryRepository.searchDiariesByCursor(
 			keyword,
 			List.of(VisibilityType.PUBLIC),
 			sort,
 			cursorId != null ? cursorId : Long.MAX_VALUE,
 			PageRequest.of(0, size)
 		);
-		return mapToDtoSlice(diaries);
+		return this.mapDiaryWithAuthorToDtoSlice(diaries);
 	}
 
 	// 다이어리 목록 (프로필 페이지)
 	@Transactional(readOnly = true)
 	public Slice<DiaryResponseDto> getDiaryResponseDtoSlice(Long userId, Long targetUserId, Long cursorId, int size) {
 		List<VisibilityType> visibilities = determineAccessibleVisibilities(userId, targetUserId);
-		Slice<Diary> diaries = diaryRepository.findByUserIdAndVisibilityInAndCursorId(
+		Slice<DiaryWithAuthorDto> diaries = diaryRepository.findByUserIdAndVisibilityInAndCursorId(
 			targetUserId,
 			visibilities,
 			cursorId != null ? cursorId : Long.MAX_VALUE,
 			PageRequest.of(0, size)
 		);
-		return mapToDtoSlice(diaries);
+		return this.mapDiaryWithAuthorToDtoSlice(diaries);
 	}
 
 	// 다이어리 수정
@@ -90,6 +91,46 @@ public class DiaryService {
 		diaryRepository.delete(diary);
 	}
 
+	@Transactional(readOnly = true)
+	public PageResponse<DiaryResponseDto> getMyDiariesByCursor(Long userId, VisibilityType visibilityType,
+		Long cursorId, int size) {
+		List<VisibilityType> visibilities =
+			visibilityType == null ? List.of(VisibilityType.PUBLIC, VisibilityType.PRIVATE, VisibilityType.FOLLOWER) :
+				List.of(visibilityType);
+
+		Slice<DiaryWithAuthorDto> diaries = diaryRepository.findByUserIdAndVisibilityInAndCursorId(
+			userId,
+			visibilities,
+			cursorId != null ? cursorId : Long.MAX_VALUE,
+			PageRequest.of(0, size)
+		);
+
+		Slice<DiaryResponseDto> dtoSlice = this.mapDiaryWithAuthorToDtoSlice(diaries);
+
+		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
+
+		return PageResponse.of(dtoSlice, nextCursor);
+	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<DiaryResponseDto> getLikeDiariesByCursor(Long userId, Long targetUserId, Long cursorId,
+		int size) {
+		List<VisibilityType> visibilities = determineAccessibleVisibilities(userId, targetUserId);
+
+		Slice<Diary> diaries = diaryRepository.getLikeDiarySliceByUserId(
+			targetUserId,
+			visibilities,
+			cursorId != null ? cursorId : Long.MAX_VALUE,
+			PageRequest.of(0, size)
+		);
+
+		Slice<DiaryResponseDto> dtoSlice = this.mapDiarySliceToDtoSlice(diaries);
+
+		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
+
+		return PageResponse.of(dtoSlice, nextCursor);
+	}
+
 	private Diary findDiaryOrThrow(Long diaryId) {
 		return diaryRepository.findById(diaryId)
 			.orElseThrow(NotFoundDiaryException::new);
@@ -97,18 +138,46 @@ public class DiaryService {
 
 	// Page용 매핑 메서드
 	private Page<DiaryResponseDto> mapToDtoPage(Page<Diary> page) {
-		List<DiaryResponseDto> content = getDiaryResponsesWithMediaAndHashtags(page.getContent());
+		List<DiaryResponseDto> content = getDiaryResponse(page.getContent());
 		return new PageImpl<>(content, page.getPageable(), page.getTotalElements());
 	}
 
 	// Slice용 매핑 메서드
-	private Slice<DiaryResponseDto> mapToDtoSlice(Slice<Diary> slice) {
-		List<DiaryResponseDto> content = getDiaryResponsesWithMediaAndHashtags(slice.getContent());
+	private Slice<DiaryResponseDto> mapDiarySliceToDtoSlice(Slice<Diary> slice) {
+		List<DiaryResponseDto> content = getDiaryResponse(slice.getContent());
 		return new SliceImpl<>(content, slice.getPageable(), slice.hasNext());
 	}
 
+	// DiaryWithAuthor Slice 매핑 메서드
+	private Slice<DiaryResponseDto> mapDiaryWithAuthorToDtoSlice(Slice<DiaryWithAuthorDto> slice) {
+		List<DiaryResponseDto> content = getDiaryResponseWithAuthor(slice.getContent());
+		return new SliceImpl<>(content, slice.getPageable(), slice.hasNext());
+	}
+
+	// 다이어리 + 작성자 + 미디어 + 해시태그 같이 반환
+	private List<DiaryResponseDto> getDiaryResponseWithAuthor(List<DiaryWithAuthorDto> diaryWithAuthorDtoList) {
+		if (diaryWithAuthorDtoList.isEmpty()) {
+			return List.of();
+		}
+
+		List<Long> diaryIds = diaryWithAuthorDtoList.stream()
+			.map(dto -> dto.diary().getDiaryId())
+			.toList();
+
+		Map<Long, List<Media>> mediaMap = mediaService.getMediaMapByDiaryIds(diaryIds);
+		Map<Long, List<String>> hashtagMap = hashtagService.getHashtagMapByDiaryIds(diaryIds);
+
+		return diaryWithAuthorDtoList.stream()
+			.map(dto -> DiaryResponseDto.of(
+				dto,
+				mediaMap.getOrDefault(dto.diary().getDiaryId(), List.of()),
+				hashtagMap.getOrDefault(dto.diary().getDiaryId(), List.of())
+			))
+			.toList();
+	}
+
 	// 다이어리 + 미디어 + 해시태그 같이 반환
-	private List<DiaryResponseDto> getDiaryResponsesWithMediaAndHashtags(List<Diary> diaries) {
+	private List<DiaryResponseDto> getDiaryResponse(List<Diary> diaries) {
 		if (diaries.isEmpty()) {
 			return List.of();
 		}
@@ -203,45 +272,5 @@ public class DiaryService {
 		if (!diaryRepository.existsById(diaryId)) {
 			throw new NotFoundDiaryException();
 		}
-	}
-
-	@Transactional(readOnly = true)
-	public PageResponse<DiaryResponseDto> getMyDiariesByCursor(Long userId, VisibilityType visibilityType,
-		Long cursorId, int size) {
-		List<VisibilityType> visibilities =
-			visibilityType == null ? List.of(VisibilityType.PUBLIC, VisibilityType.PRIVATE, VisibilityType.FOLLOWER) :
-				List.of(visibilityType);
-
-		Slice<Diary> diaries = diaryRepository.findByUserIdAndVisibilityInAndCursorId(
-			userId,
-			visibilities,
-			cursorId != null ? cursorId : Long.MAX_VALUE,
-			PageRequest.of(0, size)
-		);
-
-		Slice<DiaryResponseDto> dtoSlice = mapToDtoSlice(diaries);
-
-		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
-
-		return PageResponse.of(dtoSlice, nextCursor);
-	}
-
-	@Transactional(readOnly = true)
-	public PageResponse<DiaryResponseDto> getLikeDiariesByCursor(Long userId, Long targetUserId, Long cursorId,
-		int size) {
-		List<VisibilityType> visibilities = determineAccessibleVisibilities(userId, targetUserId);
-
-		Slice<Diary> diaries = diaryRepository.getLikeDiarySliceByUserId(
-			targetUserId,
-			visibilities,
-			cursorId != null ? cursorId : Long.MAX_VALUE,
-			PageRequest.of(0, size)
-		);
-
-		Slice<DiaryResponseDto> dtoSlice = mapToDtoSlice(diaries);
-
-		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
-
-		return PageResponse.of(dtoSlice, nextCursor);
 	}
 }

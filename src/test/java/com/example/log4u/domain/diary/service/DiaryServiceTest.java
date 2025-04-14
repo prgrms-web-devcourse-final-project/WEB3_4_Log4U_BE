@@ -23,6 +23,7 @@ import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
+import com.example.log4u.domain.diary.dto.DiaryWithAuthorDto;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.exception.NotFoundDiaryException;
 import com.example.log4u.domain.diary.exception.OwnerAccessDeniedException;
@@ -87,8 +88,8 @@ class DiaryServiceTest {
 		Long cursorId = null;
 		int size = 10;
 
-		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
-		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), false);
+		List<DiaryWithAuthorDto> diaries = DiaryFixture.createDiariesWithAuthorDtoFixture(3);
+		Slice<DiaryWithAuthorDto> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), false);
 
 		given(diaryRepository.searchDiariesByCursor(
 			eq(keyword),
@@ -98,7 +99,7 @@ class DiaryServiceTest {
 			any(PageRequest.class)
 		)).willReturn(diarySlice);
 
-		List<Long> diaryIds = diaries.stream().map(Diary::getDiaryId).toList();
+		List<Long> diaryIds = diaries.stream().map(dto -> dto.diary().getDiaryId()).toList();
 		Map<Long, List<Media>> mediaMap = Map.of(
 			1L, List.of(MediaFixture.createMediaFixture(1L, 1L)),
 			2L, List.of(MediaFixture.createMediaFixture(2L, 2L)),
@@ -134,8 +135,8 @@ class DiaryServiceTest {
 		Long cursorId = null;
 		int size = 10;
 
-		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
-		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), false);
+		List<DiaryWithAuthorDto> diaries = DiaryFixture.createDiariesWithAuthorDtoFixture(3);
+		Slice<DiaryWithAuthorDto> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), false);
 
 		given(diaryRepository.findByUserIdAndVisibilityInAndCursorId(
 			eq(targetUserId),
@@ -144,7 +145,7 @@ class DiaryServiceTest {
 			any(PageRequest.class)
 		)).willReturn(diarySlice);
 
-		List<Long> diaryIds = diaries.stream().map(Diary::getDiaryId).toList();
+		List<Long> diaryIds = diaries.stream().map(dto -> dto.diary().getDiaryId()).toList();
 		Map<Long, List<Media>> mediaMap = Map.of(
 			1L, List.of(MediaFixture.createMediaFixture(1L, 1L)),
 			2L, List.of(MediaFixture.createMediaFixture(2L, 2L)),
@@ -425,8 +426,8 @@ class DiaryServiceTest {
 		Long cursorId = null;
 		int size = 10;
 
-		List<Diary> diaries = DiaryFixture.createDiariesWithIdsFixture(3);
-		Slice<Diary> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), false);
+		List<DiaryWithAuthorDto> diaries = DiaryFixture.createDiariesWithAuthorDtoFixture(3);
+		Slice<DiaryWithAuthorDto> diarySlice = new SliceImpl<>(diaries, PageRequest.of(0, size), false);
 
 		given(diaryRepository.findByUserIdAndVisibilityInAndCursorId(
 			eq(userId),
@@ -435,7 +436,7 @@ class DiaryServiceTest {
 			any(PageRequest.class)
 		)).willReturn(diarySlice);
 
-		List<Long> diaryIds = diaries.stream().map(Diary::getDiaryId).toList();
+		List<Long> diaryIds = diaries.stream().map(dto -> dto.diary().getDiaryId()).toList();
 		Map<Long, List<Media>> mediaMap = Map.of(
 			1L, List.of(MediaFixture.createMediaFixture(1L, 1L)),
 			2L, List.of(MediaFixture.createMediaFixture(2L, 2L)),
