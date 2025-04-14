@@ -13,6 +13,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 
 import com.example.log4u.common.oauth2.handler.OAuth2AuthenticationSuccessHandler;
 import com.example.log4u.common.oauth2.jwt.JwtAuthenticationFilter;
@@ -69,6 +71,10 @@ public class SecurityConfig {
 			.addFilterBefore(new JwtLogoutFilter(jwtUtil, refreshTokenRepository), LogoutFilter.class)
 			.logout(logout ->
 				logout.logoutUrl("/logout")
+					.logoutRequestMatcher(new OrRequestMatcher(
+						new AntPathRequestMatcher("/logout", "POST"),
+						new AntPathRequestMatcher("/logout", "GET")
+					)) // POST와 GET 요청 모두 허용
 					.logoutSuccessHandler((request, response, authentication) -> {
 						response.setStatus(HttpServletResponse.SC_OK);
 					}))
