@@ -83,9 +83,11 @@ class UserServiceTest {
 	void validateNicknameAvailableTrue() {
 		String nickname = "available";
 
-		given(userRepository.existsByNickname(nickname)).willReturn(true);
+		// db에 없음
+		given(userRepository.existsByNickname(nickname)).willReturn(false);
 		NicknameValidationResponseDto result = userService.validateNickname(nickname);
 
+		// db 에서 false 면 반환값은 true
 		verify(userRepository).existsByNickname(nickname);
 		assertTrue(result.available());
 	}
@@ -95,7 +97,8 @@ class UserServiceTest {
 	void validateNicknameAvailableFalse() {
 		String nickname = "unavailable";
 
-		given(userRepository.existsByNickname(nickname)).willReturn(false);
+		// db에 존재
+		given(userRepository.existsByNickname(nickname)).willReturn(true);
 		NicknameValidationResponseDto result = userService.validateNickname(nickname);
 
 		verify(userRepository).existsByNickname(nickname);
@@ -126,7 +129,7 @@ class UserServiceTest {
 		assertThrows(UserNotFoundException.class, () -> userService.getUserById(userId));
 		verify(userRepository).findById(userId);
 	}
-	
+
 	@Test
 	@DisplayName("검색 결과가 없으면 빈 리스트를 반환해야 한다")
 	void shouldReturnEmptyListWhenNoSearchResults() {
