@@ -11,11 +11,11 @@ public record MyLocationRequestDto(
 		}
 	}
 
-	public double getLongitude() {
+	public double parseLongitude() {
 		return Double.parseDouble(coords.split(",")[0]);
 	}
 
-	public double getLatitude() {
+	public double parseLatitude() {
 		return Double.parseDouble(coords.split(",")[1]);
 	}
 }
