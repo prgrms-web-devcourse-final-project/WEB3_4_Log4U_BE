@@ -1,5 +1,7 @@
 package com.example.log4u.domain.diary.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,6 +20,7 @@ import com.example.log4u.common.oauth2.dto.CustomOAuth2User;
 import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
+import com.example.log4u.domain.diary.dto.PopularDiaryDto;
 import com.example.log4u.domain.diary.facade.DiaryFacade;
 
 import jakarta.validation.Valid;
@@ -105,5 +108,11 @@ public class DiaryController {
 	) {
 		diaryFacade.deleteDiary(customOAuth2User.getUserId(), diaryId);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+	}
+
+	@GetMapping("/popular")
+	public ResponseEntity<List<PopularDiaryDto>> getPopularDiaries() {
+		List<PopularDiaryDto> popularDiaries = diaryFacade.getPopularDiaries(10);
+		return ResponseEntity.ok(popularDiaries);
 	}
 }

@@ -10,6 +10,7 @@ import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
+import com.example.log4u.domain.diary.dto.PopularDiaryDto;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.hashtag.service.HashtagService;
@@ -138,5 +139,17 @@ public class DiaryFacade {
 		// 다음 커서 ID 계산
 		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
 		return PageResponse.of(dtoSlice, nextCursor);
+	}
+
+	@Transactional(readOnly = true)
+	public List<PopularDiaryDto> getPopularDiaries(int limit) {
+		List<Diary> popularDiaries = diaryService.getTop10Diaries();
+
+		if (popularDiaries.isEmpty()) {
+			return List.of();
+		}
+		return popularDiaries.stream()
+			.map(PopularDiaryDto::of)
+			.toList();
 	}
 }

@@ -173,4 +173,25 @@ public class MediaService {
 			throw new MediaLimitExceededException();
 		}
 	}
+
+	private boolean isMediaListUnchanged(List<Media> existingMediaList, List<MediaRequestDto> newMediaList) {
+		// 개수가 다르면 변경된 것
+		if (existingMediaList.size() != newMediaList.size()) {
+			return false;
+		}
+
+		Map<Long, Integer> existingMediaMap = existingMediaList.stream()
+			.collect(Collectors.toMap(Media::getMediaId, Media::getOrderIndex));
+
+		// 모든 새 미이더가 기존 미디어와 ID 및 순서가 동일한지 확인
+		for (MediaRequestDto newMedia : newMediaList) {
+			Integer existingOrder = existingMediaMap.get(newMedia.mediaId());
+
+			// ID가 없거나 순서가 다르면 변경된 것
+			if (existingOrder == null || !existingOrder.equals(newMedia.orderIndex())) {
+				return false;
+			}
+		}
+		return true;
+	}
 }

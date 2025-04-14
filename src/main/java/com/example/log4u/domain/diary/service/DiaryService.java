@@ -273,4 +273,9 @@ public class DiaryService {
 			throw new NotFoundDiaryException();
 		}
 	}
+
+	@Transactional(readOnly = true)
+	public List<Diary> getTop10Diaries() {
+		return diaryRepository.findTop10ByVisibilityOrderByLikeCountDesc(VisibilityType.PUBLIC);
+	}
 }
