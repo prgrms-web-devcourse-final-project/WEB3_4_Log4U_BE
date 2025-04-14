@@ -85,11 +85,11 @@ public class UserController {
 	public ResponseEntity<UserProfileResponseDto> getMyProfile(
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User
 	) {
-		// if (customOAuth2User.getRole().equals("ROLE_GUEST")) {
-		// 	return ResponseEntity.status(HttpStatus.FOUND)
-		// 		.location(URI.create(UrlConstants.PROFILE_CREATE_URL))
-		// 		.build();
-		// }
+		if (customOAuth2User.getRole().equals("ROLE_GUEST")) {
+			return ResponseEntity.status(HttpStatus.FOUND)
+				.location(URI.create(UrlConstants.PROFILE_CREATE_URL))
+				.build();
+		}
 
 		UserProfileResponseDto userProfileResponseDto =
 			userService.getMyProfile(customOAuth2User.getUserId());
