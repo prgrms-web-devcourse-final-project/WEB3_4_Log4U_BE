@@ -60,5 +60,17 @@ public class UserFixture {
 			.isPremium(true)
 			.build();
 	}
-}
 
+	public static User createUserWithId(Long userId, String name, String nickname) {
+		return User.builder()
+			.userId(userId)
+			.name(name)
+			.nickname(nickname)
+			.statusMessage("Test status message")
+			.profileImage("test-profile-image.jpg")
+			.role("ROLE_USER")
+			.providerId("test-provider-id")
+			.socialType(SocialType.GOOGLE) // 또는 다른 소셜 타입
+			.build();
+	}
+}

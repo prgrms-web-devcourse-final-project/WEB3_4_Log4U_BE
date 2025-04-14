@@ -1,8 +1,14 @@
 package com.example.log4u.domain.user.service;
 
+import java.util.List;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.follow.repository.FollowRepository;
 import com.example.log4u.domain.user.dto.NicknameValidationResponseDto;
 import com.example.log4u.domain.user.dto.UserProfileMakeRequestDto;
@@ -13,7 +19,9 @@ import com.example.log4u.domain.user.exception.UserNotFoundException;
 import com.example.log4u.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -87,4 +95,33 @@ public class UserService {
 		).getUserId();
 	}
 
+	@Transactional(readOnly = true)
+	public PageResponse<UserProfileResponseDto> searchUsersByCursor(
+		String nickname,
+		Long cursorId,
+		int size
+	) {
+		Slice<User> userSlice = userRepository.searchUsersByCursor(
+			nickname,
+			cursorId != null ? cursorId : Long.MAX_VALUE,
+			PageRequest.of(0, size)
+		);
+
+		List<UserProfileResponseDto> content = userSlice.getContent().stream()
+			.map(user -> {
+				Long userId = user.getUserId();
+				Long followers = followRepository.countByTargetId(userId);
+				Long followings = followRepository.countByInitiatorId(userId);
+				return UserProfileResponseDto.fromUser(user, followers, followings);
+			})
+			.toList();
+
+		// 다음 커서 ID 계산
+		Long nextCursor = content.isEmpty() ? null : content.get(content.size() - 1).userId();
+
+		return PageResponse.of(
+			new SliceImpl<>(content, userSlice.getPageable(), userSlice.hasNext()),
+			nextCursor
+		);
+	}
 }

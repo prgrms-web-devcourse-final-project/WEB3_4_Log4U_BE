@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.log4u.common.constants.UrlConstants;
+import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.common.oauth2.dto.CustomOAuth2User;
 import com.example.log4u.domain.user.dto.NicknameValidationResponseDto;
 import com.example.log4u.domain.user.dto.UserProfileMakeRequestDto;
@@ -133,5 +135,17 @@ public class UserController {
 		@PathVariable String nickname
 	) {
 		return ResponseEntity.ok(userService.validateNickname(nickname));
+	}
+
+	@GetMapping("/search")
+	public ResponseEntity<PageResponse<UserProfileResponseDto>> searchUsers(
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
+		@RequestParam(required = false) String nickname,
+		@RequestParam(required = false) Long cursorId,
+		@RequestParam(defaultValue = "12") int size
+	) {
+		return ResponseEntity.ok(
+			userService.searchUsersByCursor(nickname, cursorId, size)
+		);
 	}
 }
