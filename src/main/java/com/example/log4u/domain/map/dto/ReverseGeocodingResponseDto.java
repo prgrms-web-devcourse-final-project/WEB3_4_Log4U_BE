@@ -3,7 +3,7 @@ package com.example.log4u.domain.map.dto;
 import java.util.List;
 
 public record ReverseGeocodingResponseDto(
-	List<RegionInfo> regions
+	List<RegionInfo> results
 ) {
 	public record RegionInfo(
 		Area area0,
