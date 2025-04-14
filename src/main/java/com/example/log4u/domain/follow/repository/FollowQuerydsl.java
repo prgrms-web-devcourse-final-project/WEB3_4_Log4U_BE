@@ -46,13 +46,17 @@ public class FollowQuerydsl extends QuerydslRepositorySupport {
 		String keyword) {
 		BooleanBuilder builder = getBooleanBuilder(isFollowTarget, userId, cursorId, keyword);
 
-		NumberPath<Long> numberPath = isFollowTarget ? follow.targetId : follow.initiatorId;
-		NumberPath<Long> numberPath2 = isFollowTarget ? follow.initiatorId : follow.targetId;
+		// 내가 타겟이면(팔로워 조회) initiatorId를, 내가 이니시에이터면(팔로잉 조회) targetId를 기준으로 조인
+		NumberPath<Long> userIdToJoin = isFollowTarget ? follow.initiatorId : follow.targetId;
 
 		return from(follow).innerJoin(user)
-			.on(user.userId.eq(numberPath))
+			.on(user.userId.eq(userIdToJoin))
 			.select(
-				Projections.constructor(UserThumbnailResponseDto.class, numberPath2, user.nickname, user.profileImage))
+				Projections.constructor(
+					UserThumbnailResponseDto.class,
+					userIdToJoin,
+					user.nickname,
+					user.profileImage))
 			.where(builder)
 			.distinct()
 			.fetch();
