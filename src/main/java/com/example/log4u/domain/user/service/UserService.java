@@ -63,7 +63,7 @@ public class UserService {
 
 	public NicknameValidationResponseDto validateNickname(String nickname) {
 		return new NicknameValidationResponseDto(
-			userRepository.existsByNickname(nickname));
+			!userRepository.existsByNickname(nickname));
 	}
 
 	@Transactional
