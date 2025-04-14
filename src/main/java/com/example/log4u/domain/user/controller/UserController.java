@@ -86,9 +86,7 @@ public class UserController {
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User
 	) {
 		if (customOAuth2User.getRole().equals("ROLE_GUEST")) {
-			return ResponseEntity.status(HttpStatus.FOUND)
-				.location(URI.create(UrlConstants.PROFILE_CREATE_URL))
-				.build();
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 		}
 
 		UserProfileResponseDto userProfileResponseDto =
