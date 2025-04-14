@@ -43,19 +43,22 @@ public class MyPageController {
 	@GetMapping("/users/me/followings")
 	public ResponseEntity<PageResponse<UserThumbnailResponseDto>> getMyFollowingPage(
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
-		@RequestParam(required = false) Long cursorId
+		@RequestParam(required = false) Long cursorId,
+		@RequestParam(required = false) String keyword
+
 	) {
 		long userId = customOAuth2User.getUserId();
-		return ResponseEntity.ok(myPageService.getMyFollowings(userId, cursorId));
+		return ResponseEntity.ok(myPageService.getMyFollowings(userId, cursorId, keyword));
 	}
 
 	@GetMapping("/users/me/followers")
 	public ResponseEntity<PageResponse<UserThumbnailResponseDto>> getMyFollowerPage(
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
-		@RequestParam(required = false) Long cursorId
+		@RequestParam(required = false) Long cursorId,
+		@RequestParam(required = false) String keyword
 	) {
 		long userId = customOAuth2User.getUserId();
-		return ResponseEntity.ok(myPageService.getMyFollowers(userId, cursorId));
+		return ResponseEntity.ok(myPageService.getMyFollowers(userId, cursorId, keyword));
 	}
 
 	@GetMapping("/users/me/subscriptions")
