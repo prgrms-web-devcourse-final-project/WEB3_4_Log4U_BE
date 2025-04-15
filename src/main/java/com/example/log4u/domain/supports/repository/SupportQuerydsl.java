@@ -15,6 +15,7 @@ import com.example.log4u.domain.supports.entity.Support;
 import com.example.log4u.domain.supports.supportType.SupportType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
 
 @Repository
 public class SupportQuerydsl extends QuerydslRepositorySupport {
@@ -43,7 +44,7 @@ public class SupportQuerydsl extends QuerydslRepositorySupport {
 				support.supportType,
 				support.title,
 				support.createdAt,
-				support.answerContent.isNotNull() // answered 필드는 answeredAt이 null 이 아니면 true
+				Expressions.booleanTemplate("case when {0} is not null then true else false end", support.answerContent)
 			))
 			.where(builder)
 			.orderBy(support.createdAt.desc())
