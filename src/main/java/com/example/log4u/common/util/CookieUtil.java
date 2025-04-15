@@ -32,7 +32,11 @@ public class CookieUtil {
 		cookie.setHttpOnly(true);
 		cookie.setSecure(true);
 		cookie.setDomain("log4u.site");
-		response.addCookie(cookie);
+		// SameSite 설정
+		response.addHeader("Set-Cookie", String.format(
+			"%s=; Max-Age=0; Path=/; Domain=log4u.site; HttpOnly; Secure; SameSite=None",
+			name
+		));
 	}
 
 }
