@@ -126,15 +126,18 @@ public class JwtLogoutFilter extends GenericFilterBean {
 	}
 
 	private String extractRefreshTokenFromCookie(HttpServletRequest request) {
-		// 리프레시 토큰 추출
-		String refresh = null;
 		Cookie[] cookies = request.getCookies();
+		if (cookies == null) {
+			return null;
+		}
+
 		for (Cookie cookie : cookies) {
-			if (cookie.getName().equals(REFRESH_TOKEN)) {
-				refresh = cookie.getValue();
+			if (REFRESH_TOKEN.equals(cookie.getName())) {
+				return cookie.getValue();
 			}
 		}
-		return refresh;
+
+		return null;
 	}
 
 	public void logout(HttpServletResponse response, String refresh) throws IOException {
