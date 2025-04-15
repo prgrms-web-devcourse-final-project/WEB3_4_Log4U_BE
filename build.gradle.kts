@@ -32,7 +32,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+//    implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("mysql:mysql-connector-java:8.0.33")
 
     implementation ("org.antlr:antlr4-runtime:4.10.1")
@@ -75,6 +75,9 @@ dependencies {
     // AWS
     implementation(platform("software.amazon.awssdk:bom:2.31.11"))
     implementation("software.amazon.awssdk:s3")
+
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus")
 }
 
 tasks.withType<Test> {
