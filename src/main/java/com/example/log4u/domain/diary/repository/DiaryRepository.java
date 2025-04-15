@@ -9,4 +9,6 @@ import com.example.log4u.domain.diary.entity.Diary;
 
 public interface DiaryRepository extends JpaRepository<Diary, Long>, CustomDiaryRepository {
 	List<Diary> findTop10ByVisibilityOrderByLikeCountDesc(VisibilityType visibility);
+
+	Integer countByUserId(Long userId);
 }

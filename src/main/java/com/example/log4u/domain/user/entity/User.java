@@ -69,6 +69,7 @@ public class User extends BaseEntity {
 	public void updateMyProfile(UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
 		this.profileImage = userProfileUpdateRequestDto.profileImage();
 		this.statusMessage = userProfileUpdateRequestDto.statusMessage();
+		this.role = "ROLE_USER";
 	}
 
 	public void createMyProfile(UserProfileMakeRequestDto userProfileMakeRequestDto) {

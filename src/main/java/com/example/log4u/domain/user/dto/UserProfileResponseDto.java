@@ -10,6 +10,7 @@ public record UserProfileResponseDto(
 	String name,
 	String nickname,
 	String statusMessage,
+	Integer diaryCount,
 	String profileImage,
 	Long followers,
 	Long followings
@@ -17,6 +18,7 @@ public record UserProfileResponseDto(
 
 	public static UserProfileResponseDto fromUser(
 		User user,
+		Integer diaryCount,
 		Long followers,
 		Long followings
 	) {
@@ -25,6 +27,7 @@ public record UserProfileResponseDto(
 			.name(user.getName())
 			.nickname(user.getNickname())
 			.statusMessage(user.getStatusMessage())
+			.diaryCount(diaryCount)
 			.profileImage(user.getProfileImage())
 			.followers(followers)
 			.followings(followings)

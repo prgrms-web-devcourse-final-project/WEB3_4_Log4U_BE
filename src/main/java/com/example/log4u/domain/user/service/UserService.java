@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.log4u.common.dto.PageResponse;
+import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.follow.repository.FollowRepository;
 import com.example.log4u.domain.user.dto.NicknameValidationResponseDto;
 import com.example.log4u.domain.user.dto.UserProfileMakeRequestDto;
@@ -27,12 +28,14 @@ import lombok.extern.slf4j.Slf4j;
 public class UserService {
 	private final UserRepository userRepository;
 	private final FollowRepository followRepository;
+	private final DiaryRepository diaryRepository;
 
 	public UserProfileResponseDto getMyProfile(Long userId) {
 		User me = getUserById(userId);
 
 		return UserProfileResponseDto.fromUser(
 			me,
+			diaryRepository.countByUserId(userId),
 			followRepository.countByTargetId(userId),
 			followRepository.countByInitiatorId(userId)
 		);
@@ -43,6 +46,7 @@ public class UserService {
 
 		return UserProfileResponseDto.fromUser(
 			target,
+			diaryRepository.countByUserId(id),
 			followRepository.countByTargetId(id),
 			followRepository.countByInitiatorId(id)
 		);
@@ -109,9 +113,10 @@ public class UserService {
 		List<UserProfileResponseDto> content = userSlice.getContent().stream()
 			.map(user -> {
 				Long userId = user.getUserId();
+				Integer diaryCount = diaryRepository.countByUserId(userId);
 				Long followers = followRepository.countByTargetId(userId);
 				Long followings = followRepository.countByInitiatorId(userId);
-				return UserProfileResponseDto.fromUser(user, followers, followings);
+				return UserProfileResponseDto.fromUser(user, diaryCount, followers, followings);
 			})
 			.toList();
 
