@@ -66,10 +66,11 @@ public class JwtLogoutFilter extends GenericFilterBean {
 
 	private boolean shouldSkipFilter(String requestUri) {
 		// logout 검사
-		return !requestUri.matches("^\\/logout$")
-			|| requestUri.matches("^/oauth2(/.*)?$")
-			|| requestUri.matches("^/swagger-ui(/.*)?$")// Swagger UI 예외 처리
-			|| requestUri.matches("^/v3/api-docs(/.*)?$"); // OpenAPI 문서 예외 처리
+		return // /oauth2/logout 만 필터 통과 대상으로 허용
+			!requestUri.equals("/oauth2/logout")
+				|| requestUri.matches("^/oauth2(/.*)?$")
+				|| requestUri.matches("^/swagger-ui(/.*)?$")// Swagger UI 예외 처리
+				|| requestUri.matches("^/v3/api-docs(/.*)?$"); // OpenAPI 문서 예외 처리
 	}
 
 	private boolean validateTokenExpiration(
