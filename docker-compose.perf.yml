@@ -1,0 +1,112 @@
+services:
+  spring:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spring
+    ports:
+      - "8080:8080"  # 외부에서 접속할 경우 필요 (선택)
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker  # profile 설정 (application-docker.yml)
+    depends_on:
+      - mysql
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          cpus: '1.0'
+          memory: 1024M
+
+  mysql:
+    image: mysql:8.0.33
+    container_name: log4u_mysql
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          cpus: '1.0'
+          memory: 1024M
+    restart: always
+    environment:
+      TZ: Asia/Seoul
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: devcos4-team08
+      MYSQL_DATABASE: log4u
+    ports:
+      - "3307:3306"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    restart: always
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    restart: always
+    depends_on:
+      - prometheus
+    privileged: true
+
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: log4u_postgres
+    environment:
+      POSTGRES_DB: gis_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  mysql-exporter:
+    image: prom/mysqld-exporter
+    container_name: mysql-exporter
+    ports:
+      - "9104:9104"
+    command:
+      - "--mysqld.username=dev:devcos4-team08"
+      - "--mysqld.address=log4u_mysql:3306"
+    depends_on:
+      - mysql
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    container_name: postgres-exporter
+    ports:
+      - "9187:9187"
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:1234@log4u_postgres:5432/gis_db?sslmode=disable"
+    depends_on:
+      - postgres
+
+  k6:
+    image: grafana/k6:latest
+    ports:
+      - "6565:6565"
+    volumes:
+      - ./performance-test.js:/performance-test.js
+    command: run /performance-test.js
+
+volumes:
+  pgdata:
+  mysql_data:
+
