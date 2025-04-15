@@ -5,7 +5,6 @@ export const options = {
     stages: [
         { duration: '1m', target: 50 },   // 1분 동안 VU 50명 유지
         { duration: '1m', target: 100 },  // 1분 동안 VU 100명 유지
-        { duration: '1m', target: 150 },  // 1분 동안 VU 150명 유지
         { duration: '1m', target: 200 },  // 1분 동안 VU 200명 유지
         { duration: '1m', target: 300 },  // 1분 동안 VU 300명 유지
         { duration: '1m', target: 500 },  // 1분 동안 VU 500명 유지
