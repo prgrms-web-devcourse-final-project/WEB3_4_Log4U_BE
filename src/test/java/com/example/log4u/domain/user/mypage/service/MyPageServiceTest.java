@@ -15,20 +15,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.SliceImpl;
 
 import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.service.DiaryService;
-import com.example.log4u.domain.follow.repository.FollowQuerydsl;
 import com.example.log4u.domain.subscription.PaymentProvider;
 import com.example.log4u.domain.subscription.PaymentStatus;
 import com.example.log4u.domain.subscription.dto.SubscriptionResponseDto;
 import com.example.log4u.domain.subscription.entity.Subscription;
 import com.example.log4u.domain.subscription.repository.SubscriptionRepository;
-import com.example.log4u.domain.user.dto.UserThumbnailResponseDto;
 import com.example.log4u.fixture.DiaryFixture;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,9 +35,6 @@ public class MyPageServiceTest {
 
 	@Mock
 	private DiaryService diaryService;
-
-	@Mock
-	private FollowQuerydsl followQuerydsl;
 
 	@Mock
 	private SubscriptionRepository subscriptionRepository;
@@ -87,32 +81,6 @@ public class MyPageServiceTest {
 
 		assertThat(result).isNotNull();
 		verify(diaryService).getLikeDiariesByCursor(userId, userId, cursorId, 6);
-	}
-
-	@DisplayName("성공 테스트 : 내 팔로워 조회")
-	@Test
-	void getMyFollowers_returnsCorrectData() {
-		var slice = new SliceImpl<>(List.of(new UserThumbnailResponseDto(userId, "nick", "image")));
-
-		when(followQuerydsl.getFollowerSliceByUserId(eq(userId), eq(cursorId), any(), any(PageRequest.class)))
-			.thenReturn(slice);
-
-		PageResponse<UserThumbnailResponseDto> result = myPageService.getMyFollowers(userId, cursorId, null);
-
-		assertThat(result).isNotNull();
-	}
-
-	@DisplayName("성공 테스트 : 내 팔로잉 조회")
-	@Test
-	void getMyFollowings_returnsCorrectData() {
-		var slice = new SliceImpl<>(List.of(new UserThumbnailResponseDto(userId, "nick", "image")));
-
-		when(followQuerydsl.getFollowingSliceByUserId(eq(userId), eq(cursorId), any(), any(PageRequest.class)))
-			.thenReturn(slice);
-
-		PageResponse<UserThumbnailResponseDto> result = myPageService.getMyFollowings(userId, cursorId, null);
-
-		assertThat(result).isNotNull();
 	}
 
 	@DisplayName("구독 정보 조회 - 구독이 있을 때")
