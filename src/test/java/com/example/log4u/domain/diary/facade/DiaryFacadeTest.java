@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 
@@ -195,7 +196,7 @@ class DiaryFacadeTest {
 			)
 		);
 
-		Slice<DiaryResponseDto> dtoSlice = new SliceImpl<>(dtoList);
+		Slice<DiaryResponseDto> dtoSlice = new SliceImpl<>(dtoList, PageRequest.of(0, size), true);
 		PageResponse<DiaryResponseDto> pageResponse = PageResponse.of(dtoSlice, 3L);
 
 		given(diaryService.getDiaryResponseDtoSlice(userId, targetUserId, cursorId, size)).willReturn(dtoSlice);
@@ -244,7 +245,7 @@ class DiaryFacadeTest {
 			)
 		);
 
-		Slice<DiaryResponseDto> dtoSlice = new SliceImpl<>(dtoList);
+		Slice<DiaryResponseDto> dtoSlice = new SliceImpl<>(dtoList, PageRequest.of(0, size), true);
 		PageResponse<DiaryResponseDto> pageResponse = PageResponse.of(dtoSlice, 2L);
 
 		given(diaryService.searchDiariesByCursor(keyword, sort, cursorId, size)).willReturn(dtoSlice);
