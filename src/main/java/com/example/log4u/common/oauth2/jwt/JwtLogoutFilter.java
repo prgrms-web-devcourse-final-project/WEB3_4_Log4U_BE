@@ -55,6 +55,13 @@ public class JwtLogoutFilter extends GenericFilterBean {
 		// 리프레시 토큰 추출
 		String refresh = extractRefreshTokenFromCookie(request);
 
+		if (refresh == null) {
+			// 이미 로그아웃 상태
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.setContentType("application/json");
+			return;
+		}
+
 		// 리프레시 토큰 유효성 검사
 		if (!validateTokenExpiration(response, refresh)) {
 			return;
