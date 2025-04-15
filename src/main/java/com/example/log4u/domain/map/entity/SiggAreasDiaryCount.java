@@ -25,7 +25,7 @@ public class SiggAreasDiaryCount {
 		this.diaryCount++;
 	}
 
-	public void decrement() {
+	public void decrementCount() {
 		this.diaryCount = Math.max(0, this.diaryCount - 1);
 	}
 }

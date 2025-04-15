@@ -57,12 +57,15 @@ public class DiaryFacade {
 	 * 1. diaryService: 다이어리 검증
 	 * 2. mediaService: 해당 다이어리 이미지 삭제<br>
 	 * 3. diaryService: 다이어리 삭제<br>
+	 * 4. mapService: 해당 구역 카운트 감소
 	 * */
 	@Transactional
 	public void deleteDiary(Long userId, Long diaryId) {
 		Diary diary = diaryService.getDiaryAfterValidateOwnership(diaryId, userId);
 		mediaService.deleteMediaByDiaryId(diaryId);
 		hashtagService.deleteHashtagsByDiaryId(diaryId);
+		mapService.decreaseRegionDiaryCount(diary.getLocation().getLatitude(), diary.getLocation().getLongitude());
+
 		diaryService.deleteDiary(diary);
 	}
 
@@ -72,12 +75,16 @@ public class DiaryFacade {
 	 * 1. diaryService: 다이어리 검증<br>
 	 * 2. mediaService: 해당 다이어리 이미지 삭제<br>
 	 * 3. diaryService: 다이어리 수정
+	 * 4. mapService: 해당 구역 카운트 감소
+	 * 5. mapService: 해당 구역 카운트 증가
 	 * */
 	@Transactional
 	public void updateDiary(Long userId, Long diaryId, DiaryRequestDto request) {
 		Diary diary = diaryService.getDiaryAfterValidateOwnership(diaryId, userId);
 		mediaService.updateMediaByDiaryId(diary.getDiaryId(), request.mediaList());
 		hashtagService.saveOrUpdateHashtag(diary.getDiaryId(), request.hashtagList());
+		mapService.decreaseRegionDiaryCount(diary.getLocation().getLatitude(), diary.getLocation().getLongitude());
+		mapService.increaseRegionDiaryCount(request.location().latitude(), request.location().longitude());
 
 		String newThumbnailUrl = mediaService.extractThumbnailUrl(request.mediaList());
 		diaryService.updateDiary(diary, request, newThumbnailUrl);

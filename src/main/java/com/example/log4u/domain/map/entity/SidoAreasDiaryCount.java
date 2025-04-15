@@ -25,4 +25,8 @@ public class SidoAreasDiaryCount {
 	public void incrementCount() {
 		this.diaryCount++;
 	}
+
+	public void decrementCount() {
+		this.diaryCount = Math.max(0, this.diaryCount - 1);
+	}
 }

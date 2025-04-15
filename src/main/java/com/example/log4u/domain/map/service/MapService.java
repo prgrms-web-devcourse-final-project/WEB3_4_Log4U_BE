@@ -60,6 +60,23 @@ public class MapService {
 			});
 	}
 
+	@Transactional
+	public void decreaseRegionDiaryCount(Double lat, Double lon) {
+		sidoAreasRepository.findRegionByLatLon(lat, lon)
+			.flatMap(sido -> sidoAreasDiaryCountRepository.findById(sido.getId()))
+			.ifPresent(count -> {
+				count.decrementCount();
+				sidoAreasDiaryCountRepository.save(count);
+			});
+
+		siggAreasRepository.findRegionByLatLon(lat, lon)
+			.flatMap(sigg -> siggAreasDiaryCountRepository.findById(sigg.getGid()))
+			.ifPresent(count -> {
+				count.decrementCount();
+				siggAreasDiaryCountRepository.save(count);
+			});
+	}
+
 	@Transactional(readOnly = true)
 	public List<DiaryMarkerResponseDto> getDiariesInBounds(double south, double north, double west, double east) {
 		return diaryRepository.findDiariesInBounds(south, north, west, east);
