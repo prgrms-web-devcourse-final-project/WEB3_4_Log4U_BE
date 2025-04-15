@@ -31,6 +31,7 @@ public class CookieUtil {
 		cookie.setPath("/");
 		cookie.setHttpOnly(true);
 		cookie.setSecure(true);
+		cookie.setDomain("log4u.site");
 		response.addCookie(cookie);
 	}
 
