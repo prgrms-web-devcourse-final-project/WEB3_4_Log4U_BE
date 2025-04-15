@@ -30,6 +30,7 @@ public class MediaController {
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
 		@RequestBody PresignedUrlRequestDto request
 	) {
+		log.info("Presigned URL 요청 : {}\n", request.filename());
 		PresignedUrlResponseDto response = presignedUrlService.generatePresignedUrl(request);
 		return ResponseEntity.ok(response);
 	}
