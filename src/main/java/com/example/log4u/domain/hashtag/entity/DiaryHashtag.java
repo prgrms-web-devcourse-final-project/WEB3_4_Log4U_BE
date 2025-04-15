@@ -1,5 +1,7 @@
 package com.example.log4u.domain.hashtag.entity;
 
+import com.example.log4u.common.entity.BaseEntity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -16,7 +18,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class DiaryHashtag { // 다이어리 - 해시태그 연결 엔티티
+public class DiaryHashtag extends BaseEntity { // 다이어리 - 해시태그 연결 엔티티
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
