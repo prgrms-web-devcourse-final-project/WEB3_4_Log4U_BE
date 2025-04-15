@@ -72,15 +72,8 @@ public class JwtLogoutFilter extends GenericFilterBean {
 	}
 
 	private boolean shouldSkipFilter(String requestUri) {
-		// /oauth2/logout 만 필터실행
-		if ("/oauth2/logout".equals(requestUri)) {
-			return false;
-		}
-
-		// 나머지는 다 통과
-		return requestUri.startsWith("/swagger-ui")
-			|| requestUri.startsWith("/v3/api-docs")
-			|| requestUri.startsWith("/oauth2");
+		//  /oauth2/logout 에 대해서만 실행되도록 함
+		return !"/oauth2/logout".equals(requestUri);
 	}
 
 	private boolean validateTokenExpiration(
