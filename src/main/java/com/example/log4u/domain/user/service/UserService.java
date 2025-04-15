@@ -38,14 +38,13 @@ public class UserService {
 		);
 	}
 
-	public UserProfileResponseDto getUserProfile(String nickname) {
-		User target = getUserByNickname(nickname);
-		final Long targetId = target.getUserId();
+	public UserProfileResponseDto getUserProfileById(Long id) {
+		User target = getUserById(id);
 
 		return UserProfileResponseDto.fromUser(
 			target,
-			followRepository.countByTargetId(targetId),
-			followRepository.countByInitiatorId(targetId)
+			followRepository.countByTargetId(id),
+			followRepository.countByInitiatorId(id)
 		);
 	}
 

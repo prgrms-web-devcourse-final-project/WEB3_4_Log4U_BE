@@ -90,13 +90,13 @@ public class UserController {
 		return ResponseEntity.ok(userProfileResponseDto);
 	}
 
-	@GetMapping("/{nickname}")
+	@GetMapping("/{id}")
 	public ResponseEntity<UserProfileResponseDto> getUserProfile(
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
-		@PathVariable String nickname
+		@PathVariable Long id
 	) {
 		UserProfileResponseDto userProfileResponseDto =
-			userService.getUserProfile(nickname);
+			userService.getUserProfileById(id);
 		return ResponseEntity.ok(userProfileResponseDto);
 	}
 
