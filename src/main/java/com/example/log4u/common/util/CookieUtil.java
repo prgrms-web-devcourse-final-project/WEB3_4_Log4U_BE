@@ -25,16 +25,13 @@ public class CookieUtil {
 		response.addHeader("Set-Cookie", headerValue);
 	}
 
-	public static void deleteCookie(HttpServletResponse response) {
-		// access 쿠키 삭제 - 헤더만 사용
-		String accessCookieString = "access=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=None";
-		response.addHeader("Set-Cookie", accessCookieString);
-
-		// refresh 쿠키 삭제 - 헤더만 사용
-		String refreshCookieString = "refresh=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=None";
-		response.addHeader("Set-Cookie", refreshCookieString);
-
-		response.setStatus(HttpServletResponse.SC_OK);
+	public static void deleteCookie(HttpServletResponse response, String name) {
+		Cookie cookie = new Cookie(name, null);
+		cookie.setMaxAge(0);
+		cookie.setPath("/");
+		cookie.setHttpOnly(true);
+		cookie.setSecure(true);
+		response.addCookie(cookie);
 	}
 
 }

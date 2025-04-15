@@ -130,7 +130,8 @@ public class JwtLogoutFilter extends GenericFilterBean {
 		// DB 에서 리프레시 토큰 제거
 		refreshTokenRepository.deleteByRefresh(refresh);
 		// 쿠키 제거
-		CookieUtil.deleteCookie(response);
+		CookieUtil.deleteCookie(response, ACCESS_TOKEN);
+		CookieUtil.deleteCookie(response, REFRESH_TOKEN);
 	}
 
 }
