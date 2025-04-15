@@ -30,39 +30,54 @@ public class OAuth2Controller {
 		HttpServletRequest request,
 		HttpServletResponse response
 	) {
-		// 리프레시 토큰 추출
+		// 쿠키가 없으면 바로 잘못된 요청 처리
+		Cookie[] cookies = request.getCookies();
+		if (cookies == null || cookies.length == 0) {
+			return ResponseEntity
+				.badRequest()
+				.body("쿠키가 존재하지 않습니다.");
+		}
+
 		String refresh = null;
 		String access = null;
-		Cookie[] cookies = request.getCookies();
+
+		// 쿠키에서 토큰 추출
 		for (Cookie cookie : cookies) {
-			if (cookie.getName().equals(TokenConstants.REFRESH_TOKEN)) {
+			if (TokenConstants.REFRESH_TOKEN.equals(cookie.getName())) {
 				refresh = cookie.getValue();
-			}
-			if (cookie.getName().equals(TokenConstants.ACCESS_TOKEN)) {
+			} else if (TokenConstants.ACCESS_TOKEN.equals(cookie.getName())) {
 				access = cookie.getValue();
 			}
 		}
 
+		// 리프레시 토큰이 없는 경우
 		if (refresh == null) {
-			// 리프레시 토큰이 없는 경우
-			return new ResponseEntity<>("잘못된 요청입니다..", HttpStatus.BAD_REQUEST);
+			return ResponseEntity
+				.badRequest()
+				.body("리프레시 토큰이 존재하지 않습니다.");
 		}
 
-		// 리프레시 토큰 만료 체크
+		// 리프레시 토큰 만료 여부 확인
 		try {
 			jwtUtil.isExpired(refresh);
 		} catch (ExpiredJwtException e) {
-			return new ResponseEntity<>("리프레시 토큰이 만료되었습니다.", HttpStatus.UNAUTHORIZED);
+			return ResponseEntity
+				.status(HttpStatus.UNAUTHORIZED)
+				.body("리프레시 토큰이 만료되었습니다.");
 		}
 
-		// 토큰이 refresh인지 확인 (발급시 페이로드에 명시)
+		// 리프레시 토큰인지 타입 확인
 		String category = jwtUtil.getTokenType(refresh);
-		if (!category.equals(TokenConstants.REFRESH_TOKEN)) {
-			return new ResponseEntity<>("잘못된 토큰입니다.", HttpStatus.BAD_REQUEST);
+		if (!TokenConstants.REFRESH_TOKEN.equals(category)) {
+			return ResponseEntity
+				.badRequest()
+				.body("리프레시 토큰이 아닙니다.");
 		}
 
+		// 새 토큰 발급
 		createNewTokens(response, access, refresh);
-		return new ResponseEntity<>(HttpStatus.OK);
+
+		return ResponseEntity.ok().build();
 	}
 
 	private void createNewTokens(HttpServletResponse response, String access, String refresh) {
