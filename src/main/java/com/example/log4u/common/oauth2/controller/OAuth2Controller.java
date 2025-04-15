@@ -32,11 +32,11 @@ public class OAuth2Controller {
 	) {
 		// 쿠키가 없으면 바로 잘못된 요청 처리
 		Cookie[] cookies = request.getCookies();
-		if (cookies == null || cookies.length == 0) {
-			return ResponseEntity
-				.badRequest()
-				.body("쿠키가 존재하지 않습니다.");
-		}
+		// if (cookies == null || cookies.length == 0) {
+		// 	return ResponseEntity
+		// 		.badRequest()
+		// 		.body("쿠키가 존재하지 않습니다.");
+		// }
 
 		String refresh = null;
 		String access = null;
