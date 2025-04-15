@@ -43,7 +43,7 @@ public class SupportQuerydsl extends QuerydslRepositorySupport {
 				support.supportType,
 				support.title,
 				support.createdAt,
-				support.updatedAt.isNotNull() // answered 필드는 answeredAt이 null 이 아니면 true
+				support.answerContent.isNotNull() // answered 필드는 answeredAt이 null 이 아니면 true
 			))
 			.where(builder)
 			.orderBy(support.createdAt.desc())
