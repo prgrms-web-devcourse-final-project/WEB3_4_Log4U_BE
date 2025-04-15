@@ -18,8 +18,8 @@ import com.example.log4u.common.oauth2.handler.OAuth2AuthenticationSuccessHandle
 import com.example.log4u.common.oauth2.jwt.JwtAuthenticationFilter;
 import com.example.log4u.common.oauth2.jwt.JwtLogoutFilter;
 import com.example.log4u.common.oauth2.jwt.JwtUtil;
-import com.example.log4u.common.oauth2.repository.RefreshTokenRepository;
 import com.example.log4u.common.oauth2.service.CustomOAuth2UserService;
+import com.example.log4u.common.oauth2.service.RefreshTokenService;
 import com.example.log4u.domain.user.service.UserService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,7 +33,7 @@ public class SecurityConfig {
 	private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 	private final CustomOAuth2UserService customOAuth2UserService;
 	private final UserService userService;
-	private final RefreshTokenRepository refreshTokenRepository;
+	private final RefreshTokenService refreshTokenService;
 
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws
@@ -48,7 +48,7 @@ public class SecurityConfig {
 
 	@Bean
 	public JwtLogoutFilter jwtLogoutFilter() {
-		return new JwtLogoutFilter(jwtUtil, refreshTokenRepository);
+		return new JwtLogoutFilter(jwtUtil, refreshTokenService);
 	}
 
 	@Bean
@@ -66,7 +66,7 @@ public class SecurityConfig {
 				.successHandler(oAuth2AuthenticationSuccessHandler)
 			)
 			.addFilterBefore(new JwtAuthenticationFilter(jwtUtil, userService), OAuth2LoginAuthenticationFilter.class)
-			.addFilterBefore(new JwtLogoutFilter(jwtUtil, refreshTokenRepository), LogoutFilter.class)
+			.addFilterBefore(new JwtLogoutFilter(jwtUtil, refreshTokenService), LogoutFilter.class)
 			.logout(AbstractHttpConfigurer::disable)
 			.exceptionHandling(exceptions -> exceptions
 				.authenticationEntryPoint((request, response, authException) -> {

@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 
 import org.springframework.web.filter.GenericFilterBean;
 
-import com.example.log4u.common.oauth2.repository.RefreshTokenRepository;
+import com.example.log4u.common.oauth2.service.RefreshTokenService;
 import com.example.log4u.common.util.CookieUtil;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtLogoutFilter extends GenericFilterBean {
 
 	private final JwtUtil jwtUtil;
-	private final RefreshTokenRepository refreshTokenRepository;
+	private final RefreshTokenService refreshTokenService;
 	private static final String REFRESH_TOKEN_EXPIRED_JSON_MSG = "{\"message\": \"토큰이 존재하지 않습니다.\"}";
 
 	@Override
@@ -108,7 +108,7 @@ public class JwtLogoutFilter extends GenericFilterBean {
 		}
 
 		// 리프레시 토큰이 DB에 없는 경우
-		Boolean isExist = refreshTokenRepository.existsByRefresh(refresh);
+		Boolean isExist = refreshTokenService.existsByRefresh(refresh);
 		if (Boolean.FALSE.equals(isExist)) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			return false;
@@ -132,7 +132,7 @@ public class JwtLogoutFilter extends GenericFilterBean {
 
 	public void logout(HttpServletResponse response, String refresh) throws IOException {
 		// DB 에서 리프레시 토큰 제거
-		refreshTokenRepository.deleteByRefresh(refresh);
+		refreshTokenService.deleteRefreshToken(refresh);
 		// 쿠키 제거
 		CookieUtil.deleteCookie(response, ACCESS_TOKEN);
 		CookieUtil.deleteCookie(response, REFRESH_TOKEN);
