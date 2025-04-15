@@ -41,4 +41,23 @@ public class SiggAreasRepositoryImpl implements SiggAreasRepositoryCustom {
 			)
 			.fetch();
 	}
+
+
+	@Override
+	public List<DiaryClusterResponseDto> findAllWithDiaryCount() {
+		QSiggAreas s = QSiggAreas.siggAreas;
+		QSiggAreasDiaryCount c = QSiggAreasDiaryCount.siggAreasDiaryCount;
+
+		return queryFactory
+			.select(new QDiaryClusterResponseDto(
+				s.sggName,
+				s.gid,
+				s.lat,
+				s.lon,
+				c.diaryCount.coalesce(0L)
+			))
+			.from(s)
+			.leftJoin(c).on(s.gid.eq(c.id))
+			.fetch();
+	}
 }
