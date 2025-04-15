@@ -112,7 +112,7 @@ public class UserController {
 	@PutMapping("/me")
 	public ResponseEntity<Void> updateMyProfile(
 		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
-		UserProfileUpdateRequestDto userProfileUpdateRequestDto
+		@RequestBody UserProfileUpdateRequestDto userProfileUpdateRequestDto
 	) {
 		userService.updateMyProfile(customOAuth2User.getUserId(), userProfileUpdateRequestDto);
 		return ResponseEntity.ok().build();
