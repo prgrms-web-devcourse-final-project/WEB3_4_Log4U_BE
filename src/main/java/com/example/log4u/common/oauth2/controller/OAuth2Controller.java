@@ -30,13 +30,13 @@ public class OAuth2Controller {
 		HttpServletRequest request,
 		HttpServletResponse response
 	) {
-		// 쿠키가 없으면 바로 잘못된 요청 처리
+		// 쿠키가 없으면 바로 401 (로그아웃)
 		Cookie[] cookies = request.getCookies();
-		// if (cookies == null || cookies.length == 0) {
-		// 	return ResponseEntity
-		// 		.badRequest()
-		// 		.body("쿠키가 존재하지 않습니다.");
-		// }
+		if (cookies == null || cookies.length == 0) {
+			return ResponseEntity
+				.status(HttpStatus.UNAUTHORIZED)
+				.body("쿠키가 존재하지 않습니다.");
+		}
 
 		String refresh = null;
 		String access = null;
@@ -55,6 +55,13 @@ public class OAuth2Controller {
 			return ResponseEntity
 				.badRequest()
 				.body("리프레시 토큰이 존재하지 않습니다.");
+		}
+
+		//  DB에 리프레시 토큰 존재하는지 확인
+		if (!refreshTokenService.existsByRefresh(refresh)) {
+			return ResponseEntity
+				.status(HttpStatus.UNAUTHORIZED)
+				.body("이미 로그아웃된 사용자입니다.");
 		}
 
 		// 리프레시 토큰 만료 여부 확인
