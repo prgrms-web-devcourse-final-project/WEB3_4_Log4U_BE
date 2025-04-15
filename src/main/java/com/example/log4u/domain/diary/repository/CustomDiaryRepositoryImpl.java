@@ -15,6 +15,7 @@ import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.entity.QDiary;
 import com.example.log4u.domain.hashtag.entity.QDiaryHashtag;
 import com.example.log4u.domain.hashtag.entity.QHashtag;
+import com.example.log4u.domain.like.entity.Like;
 import com.example.log4u.domain.like.entity.QLike;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.example.log4u.domain.user.entity.QUser;
@@ -200,23 +201,42 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 		Long userId,
 		List<VisibilityType> visibilities,
 		Long cursorId,
-		Pageable pageable) {
-		// 조건 생성
+		Pageable pageable
+	) {
+		// 기본 조건 생성
 		BooleanExpression condition = createSearchCondition(null, visibilities, null);
 
-		// limit + 1로 다음 페이지 존재 여부 확인
+		// 커서가 있는 경우, 커서 Like 객체를 조회
+		if (cursorId != null) {
+			Like cursorLike = queryFactory
+				.selectFrom(like)
+				.where(like.likeId.eq(cursorId))
+				.fetchOne();
+
+			if (cursorLike != null) {
+				// createdAt + likeId 복합 커서 조건 추가
+				condition = condition.and(
+					like.createdAt.lt(cursorLike.getCreatedAt())
+						.or(
+							like.createdAt.eq(cursorLike.getCreatedAt())
+								.and(like.likeId.lt(cursorId))
+						)
+				);
+			}
+		}
+
+		// 다이어리 조회 (좋아요 기준으로)
 		List<Diary> content = queryFactory
 			.selectFrom(diary)
 			.innerJoin(like)
 			.on(like.diaryId.eq(diary.diaryId))
 			.where(like.userId.eq(userId)
-				.and(condition)
-				.and(like.likeId.lt(cursorId)))
-			.orderBy(like.createdAt.desc())
+				.and(condition))
+			.orderBy(like.createdAt.desc(), like.likeId.desc())
 			.limit(pageable.getPageSize() + 1)
 			.fetch();
 
-		// 다음 페이지 여부를 계산하여 반환
+		// 다음 페이지 존재 여부 판단 및 Slice 반환
 		return PageableUtil.checkAndCreateSlice(content, pageable);
 	}
 
