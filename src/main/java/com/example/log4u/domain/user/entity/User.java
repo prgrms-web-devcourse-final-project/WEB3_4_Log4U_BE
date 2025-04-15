@@ -72,7 +72,6 @@ public class User extends BaseEntity {
 	}
 
 	public void createMyProfile(UserProfileMakeRequestDto userProfileMakeRequestDto) {
-		this.nickname = userProfileMakeRequestDto.nickname();
 		this.statusMessage = userProfileMakeRequestDto.statusMessage();
 		this.profileImage = userProfileMakeRequestDto.profileImage();
 		this.role = "ROLE_USER";
