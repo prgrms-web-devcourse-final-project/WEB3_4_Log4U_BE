@@ -202,7 +202,7 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 		Long cursorId,
 		Pageable pageable) {
 		// 조건 생성
-		BooleanExpression condition = createSearchCondition(null, visibilities, userId);
+		BooleanExpression condition = createSearchCondition(null, visibilities, null);
 
 		// limit + 1로 다음 페이지 존재 여부 확인
 		List<Diary> content = queryFactory
