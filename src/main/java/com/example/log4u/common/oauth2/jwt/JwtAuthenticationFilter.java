@@ -82,16 +82,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	}
 
 	private String extractAccessTokenFromCookie(HttpServletRequest request) {
-		// 쿠키에서 access 토큰 추출
 		String accessToken = null;
 		Cookie[] cookies = request.getCookies();
-		for (Cookie cookie : cookies) {
-			if (cookie.getName().equals("access")) {
-				accessToken = cookie.getValue();
+
+		if (cookies != null) {
+			for (Cookie cookie : cookies) {
+				if (cookie.getName().equals("access")) {
+					accessToken = cookie.getValue();
+				}
 			}
 		}
 		return accessToken;
 	}
+
 
 	private boolean validateTokenExpiration(
 		HttpServletResponse response,
