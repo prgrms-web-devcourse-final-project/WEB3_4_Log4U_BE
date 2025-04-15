@@ -1,8 +1,5 @@
 package com.example.log4u.domain.user.controller;
 
-import java.net.URI;
-
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.log4u.common.constants.UrlConstants;
 import com.example.log4u.common.dto.PageResponse;
 import com.example.log4u.common.oauth2.dto.CustomOAuth2User;
 import com.example.log4u.domain.user.dto.NicknameValidationResponseDto;
@@ -110,13 +106,7 @@ public class UserController {
 		@RequestBody UserProfileMakeRequestDto userProfileMakeRequestDto
 	) {
 		userService.createMyProfile(customOAuth2User.getUserId(), userProfileMakeRequestDto);
-
-		// 생성 후 리디렉션 URI 설정
-		HttpHeaders headers = new HttpHeaders();
-
-		// 위치: 메인페이지(내 프로필)
-		headers.setLocation(URI.create(UrlConstants.MAIN_URL));
-		return new ResponseEntity<>(headers, HttpStatus.FOUND);
+		return ResponseEntity.ok().build();
 	}
 
 	@PutMapping("/me")
