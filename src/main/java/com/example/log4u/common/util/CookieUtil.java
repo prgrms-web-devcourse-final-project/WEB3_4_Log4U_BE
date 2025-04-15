@@ -31,12 +31,12 @@ public class CookieUtil {
 		cookie.setPath("/");
 		cookie.setHttpOnly(true);
 		cookie.setSecure(true);
-		cookie.setDomain("fe-log4u.vercel.app");
 		// SameSite 설정
 		response.addHeader("Set-Cookie", String.format(
-			"%s=; Max-Age=0; Path=/; Domain=log4u.site; HttpOnly; Secure; SameSite=None",
+			"%s=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=None",
 			name
 		));
+
 	}
 
 }
