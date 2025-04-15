@@ -47,7 +47,8 @@ class UserServiceTest {
 		Long userId = 1L;
 		UserProfileMakeRequestDto userProfileMakeRequestDto = new UserProfileMakeRequestDto(
 			"test nickname",
-			"test img"
+			"test img",
+			"img"
 		);
 
 		User mockUser = mock(User.class);

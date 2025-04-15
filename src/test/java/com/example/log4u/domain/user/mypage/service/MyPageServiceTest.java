@@ -29,7 +29,7 @@ import com.example.log4u.domain.subscription.repository.SubscriptionRepository;
 import com.example.log4u.fixture.DiaryFixture;
 
 @ExtendWith(MockitoExtension.class)
-public class MyPageServiceTest {
+class MyPageServiceTest {
 	@InjectMocks
 	private MyPageService myPageService;
 
