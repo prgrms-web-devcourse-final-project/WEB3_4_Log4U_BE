@@ -1,10 +1,12 @@
 package com.example.log4u.domain.map.service;
 
+import java.time.Duration;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.log4u.common.redis.RedisDao;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
@@ -14,9 +16,11 @@ import com.example.log4u.domain.map.repository.sigg.SiggAreasDiaryCountRepositor
 import com.example.log4u.domain.map.repository.sigg.SiggAreasRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MapService {
 
 	private final SidoAreasRepository sidoAreasRepository;
@@ -24,23 +28,42 @@ public class MapService {
 	private final SiggAreasRepository siggAreasRepository;
 	private final SiggAreasDiaryCountRepository siggAreasDiaryCountRepository;
 	private final DiaryRepository diaryRepository;
+	private final RedisDao redisDao;
 
 	@Transactional(readOnly = true)
-	public List<DiaryClusterResponseDto> getDiaryClusters(
-		double south, double north, double west, double east, int zoom) {
+	public List<DiaryClusterResponseDto> getDiaryClusters(double south, double north, double west, double east, int zoom) {
+		String redisKey;
+		List<DiaryClusterResponseDto> clusters;
+
+		// 줌 레벨 기준으로 캐시 키 결정 + Redis 조회
 		if (zoom <= 10) {
-			return getSidoAreasClusters(south, north, west, east);
+			redisKey = "cluster:sido";
+			clusters = redisDao.getList(redisKey, DiaryClusterResponseDto.class);
+
+			// 캐시에 없으면 DB 조회 후 저장
+			if (clusters == null) {
+				clusters = sidoAreasRepository.findAllWithDiaryCount();  // 시/도 전체 조회
+				redisDao.setList(redisKey, clusters, Duration.ofMinutes(5));
+				log.info("[REDIS] 시/도 클러스터 캐시 새로 저장: {}", redisKey);
+			}
 		} else {
-			return getSiggAreasClusters(south, north, west, east);
+			redisKey = "cluster:sigg";
+			clusters = redisDao.getList(redisKey, DiaryClusterResponseDto.class);
+
+			// 캐시에 없으면 DB 조회 후 저장
+			if (clusters == null) {
+				clusters = siggAreasRepository.findAllWithDiaryCount();  // 시/군/구 전체 조회
+				redisDao.setList(redisKey, clusters, Duration.ofMinutes(5));
+				log.info("[REDIS] 시/군/구 클러스터 캐시 새로 저장: {}", redisKey);
+			}
 		}
-	}
 
-	private List<DiaryClusterResponseDto> getSidoAreasClusters(double south, double north, double west, double east) {
-		return sidoAreasRepository.findSidoAreaClusters(south, north, west, east);
-	}
-
-	private List<DiaryClusterResponseDto> getSiggAreasClusters(double south, double north, double west, double east) {
-		return siggAreasRepository.findSiggAreaClusters(south, north, west, east);
+		// 범위 필터링
+		return clusters.stream()
+			.filter(cluster ->
+				cluster.lat() >= south && cluster.lat() <= north &&
+				cluster.lon() >= west && cluster.lon() <= east)
+			.toList();
 	}
 
 	@Transactional

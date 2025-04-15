@@ -6,4 +6,7 @@ import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
 
 public interface SiggAreasRepositoryCustom {
 	List<DiaryClusterResponseDto> findSiggAreaClusters(double south, double north, double west, double east);
+
+	List<DiaryClusterResponseDto> findAllWithDiaryCount();
+
 }

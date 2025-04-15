@@ -41,4 +41,22 @@ public class SidoAreasRepositoryImpl implements SidoAreasRepositoryCustom {
 			)
 			.fetch();
 	}
+
+	@Override
+	public List<DiaryClusterResponseDto> findAllWithDiaryCount() {
+		QSidoAreas s = QSidoAreas.sidoAreas;
+		QSidoAreasDiaryCount c = QSidoAreasDiaryCount.sidoAreasDiaryCount;
+
+		return queryFactory
+			.select(new QDiaryClusterResponseDto(
+				s.name,
+				s.id,
+				s.lat,
+				s.lon,
+				c.diaryCount.coalesce(0L)
+			))
+			.from(s)
+			.leftJoin(c).on(s.id.eq(c.id))
+			.fetch();
+	}
 }

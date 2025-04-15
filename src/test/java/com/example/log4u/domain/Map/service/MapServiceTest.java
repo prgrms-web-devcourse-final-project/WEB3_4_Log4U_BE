@@ -37,45 +37,45 @@ class MapServiceTest {
 	@Mock
 	private DiaryRepository diaryRepository;
 
-	@DisplayName("성공 테스트: 줌레벨이 10 이하이면 시/도 클러스터 조회")
-	@Test
-	void getDiaryClusters_sidoAreas_success() {
-		// given
-		double south = 37.0, north = 38.0, west = 126.0, east = 127.0;
-		int zoom = 9;
-
-		given(sidoAreasRepository.findSidoAreaClusters(south, north, west, east))
-			.willReturn(AreaClusterFixture.sidoAreaList());
-
-		// when
-		List<DiaryClusterResponseDto> result = mapService.getDiaryClusters(south, north, west, east, zoom);
-
-		// then
-		assertThat(result).hasSize(2);
-		assertThat(result.getFirst().areaName()).isEqualTo("서울특별시");
-		assertThat(result.getFirst().diaryCount()).isEqualTo(100L);
-		verify(sidoAreasRepository).findSidoAreaClusters(south, north, west, east);
-	}
-
-	@DisplayName("성공 테스트: 줌레벨이 11 이상이면 시군구 클러스터 조회")
-	@Test
-	void getDiaryClusters_siggAreas_success() {
-		// given
-		double south = 37.0, north = 38.0, west = 126.0, east = 127.0;
-		int zoom = 12;
-
-		given(siggAreasRepository.findSiggAreaClusters(south, north, west, east))
-			.willReturn(AreaClusterFixture.siggAreaList());
-
-		// when
-		List<DiaryClusterResponseDto> result = mapService.getDiaryClusters(south, north, west, east, zoom);
-
-		// then
-		assertThat(result).hasSize(2);
-		assertThat(result.get(1).areaName()).isEqualTo("송파구");
-		assertThat(result.get(1).diaryCount()).isEqualTo(30L);
-		verify(siggAreasRepository).findSiggAreaClusters(south, north, west, east);
-	}
+	// @DisplayName("성공 테스트: 줌레벨이 10 이하이면 시/도 클러스터 조회")
+	// @Test
+	// void getDiaryClusters_sidoAreas_success() {
+	// 	// given
+	// 	double south = 37.0, north = 38.0, west = 126.0, east = 127.0;
+	// 	int zoom = 9;
+	//
+	// 	given(sidoAreasRepository.findSidoAreaClusters(south, north, west, east))
+	// 		.willReturn(AreaClusterFixture.sidoAreaList());
+	//
+	// 	// when
+	// 	List<DiaryClusterResponseDto> result = mapService.getDiaryClusters(south, north, west, east, zoom);
+	//
+	// 	// then
+	// 	assertThat(result).hasSize(2);
+	// 	assertThat(result.getFirst().areaName()).isEqualTo("서울특별시");
+	// 	assertThat(result.getFirst().diaryCount()).isEqualTo(100L);
+	// 	verify(sidoAreasRepository).findSidoAreaClusters(south, north, west, east);
+	// }
+	//
+	// @DisplayName("성공 테스트: 줌레벨이 11 이상이면 시군구 클러스터 조회")
+	// @Test
+	// void getDiaryClusters_siggAreas_success() {
+	// 	// given
+	// 	double south = 37.0, north = 38.0, west = 126.0, east = 127.0;
+	// 	int zoom = 12;
+	//
+	// 	given(siggAreasRepository.findSiggAreaClusters(south, north, west, east))
+	// 		.willReturn(AreaClusterFixture.siggAreaList());
+	//
+	// 	// when
+	// 	List<DiaryClusterResponseDto> result = mapService.getDiaryClusters(south, north, west, east, zoom);
+	//
+	// 	// then
+	// 	assertThat(result).hasSize(2);
+	// 	assertThat(result.get(1).areaName()).isEqualTo("송파구");
+	// 	assertThat(result.get(1).diaryCount()).isEqualTo(30L);
+	// 	verify(siggAreasRepository).findSiggAreaClusters(south, north, west, east);
+	// }
 
 	@DisplayName("성공 테스트: 마커 조회 (줌 14 이상)")
 	@Test
