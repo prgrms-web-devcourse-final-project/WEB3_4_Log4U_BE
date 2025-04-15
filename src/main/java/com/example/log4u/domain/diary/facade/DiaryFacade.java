@@ -117,7 +117,9 @@ public class DiaryFacade {
 	) {
 		Slice<DiaryResponseDto> dtoSlice = diaryService.getDiaryResponseDtoSlice(userId, targetUserId, cursorId, size);
 		// 다음 커서 ID 계산
-		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
+		Long nextCursor = (dtoSlice.hasNext() && !dtoSlice.isEmpty())
+			? dtoSlice.getContent().getLast().diaryId()
+			: null;
 		return PageResponse.of(dtoSlice, nextCursor);
 	}
 
@@ -137,7 +139,9 @@ public class DiaryFacade {
 	) {
 		Slice<DiaryResponseDto> dtoSlice = diaryService.searchDiariesByCursor(keyword, sort, cursorId, size);
 		// 다음 커서 ID 계산
-		Long nextCursor = !dtoSlice.isEmpty() ? dtoSlice.getContent().getLast().diaryId() : null;
+		Long nextCursor = (dtoSlice.hasNext() && !dtoSlice.isEmpty())
+			? dtoSlice.getContent().getLast().diaryId()
+			: null;
 		return PageResponse.of(dtoSlice, nextCursor);
 	}
 
