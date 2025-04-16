@@ -21,6 +21,20 @@ public class UserFixture {
 			.build();
 	}
 
+	public static User createUserFixtureWithProfileImage(Long userId) {
+		return User.builder()
+			.userId(userId)
+			.name("test" + UUID.randomUUID())
+			.nickname("testUser" + UUID.randomUUID())
+			.providerId("123" + UUID.randomUUID())
+			.email("test" + UUID.randomUUID() + "@example.com")
+			.socialType(SocialType.KAKAO)
+			.role("ROLE_USER")
+			.statusMessage(LocalDateTime.now().toString())
+			.profileImage(UUID.randomUUID().toString())
+			.build();
+	}
+
 	public static User createUserFixtureWithNickname(String nickname) {
 		return User.builder()
 			.name("name" + nickname)
@@ -46,5 +60,17 @@ public class UserFixture {
 			.isPremium(true)
 			.build();
 	}
-}
 
+	public static User createUserWithId(Long userId, String name, String nickname) {
+		return User.builder()
+			.userId(userId)
+			.name(name)
+			.nickname(nickname)
+			.statusMessage("Test status message")
+			.profileImage("test-profile-image.jpg")
+			.role("ROLE_USER")
+			.providerId("test-provider-id")
+			.socialType(SocialType.GOOGLE) // 또는 다른 소셜 타입
+			.build();
+	}
+}

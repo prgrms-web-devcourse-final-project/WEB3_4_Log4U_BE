@@ -1,8 +1,11 @@
 package com.example.log4u.fixture;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
+import com.example.log4u.domain.comment.dto.response.CommentResponseDto;
 import com.example.log4u.domain.comment.entity.Comment;
 
 public class CommentFixture {
@@ -33,5 +36,17 @@ public class CommentFixture {
 				.build());
 		}
 		return comments;
+	}
+
+	public static List<CommentResponseDto> createCommentDtos(int size) {
+		return IntStream.rangeClosed(1, size)
+			.mapToObj(i -> new CommentResponseDto(
+				(long) i,
+				(long) i,
+				"사용자" + i,
+				"https://cdn.example.com/user" + i + ".png",
+				"댓글 " + i,
+				LocalDateTime.now().minusMinutes(i) // createdAt
+			)).toList();
 	}
 }

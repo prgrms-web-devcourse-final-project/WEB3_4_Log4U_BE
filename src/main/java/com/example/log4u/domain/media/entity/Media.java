@@ -1,10 +1,11 @@
 package com.example.log4u.domain.media.entity;
 
 import com.example.log4u.common.entity.BaseEntity;
-import com.example.log4u.domain.media.dto.MediaRequestDto;
+import com.example.log4u.domain.media.MediaStatus;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -13,6 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -22,10 +24,9 @@ import lombok.NoArgsConstructor;
 public class Media extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private Long mediaId;
 
-	@Column(nullable = false)
-	private Long diaryId;
+	private Long diaryId; // 임시 상태에서 null 허용
 
 	private String originalName;
 
@@ -37,15 +38,20 @@ public class Media extends BaseEntity {
 
 	private Long size;
 
-	public static Media toEntity(Long diaryId, MediaRequestDto request) {
-		return Media.builder()
-			.diaryId(diaryId)
-			.originalName(request.originalName())
-			.storedName(request.storedName())
-			.url(request.url())
-			.contentType(request.contentType())
-			.size(request.size())
-			.build();
+	@Builder.Default
+	@Setter
+	private Integer orderIndex = 0; // 순서 필드
+
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private MediaStatus status = MediaStatus.TEMPORARY;
+
+	public void connectToDiary(Long diaryId) {
+		this.diaryId = diaryId;
+		this.status = MediaStatus.PERMANENT;
 	}
 
+	public void markAsFailedDelete() {
+		this.status = MediaStatus.FAILED_DELETE;
+	}
 }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.log4u.common.constants.TokenConstants;
 import com.example.log4u.common.oauth2.jwt.JwtUtil;
 import com.example.log4u.common.oauth2.service.RefreshTokenService;
+import com.example.log4u.common.util.CookieUtil;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
@@ -29,39 +30,61 @@ public class OAuth2Controller {
 		HttpServletRequest request,
 		HttpServletResponse response
 	) {
-		// 리프레시 토큰 추출
+		// 쿠키가 없으면 바로 401 (로그아웃)
+		Cookie[] cookies = request.getCookies();
+		if (cookies == null || cookies.length == 0) {
+			return ResponseEntity
+				.status(HttpStatus.UNAUTHORIZED)
+				.body("쿠키가 존재하지 않습니다.");
+		}
+
 		String refresh = null;
 		String access = null;
-		Cookie[] cookies = request.getCookies();
+
+		// 쿠키에서 토큰 추출
 		for (Cookie cookie : cookies) {
-			if (cookie.getName().equals(TokenConstants.REFRESH_TOKEN)) {
+			if (TokenConstants.REFRESH_TOKEN.equals(cookie.getName())) {
 				refresh = cookie.getValue();
-			}
-			if (cookie.getName().equals(TokenConstants.ACCESS_TOKEN)) {
+			} else if (TokenConstants.ACCESS_TOKEN.equals(cookie.getName())) {
 				access = cookie.getValue();
 			}
 		}
 
+		// 리프레시 토큰이 없는 경우
 		if (refresh == null) {
-			// 리프레시 토큰이 없는 경우
-			return new ResponseEntity<>("잘못된 요청입니다..", HttpStatus.BAD_REQUEST);
+			return ResponseEntity
+				.badRequest()
+				.body("리프레시 토큰이 존재하지 않습니다.");
 		}
 
-		// 리프레시 토큰 만료 체크
+		//  DB에 리프레시 토큰 존재하는지 확인
+		if (!refreshTokenService.existsByRefresh(refresh)) {
+			return ResponseEntity
+				.status(HttpStatus.UNAUTHORIZED)
+				.body("이미 로그아웃된 사용자입니다.");
+		}
+
+		// 리프레시 토큰 만료 여부 확인
 		try {
 			jwtUtil.isExpired(refresh);
 		} catch (ExpiredJwtException e) {
-			return new ResponseEntity<>("리프레시 토큰이 만료되었습니다.", HttpStatus.UNAUTHORIZED);
+			return ResponseEntity
+				.status(HttpStatus.UNAUTHORIZED)
+				.body("리프레시 토큰이 만료되었습니다.");
 		}
 
-		// 토큰이 refresh인지 확인 (발급시 페이로드에 명시)
+		// 리프레시 토큰인지 타입 확인
 		String category = jwtUtil.getTokenType(refresh);
-		if (!category.equals(TokenConstants.REFRESH_TOKEN)) {
-			return new ResponseEntity<>("잘못된 토큰입니다.", HttpStatus.BAD_REQUEST);
+		if (!TokenConstants.REFRESH_TOKEN.equals(category)) {
+			return ResponseEntity
+				.badRequest()
+				.body("리프레시 토큰이 아닙니다.");
 		}
 
+		// 새 토큰 발급
 		createNewTokens(response, access, refresh);
-		return new ResponseEntity<>(HttpStatus.OK);
+
+		return ResponseEntity.ok().build();
 	}
 
 	private void createNewTokens(HttpServletResponse response, String access, String refresh) {
@@ -75,8 +98,9 @@ public class OAuth2Controller {
 		String newAccessToken = jwtUtil.createJwt(TokenConstants.ACCESS_TOKEN, userId, name, role, 600000L);
 		String newRefreshToken = jwtUtil.createJwt(TokenConstants.REFRESH_TOKEN, userId, name, role, 600000L);
 
-		response.addCookie(createCookie(TokenConstants.REFRESH_TOKEN, newRefreshToken));
-		response.addCookie(createCookie(TokenConstants.ACCESS_TOKEN, newAccessToken));
+		// SameSite=None 속성이 있는 쿠키 생성 및 추가
+		CookieUtil.createCookieWithSameSite(response, TokenConstants.ACCESS_TOKEN, newAccessToken);
+		CookieUtil.createCookieWithSameSite(response, TokenConstants.REFRESH_TOKEN, newRefreshToken);
 
 		// 새 리프레시 토큰 저장
 		refreshTokenService.saveRefreshToken(
@@ -86,12 +110,4 @@ public class OAuth2Controller {
 
 	}
 
-	private Cookie createCookie(String key, String value) {
-		Cookie cookie = new Cookie(key, value);
-		cookie.setMaxAge(60 * 60 * 60);
-		//cookie.setSecure(true);
-		cookie.setPath("/");
-		cookie.setHttpOnly(true);
-		return cookie;
-	}
 }

@@ -1,7 +1,10 @@
 package com.example.log4u.domain.diary.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -13,12 +16,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.log4u.common.dto.PageResponse;
+import com.example.log4u.common.oauth2.dto.CustomOAuth2User;
 import com.example.log4u.domain.diary.SortType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
-import com.example.log4u.domain.diary.service.DiaryService;
-import com.example.log4u.domain.user.entity.SocialType;
-import com.example.log4u.domain.user.entity.User;
+import com.example.log4u.domain.diary.dto.PopularDiaryDto;
+import com.example.log4u.domain.diary.facade.DiaryFacade;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,65 +33,86 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DiaryController {
 
-	private final DiaryService diaryService;
+	private final DiaryFacade diaryFacade;
+
+	@GetMapping("/users/{userId}")
+	public ResponseEntity<PageResponse<DiaryResponseDto>> getDiariesByUserId(
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
+		@PathVariable(name = "userId") Long targetUserId,
+		@RequestParam(required = false) Long cursorId,
+		@RequestParam(defaultValue = "12") int size
+	) {
+		PageResponse<DiaryResponseDto> response = diaryFacade.getDiariesByCursor(customOAuth2User.getUserId(),
+			targetUserId, cursorId, size);
+
+		return ResponseEntity.ok(response);
+	}
+
+	@GetMapping("/users/me")
+	public ResponseEntity<PageResponse<DiaryResponseDto>> getMyDiaries(
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
+		@RequestParam(required = false) Long cursorId,
+		@RequestParam(defaultValue = "12") int size
+	) {
+		PageResponse<DiaryResponseDto> response = diaryFacade.getDiariesByCursor(customOAuth2User.getUserId(),
+			customOAuth2User.getUserId(), cursorId, size);
+
+		return ResponseEntity.ok(response);
+	}
 
 	@PostMapping
 	public ResponseEntity<Void> createDiary(
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
 		@Valid @RequestBody DiaryRequestDto request
 	) {
-		User user = mockUser();
-		diaryService.saveDiary(user.getUserId(), request);
+		diaryFacade.createDiary(customOAuth2User.getUserId(), request);
 		return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 
-	@GetMapping
+	@GetMapping("/search")
 	public ResponseEntity<PageResponse<DiaryResponseDto>> searchDiaries(
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
 		@RequestParam(required = false) String keyword,
 		@RequestParam(defaultValue = "LATEST") SortType sort,
-		@RequestParam(defaultValue = "0") int page,
-		@RequestParam(defaultValue = "6") int size
+		@RequestParam(required = false) Long cursorId,
+		@RequestParam(defaultValue = "12") int size
 	) {
 		return ResponseEntity.ok(
-			diaryService.searchDiaries(keyword, sort, page, size)
+			diaryFacade.searchDiariesByCursor(keyword, sort, cursorId, size)
 		);
 	}
 
 	@GetMapping("/{diaryId}")
 	public ResponseEntity<DiaryResponseDto> getDiary(
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
 		@PathVariable Long diaryId
 	) {
-		User user = mockUser();
-		DiaryResponseDto diary = diaryService.getDiary(user.getUserId(), diaryId);
+		DiaryResponseDto diary = diaryFacade.getDiary(customOAuth2User.getUserId(), diaryId);
 		return ResponseEntity.ok(diary);
 	}
 
 	@PatchMapping("/{diaryId}")
 	public ResponseEntity<Void> modifyDiary(
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
 		@PathVariable Long diaryId,
 		@Valid @RequestBody DiaryRequestDto request
 	) {
-		User user = mockUser();
-		diaryService.updateDiary(user.getUserId(), diaryId, request);
+		diaryFacade.updateDiary(customOAuth2User.getUserId(), diaryId, request);
 		return ResponseEntity.ok().build();
 	}
 
 	@DeleteMapping("/{diaryId}")
-	public ResponseEntity<?> deleteDiary(
+	public ResponseEntity<Void> deleteDiary(
+		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
 		@PathVariable Long diaryId
 	) {
-		User user = mockUser();
-		diaryService.deleteDiary(user.getUserId(), diaryId);
+		diaryFacade.deleteDiary(customOAuth2User.getUserId(), diaryId);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 
-	private User mockUser() {
-		return User.builder()
-			.userId(1L)
-			.nickname("목유저")
-			.providerId("12345")
-			.socialType(SocialType.NAVER)
-			.email("mock@mock.com")
-			.statusMessage("목유저입니다.")
-			.build();
+	@GetMapping("/popular")
+	public ResponseEntity<List<PopularDiaryDto>> getPopularDiaries() {
+		List<PopularDiaryDto> popularDiaries = diaryFacade.getPopularDiaries(10);
+		return ResponseEntity.ok(popularDiaries);
 	}
 }

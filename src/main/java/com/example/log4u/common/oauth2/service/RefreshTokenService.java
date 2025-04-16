@@ -36,4 +36,8 @@ public class RefreshTokenService {
 	public void deleteRefreshToken(String refresh) {
 		refreshTokenRepository.deleteByRefresh(refresh);
 	}
+
+	public boolean existsByRefresh(String refresh) {
+		return refreshTokenRepository.existsByRefresh(refresh);
+	}
 }

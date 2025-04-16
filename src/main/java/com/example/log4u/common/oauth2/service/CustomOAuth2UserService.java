@@ -61,7 +61,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		UserCreateRequestDto userCreateRequestDto = UserCreateRequestDto.fromOAuth2Response(
 			oAuth2Response,
 			null,
-			"ROLE_GUEST"
+			"ROLE_USER"
 		);
 		User user = UserCreateRequestDto.toEntity(userCreateRequestDto);
 		userRepository.save(user);
@@ -69,14 +69,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		UserCreateRequestDto afterSaveDto = UserCreateRequestDto.fromOAuth2Response(
 			oAuth2Response,
 			user.getUserId(),
-			"ROLE_GUEST"
+			"ROLE_USER"
 		);
 
 		return new CustomOAuth2User(afterSaveDto);
 	}
 
 	public CustomOAuth2User updateUser(OAuth2Response oAuth2Response, User user) {
+
 		user.updateOauth2Profile(oAuth2Response);
+
 		userRepository.save(user);
 
 		UserCreateRequestDto userCreateRequestDto = UserCreateRequestDto.fromOAuth2Response(

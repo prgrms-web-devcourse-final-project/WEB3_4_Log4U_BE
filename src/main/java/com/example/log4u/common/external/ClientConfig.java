@@ -9,10 +9,10 @@ import com.example.log4u.common.external.hanlder.ApiResponseErrorHandler;
 @Configuration
 public class ClientConfig {
 
-    @Bean
-    public RestTemplate restTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setErrorHandler(new ApiResponseErrorHandler());
-        return restTemplate;
-    }
+	@Bean
+	public RestTemplate restTemplate() {
+		RestTemplate restTemplate = new RestTemplate();
+		restTemplate.setErrorHandler(new ApiResponseErrorHandler());
+		return restTemplate;
+	}
 }

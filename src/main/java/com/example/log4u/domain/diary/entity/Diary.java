@@ -1,11 +1,16 @@
 package com.example.log4u.domain.diary.entity;
 
+import java.time.LocalDate;
+
 import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.WeatherInfo;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
+import com.example.log4u.domain.map.dto.LocationDto;
+import com.example.log4u.domain.map.entitiy.Location;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -35,16 +40,21 @@ public class Diary extends BaseEntity {
 	@Column(nullable = false)
 	private String title;
 
+	@Column(nullable = false)
 	private String thumbnailUrl;
 
 	@Column(nullable = false)
 	private String content;
 
-	private Double latitude;
+	@Column(nullable = false)
+	private LocalDate diaryDate;
 
-	private Double longitude;
+	@Embedded
+	@Column(nullable = false)
+	private Location location;
 
 	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
 	private WeatherInfo weatherInfo;
 
 	@Enumerated(EnumType.STRING)
@@ -58,8 +68,8 @@ public class Diary extends BaseEntity {
 	public void update(DiaryRequestDto request, String newThumbnailUrl) {
 		this.title = request.title();
 		this.content = request.content();
-		this.latitude = request.latitude();
-		this.longitude = request.longitude();
+		this.diaryDate = request.diaryDate();
+		this.location = LocationDto.toEntity(request.location());
 		this.weatherInfo = request.weatherInfo();
 		this.visibility = request.visibility();
 		this.thumbnailUrl = newThumbnailUrl;

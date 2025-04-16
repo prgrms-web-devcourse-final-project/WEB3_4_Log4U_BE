@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Slice;
 
 public record PageResponse<T>(
-	List<T> content,
+	List<T> list,
 	PageInfo pageInfo
 ) {
 	// 오프셋 기반 (검색용)

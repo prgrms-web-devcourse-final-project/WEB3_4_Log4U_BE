@@ -22,10 +22,21 @@ spring:
         show_sql: true
 
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3307/log4u}
+    jdbc-url: ${DB_URL:jdbc:mysql://localhost:3307/log4u}
     username: ${DB_USERNAME:dev}
     password: ${DB_PASSWORD:devcos4-team08}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  second-datasource:
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: 1234
+    jdbc-url: jdbc:postgresql://localhost:5432/gis_db
+
+  aws:
+    s3:
+      bucket: ${S3_BUCKET_NAME}  # S3 버킷 이름을 GitHub Secrets에서 참조
+    region: ${AWS_REGION:ap-northeast-2}  # 기본값 서울 리전(ap-northeast-2)
 
   security:
     oauth2:

@@ -3,17 +3,36 @@ logging:
     org:
       springframework: debug
 
+server:
+  forward-headers-strategy: native
+  tomcat:
+    use-relative-redirects: false
+    remoteip:
+      protocol-header: X-Forwarded-Proto
+      remote-ip-header: X-Forwarded-For
+
 spring:
   datasource:
-    url: ${aws-mysql.url}
+    jdbc-url: ${aws-mysql.url}
     username: ${aws-mysql.username}
     password: ${aws-mysql.password}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  second-datasource:
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: 1234
+    jdbc-url: jdbc:postgresql://localhost:5432/gis_db
 
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: validate
+
+  data:
+    redis:
+      host: redis
+      port: 6379
 
   security:
     oauth2:

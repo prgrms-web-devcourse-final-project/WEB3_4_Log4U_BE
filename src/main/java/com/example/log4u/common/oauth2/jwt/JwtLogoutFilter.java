@@ -7,7 +7,8 @@ import java.io.PrintWriter;
 
 import org.springframework.web.filter.GenericFilterBean;
 
-import com.example.log4u.common.oauth2.repository.RefreshTokenRepository;
+import com.example.log4u.common.oauth2.service.RefreshTokenService;
+import com.example.log4u.common.util.CookieUtil;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -18,12 +19,14 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
+@Slf4j
 public class JwtLogoutFilter extends GenericFilterBean {
 
 	private final JwtUtil jwtUtil;
-	private final RefreshTokenRepository refreshTokenRepository;
+	private final RefreshTokenService refreshTokenService;
 	private static final String REFRESH_TOKEN_EXPIRED_JSON_MSG = "{\"message\": \"토큰이 존재하지 않습니다.\"}";
 
 	@Override
@@ -54,6 +57,13 @@ public class JwtLogoutFilter extends GenericFilterBean {
 		// 리프레시 토큰 추출
 		String refresh = extractRefreshTokenFromCookie(request);
 
+		if (refresh == null) {
+			// 이미 로그아웃 상태
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.setContentType("application/json");
+			return;
+		}
+
 		// 리프레시 토큰 유효성 검사
 		if (!validateTokenExpiration(response, refresh)) {
 			return;
@@ -64,11 +74,8 @@ public class JwtLogoutFilter extends GenericFilterBean {
 	}
 
 	private boolean shouldSkipFilter(String requestUri) {
-		// logout 검사
-		return !requestUri.matches("^\\/logout$")
-			|| requestUri.matches("^/oauth2(/.*)?$")
-			|| requestUri.matches("^/swagger-ui(/.*)?$")// Swagger UI 예외 처리
-			|| requestUri.matches("^/v3/api-docs(/.*)?$"); // OpenAPI 문서 예외 처리
+		//  /oauth2/logout 에 대해서만 실행되도록 함
+		return !"/oauth2/logout".equals(requestUri);
 	}
 
 	private boolean validateTokenExpiration(
@@ -77,9 +84,8 @@ public class JwtLogoutFilter extends GenericFilterBean {
 	) throws IOException {
 		// 리프레시 토큰 만료 체크
 		if (refresh == null) {
-			PrintWriter writer = response.getWriter();
-			writer.print(REFRESH_TOKEN_EXPIRED_JSON_MSG);
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			log.debug("리프레시 토큰 없음");
+			response.setStatus(HttpServletResponse.SC_OK);
 			return false;
 		}
 
@@ -87,6 +93,7 @@ public class JwtLogoutFilter extends GenericFilterBean {
 		try {
 			jwtUtil.isExpired(refresh);
 		} catch (ExpiredJwtException e) {
+			log.debug("리프레시 토큰 만료: {}", e.getMessage());
 			PrintWriter writer = response.getWriter();
 			writer.print(REFRESH_TOKEN_EXPIRED_JSON_MSG);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -96,6 +103,7 @@ public class JwtLogoutFilter extends GenericFilterBean {
 		// 토큰이 refresh 인지 확인 (발급시 페이로드에 명시)
 		String tokenType = jwtUtil.getTokenType(refresh);
 		if (!tokenType.equals(REFRESH_TOKEN)) {
+			log.debug("리프레시 타입 아님: {}", tokenType);
 			PrintWriter writer = response.getWriter();
 			writer.print(REFRESH_TOKEN_EXPIRED_JSON_MSG);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -103,8 +111,9 @@ public class JwtLogoutFilter extends GenericFilterBean {
 		}
 
 		// 리프레시 토큰이 DB에 없는 경우
-		Boolean isExist = refreshTokenRepository.existsByRefresh(refresh);
+		Boolean isExist = refreshTokenService.existsByRefresh(refresh);
 		if (Boolean.FALSE.equals(isExist)) {
+			log.warn("DB에 존재하지 않는 토큰");
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			return false;
 		}
@@ -114,35 +123,32 @@ public class JwtLogoutFilter extends GenericFilterBean {
 	}
 
 	private String extractRefreshTokenFromCookie(HttpServletRequest request) {
-		// 리프레시 토큰 추출
-		String refresh = null;
 		Cookie[] cookies = request.getCookies();
+		if (cookies == null) {
+			return null;
+		}
+
 		for (Cookie cookie : cookies) {
-			if (cookie.getName().equals(REFRESH_TOKEN)) {
-				refresh = cookie.getValue();
+			if (REFRESH_TOKEN.equals(cookie.getName())) {
+				return cookie.getValue();
 			}
 		}
-		return refresh;
+
+		return null;
 	}
 
-	public void logout(HttpServletResponse response, String refresh) {
+	public void logout(HttpServletResponse response, String refresh) throws IOException {
 		// DB 에서 리프레시 토큰 제거
-		refreshTokenRepository.deleteByRefresh(refresh);
+		refreshTokenService.deleteRefreshToken(refresh);
 		// 쿠키 제거
-		deleteCookie(response);
-	}
+		CookieUtil.deleteCookie(response, ACCESS_TOKEN);
+		CookieUtil.deleteCookie(response, REFRESH_TOKEN);
 
-	public void deleteCookie(HttpServletResponse response) {
-		Cookie access = new Cookie("access", null);
-		Cookie refresh = new Cookie("refresh", null);
-
-		access.setMaxAge(0);
-		access.setPath("/");
-		refresh.setMaxAge(0);
-		refresh.setPath("/");
-
-		response.addCookie(access);
-		response.addCookie(refresh);
+		// 응답 (404 방지)
 		response.setStatus(HttpServletResponse.SC_OK);
+		response.setContentType("application/json");
+		response.getWriter().write("{\"message\": \"로그아웃 성공\"}");
+		response.getWriter().flush();
 	}
+
 }

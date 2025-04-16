@@ -1,6 +1,6 @@
 package com.example.log4u.common.config;
 
-import java.util.Collections;
+import static com.example.log4u.common.config.CorsConfig.*;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,17 +13,16 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
-import org.springframework.web.cors.CorsConfiguration;
 
-import com.example.log4u.common.constants.UrlConstants;
 import com.example.log4u.common.oauth2.handler.OAuth2AuthenticationSuccessHandler;
 import com.example.log4u.common.oauth2.jwt.JwtAuthenticationFilter;
 import com.example.log4u.common.oauth2.jwt.JwtLogoutFilter;
 import com.example.log4u.common.oauth2.jwt.JwtUtil;
-import com.example.log4u.common.oauth2.repository.RefreshTokenRepository;
 import com.example.log4u.common.oauth2.service.CustomOAuth2UserService;
+import com.example.log4u.common.oauth2.service.RefreshTokenService;
 import com.example.log4u.domain.user.service.UserService;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -34,7 +33,7 @@ public class SecurityConfig {
 	private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 	private final CustomOAuth2UserService customOAuth2UserService;
 	private final UserService userService;
-	private final RefreshTokenRepository refreshTokenRepository;
+	private final RefreshTokenService refreshTokenService;
 
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws
@@ -49,7 +48,7 @@ public class SecurityConfig {
 
 	@Bean
 	public JwtLogoutFilter jwtLogoutFilter() {
-		return new JwtLogoutFilter(jwtUtil, refreshTokenRepository);
+		return new JwtLogoutFilter(jwtUtil, refreshTokenService);
 	}
 
 	@Bean
@@ -67,15 +66,24 @@ public class SecurityConfig {
 				.successHandler(oAuth2AuthenticationSuccessHandler)
 			)
 			.addFilterBefore(new JwtAuthenticationFilter(jwtUtil, userService), OAuth2LoginAuthenticationFilter.class)
-			.addFilterBefore(new JwtLogoutFilter(jwtUtil, refreshTokenRepository), LogoutFilter.class);
+			.addFilterBefore(new JwtLogoutFilter(jwtUtil, refreshTokenService), LogoutFilter.class)
+			.logout(AbstractHttpConfigurer::disable)
+			.exceptionHandling(exceptions -> exceptions
+				.authenticationEntryPoint((request, response, authException) -> {
+					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					response.setContentType("application/json");
+					response.setCharacterEncoding("UTF-8");
+					response.getWriter().write("{\"message\":\"Unauthorized\",\"message\":\"인증이 필요합니다\"}");
+				})
+			);
 
 		//경로별 인가 작업
 		http
 			.authorizeHttpRequests(auth -> auth
 				// 소셜 로그인 경로
 				.requestMatchers("/oauth2/**").permitAll()
-				// 프론트 개발용 임시 토큰 발급 api
-				.requestMatchers("/users/dev/**").permitAll()
+				// 테스트용 인증/인가 경로
+				.requestMatchers("/users/dev").permitAll()
 				// Swagger UI 관련 경로 (swagger-ui.html 추가)
 				.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
 				.anyRequest().authenticated());
@@ -85,20 +93,8 @@ public class SecurityConfig {
 			.sessionManagement(session ->
 				session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			// CORS 설정
-			.cors((corsCustomizer -> corsCustomizer.configurationSource(request -> {
-
-				CorsConfiguration configuration = new CorsConfiguration();
-
-				configuration.setAllowedOrigins(Collections.singletonList(UrlConstants.FRONT_URL));
-				configuration.setAllowedMethods(Collections.singletonList("*"));
-				configuration.setAllowCredentials(true);
-				configuration.setAllowedHeaders(Collections.singletonList("*"));
-				configuration.setMaxAge(3600L);
-				configuration.setExposedHeaders(Collections.singletonList("Set-Cookie"));
-				configuration.setExposedHeaders(Collections.singletonList("access"));
-				configuration.setExposedHeaders(Collections.singletonList("refresh"));
-				return configuration;
-			})));
+			.cors(corsCustomizer -> corsCustomizer.configurationSource(corsConfigurationSource()));
 		return http.build();
 	}
+
 }
