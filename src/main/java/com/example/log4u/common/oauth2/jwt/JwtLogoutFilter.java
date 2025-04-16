@@ -19,8 +19,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
+@Slf4j
 public class JwtLogoutFilter extends GenericFilterBean {
 
 	private final JwtUtil jwtUtil;
@@ -82,9 +84,8 @@ public class JwtLogoutFilter extends GenericFilterBean {
 	) throws IOException {
 		// 리프레시 토큰 만료 체크
 		if (refresh == null) {
-			PrintWriter writer = response.getWriter();
-			writer.print(REFRESH_TOKEN_EXPIRED_JSON_MSG);
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			log.debug("리프레시 토큰 없음");
+			response.setStatus(HttpServletResponse.SC_OK);
 			return false;
 		}
 
@@ -92,6 +93,7 @@ public class JwtLogoutFilter extends GenericFilterBean {
 		try {
 			jwtUtil.isExpired(refresh);
 		} catch (ExpiredJwtException e) {
+			log.debug("리프레시 토큰 만료: {}", e.getMessage());
 			PrintWriter writer = response.getWriter();
 			writer.print(REFRESH_TOKEN_EXPIRED_JSON_MSG);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -101,6 +103,7 @@ public class JwtLogoutFilter extends GenericFilterBean {
 		// 토큰이 refresh 인지 확인 (발급시 페이로드에 명시)
 		String tokenType = jwtUtil.getTokenType(refresh);
 		if (!tokenType.equals(REFRESH_TOKEN)) {
+			log.debug("리프레시 타입 아님: {}", tokenType);
 			PrintWriter writer = response.getWriter();
 			writer.print(REFRESH_TOKEN_EXPIRED_JSON_MSG);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -110,6 +113,7 @@ public class JwtLogoutFilter extends GenericFilterBean {
 		// 리프레시 토큰이 DB에 없는 경우
 		Boolean isExist = refreshTokenService.existsByRefresh(refresh);
 		if (Boolean.FALSE.equals(isExist)) {
+			log.warn("DB에 존재하지 않는 토큰");
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			return false;
 		}
