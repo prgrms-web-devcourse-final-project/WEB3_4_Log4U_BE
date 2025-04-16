@@ -59,11 +59,26 @@ public class User extends BaseEntity {
 	@Builder.Default
 	private boolean isPremium = false;
 
+	private boolean isValid(String value) {
+		return value != null && !value.trim().isEmpty();
+	}
+
 	public void updateOauth2Profile(OAuth2Response oAuth2Response) {
-		this.email = oAuth2Response.getEmail();
-		this.name = oAuth2Response.getName();
-		this.nickname = oAuth2Response.getNickname();
-		this.profileImage = oAuth2Response.getProfileImage();
+		if (!isValid(this.email) && isValid(oAuth2Response.getEmail())) {
+			this.email = oAuth2Response.getEmail();
+		}
+
+		if (!isValid(this.name) && isValid(oAuth2Response.getName())) {
+			this.name = oAuth2Response.getName();
+		}
+
+		if (!isValid(this.nickname) && isValid(oAuth2Response.getNickname())) {
+			this.nickname = oAuth2Response.getNickname();
+		}
+
+		if (!isValid(this.profileImage) && isValid(oAuth2Response.getProfileImage())) {
+			this.profileImage = oAuth2Response.getProfileImage();
+		}
 	}
 
 	public void updateMyProfile(UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
