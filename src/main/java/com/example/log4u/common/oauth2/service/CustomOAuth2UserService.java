@@ -76,7 +76,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 	}
 
 	public CustomOAuth2User updateUser(OAuth2Response oAuth2Response, User user) {
+
 		user.updateOauth2Profile(oAuth2Response);
+
 		userRepository.save(user);
 
 		UserCreateRequestDto userCreateRequestDto = UserCreateRequestDto.fromOAuth2Response(
