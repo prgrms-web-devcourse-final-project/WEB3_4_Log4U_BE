@@ -114,6 +114,15 @@ public class JwtLogoutFilter extends GenericFilterBean {
 		Boolean isExist = refreshTokenService.existsByRefresh(refresh);
 		if (Boolean.FALSE.equals(isExist)) {
 			log.warn("DB에 존재하지 않는 토큰");
+
+			// 쿠키 제거
+			CookieUtil.deleteCookie(response, ACCESS_TOKEN);
+			CookieUtil.deleteCookie(response, REFRESH_TOKEN);
+
+			// 응답 (404 방지)
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.setContentType("application/json");
+
 			response.setStatus(HttpServletResponse.SC_OK);
 			return false;
 		}
