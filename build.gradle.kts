@@ -73,7 +73,7 @@ dependencies {
     runtimeOnly("com.mysql:mysql-connector-j")
 
     // AWS
-    implementation(platform("software.amazon.awssdk:bom:2.31.11"))
+    implementation(platform("software.amazon.awssdk:bom:2.31.23"))
     implementation("software.amazon.awssdk:s3")
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
