@@ -39,7 +39,7 @@ dependencies {
 
 
     // PostgreSQL + PostGIS
-    implementation("org.postgresql:postgresql:42.7.3") // 최신 버전 확인
+    implementation("org.postgresql:postgresql:42.7.5") // 최신 버전 확인
     implementation ("org.hibernate.orm:hibernate-spatial:6.2.7.Final") // 최신 Hibernate 6
     implementation("org.hibernate.orm:hibernate-core:6.2.7.Final")
 
