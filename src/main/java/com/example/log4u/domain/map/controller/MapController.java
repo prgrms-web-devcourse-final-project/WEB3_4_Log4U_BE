@@ -36,44 +36,6 @@ public class MapController {
 
 	private final MapService mapService;
 
-	@Value("${naver.api.client-id}")
-	private String clientId;
-
-	@Value("${naver.api.client-secret}")
-	private String secret;
-
-	private final RestTemplate restTemplate;
-
-	@GetMapping("/location")
-	public ResponseEntity<ReverseGeocodingResponseDto> getMyLocation(
-		@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
-		@ModelAttribute MyLocationRequestDto request
-	) {
-
-		String naverMapsUrl = UriComponentsBuilder
-			.fromHttpUrl("https://maps.apigw.ntruss.com/map-reversegeocode/v2/gc")
-			.queryParam("coords", request.coords())
-			.queryParam("output", request.output())
-			.queryParam("orders", "legalcode,admcode,addr,roadaddr")
-			.toUriString();
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.set("x-ncp-apigw-api-key-id", clientId);
-		headers.set("x-ncp-apigw-api-key", secret);
-
-		HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-		ResponseEntity<ReverseGeocodingResponseDto> response = restTemplate.exchange(
-			naverMapsUrl,
-			HttpMethod.GET,
-			entity,
-			ReverseGeocodingResponseDto.class
-		);
-
-		log.debug("역 지오코딩 결과 : " + String.valueOf(response) + "\n");
-		return ResponseEntity.ok(response.getBody());
-	}
-
 	@GetMapping("/diaries/cluster")
 	public ResponseEntity<List<DiaryClusterResponseDto>> getDiaryClusters(
 		@RequestParam double south,
