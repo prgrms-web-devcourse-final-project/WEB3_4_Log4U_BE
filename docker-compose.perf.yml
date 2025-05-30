@@ -5,11 +5,16 @@ services:
       dockerfile: Dockerfile
     container_name: spring
     ports:
-      - "8080:8080"  # 외부에서 접속할 경우 필요 (선택)
+      - "8080:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker  # profile 설정 (application-docker.yml)
+      - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       - mysql
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     deploy:
       resources:
         limits:
@@ -114,6 +119,10 @@ services:
     volumes:
       - ./performance-test.js:/performance-test.js
     command: run /performance-test.js
+    depends_on:
+      spring:
+        condition: service_healthy
+
 
 volumes:
   pgdata:
