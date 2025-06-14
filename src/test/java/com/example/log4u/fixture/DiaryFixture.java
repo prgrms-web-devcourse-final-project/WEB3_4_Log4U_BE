@@ -28,6 +28,19 @@ public class DiaryFixture {
 			.build();
 	}
 
+	public static Diary createDiaryFixture(Long id) {
+		return Diary.builder()
+			.diaryId(id)
+			.userId(1L)
+			.title("테스트 다이어리")
+			.thumbnailUrl("thumbnail.jpg")
+			.content("다이어리 내용입니다.")
+			.diaryDate(LocalDate.now())
+			.location(LocationFixture.createDefaultLocation())
+			.likeCount(11L)
+			.build();
+	}
+
 	// 커스텀 다이어리 생성
 	public static Diary createCustomDiaryFixture(
 		Long diaryId,
