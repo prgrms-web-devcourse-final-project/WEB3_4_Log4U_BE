@@ -37,25 +37,17 @@ public class MapController {
 	private final MapService mapService;
 
 	@GetMapping("/diaries/cluster")
-	public ResponseEntity<List<DiaryClusterResponseDto>> getDiaryClusters(
-		@RequestParam double south,
-		@RequestParam double north,
-		@RequestParam double west,
-		@RequestParam double east,
-		@RequestParam int zoom
+	public ResponseEntity<List<DiaryClusterResponseDto>> getDiaryClustersByGeohash(
+		@RequestParam String geohash,
+		@RequestParam int level
 	) {
-		List<DiaryClusterResponseDto> clusters = mapService.getDiaryClusters(south, north, west, east, zoom);
+		List<DiaryClusterResponseDto> clusters = mapService.getDiaryClusters(geohash, level);
 		return ResponseEntity.ok(clusters);
 	}
 
 	@GetMapping("/diaries/marker")
-	public ResponseEntity<List<DiaryMarkerResponseDto>> getDiariesInBounds(
-		@RequestParam double south,
-		@RequestParam double north,
-		@RequestParam double west,
-		@RequestParam double east
-	) {
-		List<DiaryMarkerResponseDto> diaries = mapService.getDiariesInBounds(south, north, west, east);
+	public ResponseEntity<List<DiaryMarkerResponseDto>> getDiariesByGeohash(@RequestParam String geohash) {
+		List<DiaryMarkerResponseDto> diaries = mapService.getDiariesByGeohash(geohash);
 		return ResponseEntity.ok(diaries);
 	}
 }

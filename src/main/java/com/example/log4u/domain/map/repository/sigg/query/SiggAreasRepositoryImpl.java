@@ -21,7 +21,7 @@ public class SiggAreasRepositoryImpl implements SiggAreasRepositoryCustom {
 	}
 
 	@Override
-	public List<DiaryClusterResponseDto> findSiggAreaClusters(double south, double north, double west, double east) {
+	public List<DiaryClusterResponseDto> findByGeohashPrefix(String geohashPrefix) {
 		QSiggAreas s = QSiggAreas.siggAreas;
 		QSiggAreasDiaryCount c = QSiggAreasDiaryCount.siggAreasDiaryCount;
 
@@ -35,29 +35,7 @@ public class SiggAreasRepositoryImpl implements SiggAreasRepositoryCustom {
 			))
 			.from(s)
 			.leftJoin(c).on(s.gid.eq(c.id))
-			.where(
-				s.lat.between(south, north),
-				s.lon.between(west, east)
-			)
-			.fetch();
-	}
-
-
-	@Override
-	public List<DiaryClusterResponseDto> findAllWithDiaryCount() {
-		QSiggAreas s = QSiggAreas.siggAreas;
-		QSiggAreasDiaryCount c = QSiggAreasDiaryCount.siggAreasDiaryCount;
-
-		return queryFactory
-			.select(new QDiaryClusterResponseDto(
-				s.sggName,
-				s.gid,
-				s.lat,
-				s.lon,
-				c.diaryCount.coalesce(0L)
-			))
-			.from(s)
-			.leftJoin(c).on(s.gid.eq(c.id))
+			.where(s.geohash.startsWith(geohashPrefix))
 			.fetch();
 	}
 }

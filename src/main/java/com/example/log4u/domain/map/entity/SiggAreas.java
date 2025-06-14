@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -48,6 +49,9 @@ public class SiggAreas implements Areas {
 
 	@Column(name = "parent_id")
 	private Integer parentId;
+
+	@Column(name = "geohash")
+	private String geohash;
 
 	public SiggAreas(String sggName, Double lat, Double lon) {
 		this.sggName = sggName;

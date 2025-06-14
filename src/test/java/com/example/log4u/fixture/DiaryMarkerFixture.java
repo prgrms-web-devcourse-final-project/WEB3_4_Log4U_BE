@@ -17,4 +17,16 @@ public class DiaryMarkerFixture {
 			createDiaryMarker(2L, "두번째 다이어리", "https://example.com/thumb2.jpg", 7L, 37.5678, 126.9900, LocalDateTime.now().minusDays(2))
 		);
 	}
+
+	public static DiaryMarkerResponseDto createDiaryMarker(Long id) {
+		return createDiaryMarker(
+			id,
+			"다이어리 " + id,
+			"https://example.com/thumb" + id + ".jpg",
+			10L + id, // 예시로 likeCount 변화
+			37.5 + id * 0.01,
+			126.9 + id * 0.01,
+			LocalDateTime.now().minusDays(id)
+		);
+	}
 }

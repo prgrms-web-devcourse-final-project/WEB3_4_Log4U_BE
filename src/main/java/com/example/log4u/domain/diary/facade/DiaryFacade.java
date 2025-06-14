@@ -13,6 +13,7 @@ import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.dto.PopularDiaryDto;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.service.DiaryService;
+import com.example.log4u.domain.diary.service.DiaryGeohashService;
 import com.example.log4u.domain.hashtag.service.HashtagService;
 import com.example.log4u.domain.like.service.LikeService;
 import com.example.log4u.domain.map.service.MapService;
@@ -33,6 +34,7 @@ public class DiaryFacade {
 	private final LikeService likeService;
 	private final HashtagService hashtagService;
 	private final UserService userService;
+	private final DiaryGeohashService diaryGeohashService;
 
 	/**
 	 * 다이어리 생성 use case
@@ -41,6 +43,7 @@ public class DiaryFacade {
 	 * 2. diaryService: 다이어리 생성<br>
 	 * 2. mediaService: 해당 다이어리의 이미지 저장<br>
 	 * 3. mapService: 해당 구역 카운트 증가
+	 * 4. diaryGeohashService: 해당 다이어리 위치가 포함되어있는 geoHash 문자열 저장
 	 * */
 	@Transactional
 	public void createDiary(Long userId, DiaryRequestDto request) {
@@ -48,7 +51,11 @@ public class DiaryFacade {
 		Diary diary = diaryService.saveDiary(userId, request, thumbnailUrl);
 		mediaService.saveMedia(diary.getDiaryId(), request.mediaList());
 		hashtagService.saveOrUpdateHashtag(diary.getDiaryId(), request.hashtagList());
-		mapService.increaseRegionDiaryCount(request.location().latitude(), request.location().longitude());
+
+		double lat = request.location().latitude();
+		double lon = request.location().longitude();
+		mapService.increaseRegionDiaryCount(lat, lon);
+		diaryGeohashService.saveGeohash(diary.getDiaryId(), lat, lon);
 	}
 
 	/**
@@ -56,8 +63,10 @@ public class DiaryFacade {
 	 * <ul><li>호출 과정</li></ul>
 	 * 1. diaryService: 다이어리 검증
 	 * 2. mediaService: 해당 다이어리 이미지 삭제<br>
-	 * 3. diaryService: 다이어리 삭제<br>
-	 * 4. mapService: 해당 구역 카운트 감소
+	 * 3. mapService: 해당 구역 카운트 감소
+	 * 4. diaryGeohashService: 캐싱 되어있는 id, 데이터 삭제
+	 * 5. diaryService: 다이어리 삭제<br>
+	 *
 	 * */
 	@Transactional
 	public void deleteDiary(Long userId, Long diaryId) {
@@ -66,6 +75,7 @@ public class DiaryFacade {
 		hashtagService.deleteHashtagsByDiaryId(diaryId);
 		mapService.decreaseRegionDiaryCount(diary.getLocation().getLatitude(), diary.getLocation().getLongitude());
 
+		diaryGeohashService.deleteGeohashAndCache(diaryId);
 		diaryService.deleteDiary(diary);
 	}
 

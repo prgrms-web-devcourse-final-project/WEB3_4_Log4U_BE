@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -38,6 +39,9 @@ public class SidoAreas implements Areas {
 
 	@Column(nullable = false)
 	private Double lon;
+
+	@Column(name = "geohash")
+	private String geohash;
 
 	public SidoAreas(String name, double lat, double lon) {
 		this.name = name;

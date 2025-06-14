@@ -21,7 +21,7 @@ public class SidoAreasRepositoryImpl implements SidoAreasRepositoryCustom {
 	}
 
 	@Override
-	public List<DiaryClusterResponseDto> findSidoAreaClusters(double south, double north, double west, double east) {
+	public List<DiaryClusterResponseDto> findByGeohashPrefix(String geohashPrefix) {
 		QSidoAreas s = QSidoAreas.sidoAreas;
 		QSidoAreasDiaryCount c = QSidoAreasDiaryCount.sidoAreasDiaryCount;
 
@@ -35,28 +35,7 @@ public class SidoAreasRepositoryImpl implements SidoAreasRepositoryCustom {
 			))
 			.from(s)
 			.leftJoin(c).on(s.id.eq(c.id))
-			.where(
-				s.lat.between(south, north),
-				s.lon.between(west, east)
-			)
-			.fetch();
-	}
-
-	@Override
-	public List<DiaryClusterResponseDto> findAllWithDiaryCount() {
-		QSidoAreas s = QSidoAreas.sidoAreas;
-		QSidoAreasDiaryCount c = QSidoAreasDiaryCount.sidoAreasDiaryCount;
-
-		return queryFactory
-			.select(new QDiaryClusterResponseDto(
-				s.name,
-				s.id,
-				s.lat,
-				s.lon,
-				c.diaryCount.coalesce(0L)
-			))
-			.from(s)
-			.leftJoin(c).on(s.id.eq(c.id))
+			.where(s.geohash.startsWith(geohashPrefix))
 			.fetch();
 	}
 }
