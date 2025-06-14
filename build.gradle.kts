@@ -37,6 +37,8 @@ dependencies {
 
     implementation ("org.antlr:antlr4-runtime:4.10.1")
 
+    implementation("ch.hsr:geohash:1.4.0")
+
 
     // PostgreSQL + PostGIS
     implementation("org.postgresql:postgresql:42.7.3") // 최신 버전 확인
