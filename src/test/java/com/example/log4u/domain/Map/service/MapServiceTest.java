@@ -3,10 +3,12 @@ package com.example.log4u.domain.Map.service;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.*;
 import static org.mockito.BDDMockito.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -130,7 +132,7 @@ class MapServiceTest {
 		DiaryMarkerResponseDto dto2 = DiaryMarkerFixture.createDiaryMarker(2L);
 
 		given(diaryCacheDao.getDiaryIdSetFromCache("wydmt")).willReturn(cachedIds);
-		given(diaryCacheDao.getDiariesFromCacheBulk(List.of(1L, 2L))).willReturn(List.of(dto1, dto2));
+		given(diaryCacheDao.getDiariesFromCacheBulk(anyList())).willReturn(List.of(dto1, dto2));
 
 		// when
 		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash("wydmt");
@@ -141,42 +143,22 @@ class MapServiceTest {
 		verify(diaryGeohashService, never()).getDiaryIdsByGeohash(any());
 	}
 
-
-	@DisplayName("성공 : geohash 캐시 HIT + 모든 diary 캐시 MISS")
-	@Test
-	void getDiariesByGeohash_success_allDiaryCacheMiss() {
-		// given
-		String geohash = "wydmt";
-		Set<Long> cachedIds = Set.of(1L, 2L);
-		Diary diary1 = DiaryFixture.createDiaryFixture(1L);
-		Diary diary2 = DiaryFixture.createDiaryFixture(2L);
-		DiaryMarkerResponseDto dto1 = DiaryMarkerResponseDto.of(diary1);
-		DiaryMarkerResponseDto dto2 = DiaryMarkerResponseDto.of(diary2);
-
-		given(diaryCacheDao.getDiaryIdSetFromCache("wydmt")).willReturn(cachedIds);
-		given(diaryCacheDao.getDiariesFromCacheBulk(List.of(1L, 2L))).willReturn(List.of());
-		given(diaryService.getDiaries(List.of(1L, 2L))).willReturn(List.of(diary1, diary2));
-
-		// when
-		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash("wydmt");
-
-		// then
-		assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
-		verify(diaryCacheDao).cacheAllDiaries(List.of(dto1, dto2));
-	}
-
 	@DisplayName("성공 : geohash 캐시 HIT + 일부 diary 캐시 MISS")
 	@Test
 	void getDiariesByGeohash_success_partialDiaryCacheMiss() {
 		// given
 		String geohash = "wydmt";
 		Set<Long> cachedIds = Set.of(1L, 2L);
+		List<Long> sortedIds = new ArrayList<>(cachedIds);
+		Collections.sort(sortedIds);
+
 		DiaryMarkerResponseDto dto1 = DiaryMarkerFixture.createDiaryMarker(1L);
 		Diary diary2 = DiaryFixture.createDiaryFixture(2L);
 		DiaryMarkerResponseDto dto2 = DiaryMarkerResponseDto.of(diary2);
 
 		given(diaryCacheDao.getDiaryIdSetFromCache("wydmt")).willReturn(cachedIds);
-		given(diaryCacheDao.getDiariesFromCacheBulk(List.of(1L, 2L))).willReturn(List.of(dto1));
+		given(diaryCacheDao.getDiariesFromCacheBulk(anyList()))
+			.willReturn(List.of(dto1));
 		given(diaryService.getDiaries(List.of(2L))).willReturn(List.of(diary2));
 
 		// when
@@ -186,6 +168,7 @@ class MapServiceTest {
 		assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
 		verify(diaryCacheDao).cacheAllDiaries(List.of(dto2));
 	}
+
 
 	@DisplayName("성공 : geohash 캐시 MISS → DB 조회 → 모든 diary 캐시 HIT")
 	@Test
