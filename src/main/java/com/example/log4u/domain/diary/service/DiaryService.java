@@ -278,4 +278,8 @@ public class DiaryService {
 	public List<Diary> getTop10Diaries() {
 		return diaryRepository.findTop10ByVisibilityOrderByLikeCountDesc(VisibilityType.PUBLIC);
 	}
+
+	public List<Diary> getDiaries(List<Long> ids) {
+		return diaryRepository.findAllById(ids);
+	}
 }
