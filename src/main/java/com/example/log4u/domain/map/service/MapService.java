@@ -85,39 +85,32 @@ public class MapService {
 	@Transactional(readOnly = true)
 	public List<DiaryMarkerResponseDto> getDiariesByGeohash(String geohash) {
 		validateGeohashLength(geohash, 5);
-		Set<Long> diaryIds = loadDiaryIdsFromGeoCache(geohash);
+		List<Long> diaryIds = loadDiaryIdsFromGeoCache(geohash);
 		return loadDiaryDtosFromCache(diaryIds);
 	}
 
-	private Set<Long> loadDiaryIdsFromGeoCache(String geohash) {
+	private List<Long> loadDiaryIdsFromGeoCache(String geohash) {
 		Set<Long> cachedIds = diaryCacheDao.getDiaryIdSetFromCache(geohash);
 		if (!cachedIds.isEmpty())
-			return cachedIds;
+			return new ArrayList<>(cachedIds);
 
 		List<Long> diaryIds = diaryGeohashService.getDiaryIdsByGeohash(geohash);
 		diaryCacheDao.cacheDiaryIdSetByGeohash(geohash, diaryIds);
-		return new HashSet<>(diaryIds);
+		return diaryIds;
 	}
 
-	private List<DiaryMarkerResponseDto> loadDiaryDtosFromCache(Set<Long> diaryIds) {
-		List<DiaryMarkerResponseDto> cached = getCachedDiaryDtos(diaryIds);
-		List<Long> missedIds = getCacheMissedIds(diaryIds, cached);
-		List<DiaryMarkerResponseDto> loaded = loadDiariesAndCache(missedIds);
 
-		return Stream.concat(cached.stream(), loaded.stream())
-			.toList();
+	private List<DiaryMarkerResponseDto> loadDiaryDtosFromCache(List<Long> diaryIds) {
+		List<DiaryMarkerResponseDto> cachedDtos = diaryCacheDao.getDiariesFromCacheBulk(diaryIds);
+		List<Long> missedIds = getCacheMissedIds(diaryIds, cachedDtos);
+		if (missedIds.isEmpty())
+			return cachedDtos;
+
+		List<DiaryMarkerResponseDto> loaded = loadAndCacheMissedDiaries(missedIds);
+		return Stream.concat(cachedDtos.stream(), loaded.stream()).toList();
 	}
 
-	private List<DiaryMarkerResponseDto> getCachedDiaryDtos(Set<Long> ids) {
-		List<DiaryMarkerResponseDto> cached = new ArrayList<>();
-		for (Long id : ids) {
-			DiaryMarkerResponseDto dto = diaryCacheDao.getDiaryFromCache(id);
-			if (dto != null) cached.add(dto);
-		}
-		return cached;
-	}
-
-	private List<Long> getCacheMissedIds(Set<Long> allIds, List<DiaryMarkerResponseDto> cachedDtos) {
+	private List<Long> getCacheMissedIds(List<Long> allIds, List<DiaryMarkerResponseDto> cachedDtos) {
 		Set<Long> cachedIds = cachedDtos.stream()
 			.map(DiaryMarkerResponseDto::diaryId)
 			.collect(Collectors.toSet());
@@ -127,19 +120,13 @@ public class MapService {
 			.collect(Collectors.toList());
 	}
 
-	private List<DiaryMarkerResponseDto> loadDiariesAndCache(List<Long> missedIds) {
-		if (missedIds.isEmpty())
-			return Collections.emptyList();
-
+	private List<DiaryMarkerResponseDto> loadAndCacheMissedDiaries(List<Long> missedIds) {
 		List<Diary> diaries = diaryService.getDiaries(missedIds);
-		List<DiaryMarkerResponseDto> result = new ArrayList<>();
+		List<DiaryMarkerResponseDto> result = diaries.stream()
+			.map(DiaryMarkerResponseDto::of)
+			.toList();
 
-		for (Diary diary : diaries) {
-			DiaryMarkerResponseDto dto = DiaryMarkerResponseDto.of(diary);
-			diaryCacheDao.cacheDiary(diary.getDiaryId(), dto);
-			result.add(dto);
-		}
-
+		diaryCacheDao.cacheAllDiaries(result);
 		return result;
 	}
 

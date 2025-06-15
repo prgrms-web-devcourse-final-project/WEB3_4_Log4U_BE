@@ -129,18 +129,18 @@ class MapServiceTest {
 		DiaryMarkerResponseDto dto1 = DiaryMarkerFixture.createDiaryMarker(1L);
 		DiaryMarkerResponseDto dto2 = DiaryMarkerFixture.createDiaryMarker(2L);
 
-		given(diaryCacheDao.getDiaryIdSetFromCache(geohash)).willReturn(cachedIds);
-		given(diaryCacheDao.getDiaryFromCache(1L)).willReturn(dto1);
-		given(diaryCacheDao.getDiaryFromCache(2L)).willReturn(dto2);
+		given(diaryCacheDao.getDiaryIdSetFromCache("wydmt")).willReturn(cachedIds);
+		given(diaryCacheDao.getDiariesFromCacheBulk(List.of(1L, 2L))).willReturn(List.of(dto1, dto2));
 
 		// when
-		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash(geohash);
+		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash("wydmt");
 
 		// then
 		assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
 		verify(diaryRepository, never()).findAllById(any());
 		verify(diaryGeohashService, never()).getDiaryIdsByGeohash(any());
 	}
+
 
 	@DisplayName("성공 : geohash 캐시 HIT + 모든 diary 캐시 MISS")
 	@Test
@@ -154,8 +154,7 @@ class MapServiceTest {
 		DiaryMarkerResponseDto dto2 = DiaryMarkerResponseDto.of(diary2);
 
 		given(diaryCacheDao.getDiaryIdSetFromCache("wydmt")).willReturn(cachedIds);
-		given(diaryCacheDao.getDiaryFromCache(1L)).willReturn(null);
-		given(diaryCacheDao.getDiaryFromCache(2L)).willReturn(null);
+		given(diaryCacheDao.getDiariesFromCacheBulk(List.of(1L, 2L))).willReturn(List.of());
 		given(diaryService.getDiaries(List.of(1L, 2L))).willReturn(List.of(diary1, diary2));
 
 		// when
@@ -163,8 +162,7 @@ class MapServiceTest {
 
 		// then
 		assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
-		verify(diaryCacheDao).cacheDiary(1L, dto1);
-		verify(diaryCacheDao).cacheDiary(2L, dto2);
+		verify(diaryCacheDao).cacheAllDiaries(List.of(dto1, dto2));
 	}
 
 	@DisplayName("성공 : geohash 캐시 HIT + 일부 diary 캐시 MISS")
@@ -177,17 +175,16 @@ class MapServiceTest {
 		Diary diary2 = DiaryFixture.createDiaryFixture(2L);
 		DiaryMarkerResponseDto dto2 = DiaryMarkerResponseDto.of(diary2);
 
-		given(diaryCacheDao.getDiaryIdSetFromCache(geohash)).willReturn(cachedIds);
-		given(diaryCacheDao.getDiaryFromCache(1L)).willReturn(dto1);
-		given(diaryCacheDao.getDiaryFromCache(2L)).willReturn(null);
+		given(diaryCacheDao.getDiaryIdSetFromCache("wydmt")).willReturn(cachedIds);
+		given(diaryCacheDao.getDiariesFromCacheBulk(List.of(1L, 2L))).willReturn(List.of(dto1));
 		given(diaryService.getDiaries(List.of(2L))).willReturn(List.of(diary2));
 
 		// when
-		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash(geohash);
+		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash("wydmt");
 
 		// then
 		assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
-		verify(diaryService).getDiaries(List.of(2L));
+		verify(diaryCacheDao).cacheAllDiaries(List.of(dto2));
 	}
 
 	@DisplayName("성공 : geohash 캐시 MISS → DB 조회 → 모든 diary 캐시 HIT")
@@ -201,8 +198,7 @@ class MapServiceTest {
 
 		given(diaryCacheDao.getDiaryIdSetFromCache(geohash)).willReturn(Collections.emptySet());
 		given(diaryGeohashService.getDiaryIdsByGeohash(geohash)).willReturn(diaryIdsFromDb);
-		given(diaryCacheDao.getDiaryFromCache(1L)).willReturn(dto1);
-		given(diaryCacheDao.getDiaryFromCache(2L)).willReturn(dto2);
+		given(diaryCacheDao.getDiariesFromCacheBulk(diaryIdsFromDb)).willReturn(List.of(dto1, dto2));
 
 		// when
 		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash(geohash);
@@ -226,9 +222,8 @@ class MapServiceTest {
 
 		given(diaryCacheDao.getDiaryIdSetFromCache(geohash)).willReturn(Collections.emptySet());
 		given(diaryGeohashService.getDiaryIdsByGeohash(geohash)).willReturn(diaryIdsFromDb);
-		given(diaryCacheDao.getDiaryFromCache(1L)).willReturn(null);
-		given(diaryCacheDao.getDiaryFromCache(2L)).willReturn(null);
-		given(diaryService.getDiaries(List.of(1L, 2L))).willReturn(List.of(diary1, diary2));
+		given(diaryCacheDao.getDiariesFromCacheBulk(diaryIdsFromDb)).willReturn(List.of());
+		given(diaryService.getDiaries(diaryIdsFromDb)).willReturn(List.of(diary1, diary2));
 
 		// when
 		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash(geohash);
@@ -236,8 +231,7 @@ class MapServiceTest {
 		// then
 		assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
 		verify(diaryCacheDao).cacheDiaryIdSetByGeohash(geohash, diaryIdsFromDb);
-		verify(diaryCacheDao).cacheDiary(1L, dto1);
-		verify(diaryCacheDao).cacheDiary(2L, dto2);
+		verify(diaryCacheDao).cacheAllDiaries(List.of(dto1, dto2));
 	}
 
 	@DisplayName("성공 : geohash 캐시 MISS → DB 조회 → diary 일부 캐시 MISS")
@@ -252,8 +246,7 @@ class MapServiceTest {
 
 		given(diaryCacheDao.getDiaryIdSetFromCache(geohash)).willReturn(Collections.emptySet());
 		given(diaryGeohashService.getDiaryIdsByGeohash(geohash)).willReturn(dbIds);
-		given(diaryCacheDao.getDiaryFromCache(1L)).willReturn(dto1);
-		given(diaryCacheDao.getDiaryFromCache(2L)).willReturn(null);
+		given(diaryCacheDao.getDiariesFromCacheBulk(dbIds)).willReturn(List.of(dto1));
 		given(diaryService.getDiaries(List.of(2L))).willReturn(List.of(diary2));
 
 		// when
@@ -262,6 +255,7 @@ class MapServiceTest {
 		// then
 		assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
 		verify(diaryCacheDao).cacheDiaryIdSetByGeohash(geohash, dbIds);
+		verify(diaryCacheDao).cacheAllDiaries(List.of(dto2));
 	}
 
 	@DisplayName("성공 : Redis 예외 발생 시 fallback 작동: DB에서 조회됨")
@@ -285,14 +279,14 @@ class MapServiceTest {
 		verify(diaryService).getDiaries(diaryIds);
 	}
 
-	@DisplayName("예외 : diaryId 존재하나 DB에 diary 없음 ")
+	@DisplayName("예외 : diaryId 존재하나 DB에 diary 없음")
 	@Test
 	void diaryIdExistsButDiaryMissingInDb() {
 		// given
 		String geohash = "wydmt";
 		Set<Long> cachedIds = Set.of(100L);
 		given(diaryCacheDao.getDiaryIdSetFromCache(geohash)).willReturn(cachedIds);
-		given(diaryCacheDao.getDiaryFromCache(100L)).willReturn(null); // cache miss
+		given(diaryCacheDao.getDiariesFromCacheBulk(List.of(100L))).willReturn(List.of());
 		given(diaryService.getDiaries(List.of(100L))).willReturn(Collections.emptyList());
 
 		// when

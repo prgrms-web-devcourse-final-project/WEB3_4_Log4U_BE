@@ -1,7 +1,10 @@
 package com.example.log4u.domain.map.cache.dao;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,7 +38,7 @@ public class DiaryCacheDao {
 				.map(obj -> Long.parseLong(obj.toString()))
 				.collect(Collectors.toSet());
 		} catch (Exception e) {
-			log.error("diaryId Set 조회 실패 (key: {})", key, e);
+			log.warn("diaryId Set 조회 실패 (key: {})", key, e);
 			return Collections.emptySet();
 		}
 	}
@@ -49,39 +52,56 @@ public class DiaryCacheDao {
 			redisTemplate.opsForSet().add(key, diaryIds.toArray());
 			redisTemplate.expire(key, RedisTTLPolicy.DIARY_ID_SET_TTL);
 		} catch (Exception e) {
-			log.error("diaryId Set 저장 실패 (key: {})", key, e);
+			log.warn("diaryId Set 저장 실패 (key: {})", key, e);
 		}
 	}
 
-	public DiaryMarkerResponseDto getDiaryFromCache(Long diaryId) {
-		String key = CacheKeyGenerator.diaryKey(diaryId);
+	public List<DiaryMarkerResponseDto> getDiariesFromCacheBulk(List<Long> diaryIds) {
+		List<String> keys = diaryIds.stream()
+			.map(CacheKeyGenerator::diaryKey)
+			.toList();
+		List<Object> values = redisTemplate.opsForValue().multiGet(keys);
+
+		List<DiaryMarkerResponseDto> result = new ArrayList<>();
+		for (Object raw : values) {
+			if (raw != null) {
+				try {
+					result.add(objectMapper.readValue(raw.toString(), DiaryMarkerResponseDto.class));
+				} catch (Exception e) {
+					log.warn("Diary 캐시 역직렬화 실패", e);
+				}
+			}
+		}
+		return result;
+	}
+
+	public void cacheAllDiaries(List<DiaryMarkerResponseDto> dtos) {
 		try {
-			Object raw = redisTemplate.opsForValue().get(key);
-			if (raw == null) return null;
+			Map<String, String> map = new HashMap<>();
+			for (DiaryMarkerResponseDto dto : dtos) {
+				String key = CacheKeyGenerator.diaryKey(dto.diaryId());
+				String value = objectMapper.writeValueAsString(dto);
+				map.put(key, value);
+			}
+			redisTemplate.opsForValue().multiSet(map);
 
-			return objectMapper.readValue(raw.toString(), DiaryMarkerResponseDto.class);
+			// TTL은 multiSet에는 개별로 설정 불가 → 옵션: pipeline 사용
+			// 또는 각 key에 대해 expire 호출 반복 필요
+			for (String key : map.keySet()) {
+				redisTemplate.expire(key, RedisTTLPolicy.DIARY_TTL);
+			}
 		} catch (Exception e) {
-			log.error("단건 diary 조회 실패 (key: {})", key, e);
-			return null;
+			log.warn("diary bulk 캐시 저장 실패", e);
 		}
 	}
 
-	public void cacheDiary(Long diaryId, DiaryMarkerResponseDto dto) {
-		String key = CacheKeyGenerator.diaryKey(diaryId);
-		try {
-			String json = objectMapper.writeValueAsString(dto);
-			redisTemplate.opsForValue().set(key, json, RedisTTLPolicy.DIARY_TTL);
-		} catch (Exception e) {
-			log.error("단건 diary 캐시 저장 실패 (key: {})", key, e);
-		}
-	}
 
 	public void evictDiaryIdFromCache(String geohash, Long diaryId) {
 		String key = CacheKeyGenerator.diaryIdSetKey(geohash);
 		try {
 			redisTemplate.opsForSet().remove(key, diaryId);
 		} catch (Exception e) {
-			log.error("diaryId 제거 실패 (key: {}, diaryId: {})", key, diaryId, e);
+			log.warn("diaryId 제거 실패 (key: {}, diaryId: {})", key, diaryId, e);
 		}
 	}
 
@@ -90,8 +110,7 @@ public class DiaryCacheDao {
 		try {
 			redisTemplate.delete(key);
 		} catch (Exception e) {
-			log.error("diary 캐시 삭제 실패 (key: {})", key, diaryId, e);
+			log.warn("diary 캐시 삭제 실패 (key: {})", key, diaryId, e);
 		}
 	}
-
 }
