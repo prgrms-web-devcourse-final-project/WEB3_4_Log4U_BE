@@ -153,13 +153,13 @@ class MapServiceTest {
 		DiaryMarkerResponseDto dto1 = DiaryMarkerResponseDto.of(diary1);
 		DiaryMarkerResponseDto dto2 = DiaryMarkerResponseDto.of(diary2);
 
-		given(diaryCacheDao.getDiaryIdSetFromCache(geohash)).willReturn(cachedIds);
+		given(diaryCacheDao.getDiaryIdSetFromCache("wydmt")).willReturn(cachedIds);
 		given(diaryCacheDao.getDiaryFromCache(1L)).willReturn(null);
 		given(diaryCacheDao.getDiaryFromCache(2L)).willReturn(null);
 		given(diaryService.getDiaries(List.of(1L, 2L))).willReturn(List.of(diary1, diary2));
 
 		// when
-		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash(geohash);
+		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash("wydmt");
 
 		// then
 		assertThat(result).containsExactlyInAnyOrder(dto1, dto2);

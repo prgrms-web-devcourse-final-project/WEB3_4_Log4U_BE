@@ -21,6 +21,7 @@ import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryResponseDto;
 import com.example.log4u.domain.diary.entity.Diary;
+import com.example.log4u.domain.diary.service.DiaryGeohashService;
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.hashtag.service.HashtagService;
 import com.example.log4u.domain.like.service.LikeService;
@@ -54,6 +55,9 @@ class DiaryFacadeTest {
 	@Mock
 	private HashtagService hashtagService;
 
+	@Mock
+	private DiaryGeohashService diaryGeohashService;
+
 	@InjectMocks
 	private DiaryFacade diaryFacade;
 
@@ -77,8 +81,17 @@ class DiaryFacadeTest {
 		verify(diaryService).saveDiary(userId, request, thumbnailUrl);
 		verify(mediaService).saveMedia(diary.getDiaryId(), request.mediaList());
 		verify(hashtagService).saveOrUpdateHashtag(diary.getDiaryId(), request.hashtagList());
-		verify(mapService).increaseRegionDiaryCount(request.location().latitude(), request.location().longitude());
+		verify(mapService).increaseRegionDiaryCount(
+			request.location().latitude(),
+			request.location().longitude()
+		);
+		verify(diaryGeohashService).saveGeohash(
+			diary.getDiaryId(),
+			request.location().latitude(),
+			request.location().longitude()
+		);
 	}
+
 
 	@Test
 	@DisplayName("다이어리 삭제 성공")
@@ -97,8 +110,14 @@ class DiaryFacadeTest {
 		verify(diaryService).getDiaryAfterValidateOwnership(diaryId, userId);
 		verify(mediaService).deleteMediaByDiaryId(diaryId);
 		verify(hashtagService).deleteHashtagsByDiaryId(diaryId);
+		verify(mapService).decreaseRegionDiaryCount(
+			diary.getLocation().getLatitude(),
+			diary.getLocation().getLongitude()
+		);
+		verify(diaryGeohashService).deleteGeohashAndCache(diaryId);
 		verify(diaryService).deleteDiary(diary);
 	}
+
 
 	@Test
 	@DisplayName("다이어리 수정 성공")
