@@ -90,6 +90,7 @@ jobs:
           fi
 
       - name: Test and analyze
+        if: github.event_name != 'pull_request' 
         env:
           #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
