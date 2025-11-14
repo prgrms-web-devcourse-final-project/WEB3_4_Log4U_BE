@@ -50,6 +50,11 @@ jobs:
           sudo curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
 
+      - name: CI용 빈 init.sql 생성
+        run: |
+          mkdir -p docker
+          touch docker/init.sql
+
       - name: Docker Compose 실행
         run: |
           chmod -R 755 ./docker
@@ -95,7 +100,7 @@ jobs:
           NAVER_DEV_CLIENT_SECRET: ${{ secrets.NAVER_DEV_CLIENT_SECRET }}
           NAVER_DEV_REDIRECT_URI: ${{ secrets.NAVER_DEV_REDIRECT_URI }}
           GOOGLE_DEV_CLIENT_ID: ${{ secrets.GOOGLE_DEV_CLIENT_ID }}
-          GOOGLE_DEV_CLIENT_SECRET: ${{ secrets.GOOGLE_DEV_CLIENT_SECRET }}r
+          GOOGLE_DEV_CLIENT_SECRET: ${{ secrets.GOOGLE_DEV_CLIENT_SECRET }}
           GOOGLE_DEV_REDIRECT_URI: ${{ secrets.GOOGLE_DEV_REDIRECT_URI }}
           KAKAO_DEV_CLIENT_ID: ${{ secrets.KAKAO_DEV_CLIENT_ID }}
           KAKAO_DEV_CLIENT_SECRET: ${{ secrets.KAKAO_DEV_CLIENT_SECRET }}
