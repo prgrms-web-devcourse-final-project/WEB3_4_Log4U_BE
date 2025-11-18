@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +21,7 @@ import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.diary.service.DiaryGeohashService;
 import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.map.cache.dao.ClusterCacheDao;
-import com.example.log4u.domain.map.cache.dao.DiaryCacheDao;
+import com.example.log4u.domain.map.cache.dao.MarkerCacheDao;
 import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.example.log4u.domain.map.exception.InvalidGeohashException;
@@ -50,7 +49,7 @@ class MapServiceTest {
 	private DiaryRepository diaryRepository;
 
 	@Mock
-	private DiaryCacheDao diaryCacheDao;
+	private MarkerCacheDao markerCacheDao;
 
 	@Mock
 	private DiaryService diaryService;
@@ -61,222 +60,106 @@ class MapServiceTest {
 	@Mock
 	private ClusterCacheDao clusterCacheDao;
 
-	private static final String GEOHASH = "abc";
-	private static final int VALID_LEVEL_1 = 1;
-	private static final int VALID_LEVEL_2 = 2;
+	private static final String GEOHASH_L3 = "abc";
+	private static final String GEOHASH_L5 = "abcde";
 
-	private final List<DiaryClusterResponseDto> mockResult = List.of(
+	private static final int LEVEL_SIDO = 1;
+	private static final int LEVEL_SIGG = 2;
+
+	private final List<DiaryClusterResponseDto> clusters = List.of(
 		new DiaryClusterResponseDto("서울", 1L, 37.5665, 126.9780, 10L)
+	);
+
+	private final List<DiaryMarkerResponseDto> markers = List.of(
+		DiaryMarkerResponseDto.of(
+			DiaryFixture.createDiaryFixture(1L)
+		)
 	);
 
 	@DisplayName("성공: 클러스터 캐시 HIT")
 	@Test
-	void getDiaryClusters_success_cacheHit() {
+	void getDiaryClusters_cacheHit() {
 		// given
-		given(clusterCacheDao.getDiaryCluster(GEOHASH, VALID_LEVEL_1)).willReturn(Optional.of(mockResult));
+		given(clusterCacheDao.load(GEOHASH_L3, LEVEL_SIDO)).willReturn(clusters);
 
 		// when
-		List<DiaryClusterResponseDto> result = mapService.getDiaryClusters(GEOHASH, VALID_LEVEL_1);
+		List<DiaryClusterResponseDto> result = mapService.getDiaryClusters(GEOHASH_L3, LEVEL_SIDO);
 
 		// then
-		assertThat(result).isEqualTo(mockResult);
-		verify(sidoAreasRepository, never()).findByGeohashPrefix(any());
-		verify(clusterCacheDao, never()).setDiaryCluster(any(), anyInt(), any(), any());
+		assertThat(result).isEqualTo(clusters);
+		verify(clusterCacheDao).load(GEOHASH_L3, LEVEL_SIDO);
+		verify(clusterCacheDao, never()).loadAndCache(anyString(), anyInt());
 	}
 
-	@DisplayName("성공: 캐시 MISS → DB 조회 → 캐시 저장")
+
+	@DisplayName("성공: 캐시 MISS → DAO.loadAndCache 호출")
 	@Test
-	void getDiaryClusters_success_cacheMiss_then_dbHit_and_cacheStore() {
+	void getDiaryClusters_cacheMiss_thenLoadAndCache() {
 		// given
-		given(clusterCacheDao.getDiaryCluster(GEOHASH, VALID_LEVEL_1)).willReturn(Optional.empty());
-		given(sidoAreasRepository.findByGeohashPrefix(GEOHASH)).willReturn(mockResult);
+		given(clusterCacheDao.load(GEOHASH_L3, LEVEL_SIDO)).willReturn(null);
+		given(clusterCacheDao.loadAndCache(GEOHASH_L3, LEVEL_SIDO)).willReturn(clusters);
 
 		// when
-		List<DiaryClusterResponseDto> result = mapService.getDiaryClusters(GEOHASH, VALID_LEVEL_1);
+		List<DiaryClusterResponseDto> result = mapService.getDiaryClusters(GEOHASH_L3, LEVEL_SIDO);
 
 		// then
-		assertThat(result).isEqualTo(mockResult);
-		verify(clusterCacheDao).setDiaryCluster(eq(GEOHASH), eq(VALID_LEVEL_1), eq(mockResult), any());
+		assertThat(result).isEqualTo(clusters);
+		verify(clusterCacheDao).load(GEOHASH_L3, LEVEL_SIDO);
+		verify(clusterCacheDao).loadAndCache(GEOHASH_L3, LEVEL_SIDO);
 	}
 
-	@DisplayName("실패: 유효하지 않은 level")
-	@Test
-	void getDiaryClusters_invalidLevel() {
-		// given
-		int invalidLevel = 99;
-
-		// expect
-		assertThatThrownBy(() -> mapService.getDiaryClusters(GEOHASH, invalidLevel))
-			.isInstanceOf(InvalidMapLevelException.class);
-	}
-
-	@DisplayName("실패: geohash 길이 불일치")
+	@DisplayName("실패: geohash 길이 불일치(클러스터)")
 	@Test
 	void getDiaryClusters_invalidGeohashLength() {
 		// given
-		String invalidGeohash = "abcd";
+		String invalid = "abcd"; // 길이 4 → level(1/2) 기대 길이 3과 불일치
 
 		// expect
-		assertThatThrownBy(() -> mapService.getDiaryClusters(invalidGeohash, VALID_LEVEL_1))
-			.isInstanceOf(InvalidGeohashException.class)
-			.hasMessageContaining("geohash 길이가 유효하지 않습니다");
+		assertThatThrownBy(() -> mapService.getDiaryClusters(invalid, LEVEL_SIDO))
+			.isInstanceOf(InvalidGeohashException.class);
+		verifyNoInteractions(clusterCacheDao);
 	}
 
-	@DisplayName("성공 : geohash 캐시 HIT + 모든 diary 캐시 HIT")
+	@DisplayName("성공: 마커 캐시 HIT")
 	@Test
-	void getDiariesByGeohash_success_allCacheHit() {
+	void getDiaryMarkers_cacheHit() {
 		// given
-		String geohash = "wydmt";
-		Set<Long> cachedIds = Set.of(1L, 2L);
-		DiaryMarkerResponseDto dto1 = DiaryMarkerFixture.createDiaryMarker(1L);
-		DiaryMarkerResponseDto dto2 = DiaryMarkerFixture.createDiaryMarker(2L);
-
-		given(diaryCacheDao.getDiaryIdSetFromCache("wydmt")).willReturn(cachedIds);
-		given(diaryCacheDao.getDiariesFromCacheBulk(anyList())).willReturn(List.of(dto1, dto2));
+		given(markerCacheDao.load(GEOHASH_L5)).willReturn(markers);
 
 		// when
-		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash("wydmt");
+		List<DiaryMarkerResponseDto> result = mapService.getDiaryMarkers(GEOHASH_L5);
 
 		// then
-		assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
-		verify(diaryRepository, never()).findAllById(any());
-		verify(diaryGeohashService, never()).getDiaryIdsByGeohash(any());
+		assertThat(result).isEqualTo(markers);
+		verify(markerCacheDao).load(GEOHASH_L5);
+		verify(markerCacheDao, never()).loadAndCache(anyString());
 	}
 
-	@DisplayName("성공 : geohash 캐시 HIT + 일부 diary 캐시 MISS")
+	@DisplayName("성공: 마커 캐시 MISS → DAO.loadAndCache 호출")
 	@Test
-	void getDiariesByGeohash_success_partialDiaryCacheMiss() {
+	void getDiaryMarkers_cacheMiss_thenLoadAndCache() {
 		// given
-		String geohash = "wydmt";
-		Set<Long> cachedIds = Set.of(1L, 2L);
-		List<Long> sortedIds = new ArrayList<>(cachedIds);
-		Collections.sort(sortedIds);
-
-		DiaryMarkerResponseDto dto1 = DiaryMarkerFixture.createDiaryMarker(1L);
-		Diary diary2 = DiaryFixture.createDiaryFixture(2L);
-		DiaryMarkerResponseDto dto2 = DiaryMarkerResponseDto.of(diary2);
-
-		given(diaryCacheDao.getDiaryIdSetFromCache("wydmt")).willReturn(cachedIds);
-		given(diaryCacheDao.getDiariesFromCacheBulk(anyList()))
-			.willReturn(List.of(dto1));
-		given(diaryService.getDiaries(List.of(2L))).willReturn(List.of(diary2));
+		given(markerCacheDao.load(GEOHASH_L5)).willReturn(null);
+		given(markerCacheDao.loadAndCache(GEOHASH_L5)).willReturn(markers);
 
 		// when
-		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash("wydmt");
+		List<DiaryMarkerResponseDto> result = mapService.getDiaryMarkers(GEOHASH_L5);
 
 		// then
-		assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
-		verify(diaryCacheDao).cacheAllDiaries(List.of(dto2));
+		assertThat(result).isEqualTo(markers);
+		verify(markerCacheDao).load(GEOHASH_L5);
+		verify(markerCacheDao).loadAndCache(GEOHASH_L5);
 	}
 
-
-	@DisplayName("성공 : geohash 캐시 MISS → DB 조회 → 모든 diary 캐시 HIT")
+	@DisplayName("실패: geohash 길이 불일치(마커)")
 	@Test
-	void getDiariesByGeohash_success_geohashMiss_allDiaryCacheHit() {
+	void getDiaryMarkers_invalidGeohashLength() {
 		// given
-		String geohash = "wydmt";
-		List<Long> diaryIdsFromDb = List.of(1L, 2L);
-		DiaryMarkerResponseDto dto1 = DiaryMarkerFixture.createDiaryMarker(1L);
-		DiaryMarkerResponseDto dto2 = DiaryMarkerFixture.createDiaryMarker(2L);
+		String invalid = "abcd";
 
-		given(diaryCacheDao.getDiaryIdSetFromCache(geohash)).willReturn(Collections.emptySet());
-		given(diaryGeohashService.getDiaryIdsByGeohash(geohash)).willReturn(diaryIdsFromDb);
-		given(diaryCacheDao.getDiariesFromCacheBulk(diaryIdsFromDb)).willReturn(List.of(dto1, dto2));
-
-		// when
-		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash(geohash);
-
-		// then
-		assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
-		verify(diaryCacheDao).cacheDiaryIdSetByGeohash(geohash, diaryIdsFromDb);
-		verify(diaryService, never()).getDiaries(any());
+		// expect
+		assertThatThrownBy(() -> mapService.getDiaryMarkers(invalid))
+			.isInstanceOf(InvalidGeohashException.class);
+		verifyNoInteractions(markerCacheDao);
 	}
-
-	@DisplayName("성공 : geohash 캐시 MISS → DB 조회 → 모든 diary 캐시 MISS")
-	@Test
-	void getDiariesByGeohash_success_geohashMiss_allDiaryCacheMiss() {
-		// given
-		String geohash = "wydmt";
-		List<Long> diaryIdsFromDb = List.of(1L, 2L);
-		Diary diary1 = DiaryFixture.createDiaryFixture(1L);
-		Diary diary2 = DiaryFixture.createDiaryFixture(2L);
-		DiaryMarkerResponseDto dto1 = DiaryMarkerResponseDto.of(diary1);
-		DiaryMarkerResponseDto dto2 = DiaryMarkerResponseDto.of(diary2);
-
-		given(diaryCacheDao.getDiaryIdSetFromCache(geohash)).willReturn(Collections.emptySet());
-		given(diaryGeohashService.getDiaryIdsByGeohash(geohash)).willReturn(diaryIdsFromDb);
-		given(diaryCacheDao.getDiariesFromCacheBulk(diaryIdsFromDb)).willReturn(List.of());
-		given(diaryService.getDiaries(diaryIdsFromDb)).willReturn(List.of(diary1, diary2));
-
-		// when
-		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash(geohash);
-
-		// then
-		assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
-		verify(diaryCacheDao).cacheDiaryIdSetByGeohash(geohash, diaryIdsFromDb);
-		verify(diaryCacheDao).cacheAllDiaries(List.of(dto1, dto2));
-	}
-
-	@DisplayName("성공 : geohash 캐시 MISS → DB 조회 → diary 일부 캐시 MISS")
-	@Test
-	void getDiariesByGeohash_success_geohashCacheMissAndDiaryCacheMiss() {
-		// given
-		String geohash = "abcde";
-		List<Long> dbIds = List.of(1L, 2L);
-		DiaryMarkerResponseDto dto1 = DiaryMarkerFixture.createDiaryMarker(1L);
-		Diary diary2 = DiaryFixture.createDiaryFixture(2L);
-		DiaryMarkerResponseDto dto2 = DiaryMarkerResponseDto.of(diary2);
-
-		given(diaryCacheDao.getDiaryIdSetFromCache(geohash)).willReturn(Collections.emptySet());
-		given(diaryGeohashService.getDiaryIdsByGeohash(geohash)).willReturn(dbIds);
-		given(diaryCacheDao.getDiariesFromCacheBulk(dbIds)).willReturn(List.of(dto1));
-		given(diaryService.getDiaries(List.of(2L))).willReturn(List.of(diary2));
-
-		// when
-		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash(geohash);
-
-		// then
-		assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
-		verify(diaryCacheDao).cacheDiaryIdSetByGeohash(geohash, dbIds);
-		verify(diaryCacheDao).cacheAllDiaries(List.of(dto2));
-	}
-
-	@DisplayName("성공 : Redis 예외 발생 시 fallback 작동: DB에서 조회됨")
-	@Test
-	void getDiariesByGeohash_redisFailureHandledInternally() {
-		// given
-		String geohash = "abcde";
-		given(diaryCacheDao.getDiaryIdSetFromCache(geohash)).willReturn(Collections.emptySet());
-
-		List<Long> diaryIds = List.of(1L);
-		Diary diary = DiaryFixture.createDiaryFixture(1L);
-		given(diaryGeohashService.getDiaryIdsByGeohash(geohash)).willReturn(diaryIds);
-		given(diaryService.getDiaries(diaryIds)).willReturn(List.of(diary));
-
-		// when
-		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash(geohash);
-
-		// then
-		assertThat(result).hasSize(1);
-		assertThat(result.getFirst().diaryId()).isEqualTo(1L);
-		verify(diaryService).getDiaries(diaryIds);
-	}
-
-	@DisplayName("예외 : diaryId 존재하나 DB에 diary 없음")
-	@Test
-	void diaryIdExistsButDiaryMissingInDb() {
-		// given
-		String geohash = "wydmt";
-		Set<Long> cachedIds = Set.of(100L);
-		given(diaryCacheDao.getDiaryIdSetFromCache(geohash)).willReturn(cachedIds);
-		given(diaryCacheDao.getDiariesFromCacheBulk(List.of(100L))).willReturn(List.of());
-		given(diaryService.getDiaries(List.of(100L))).willReturn(Collections.emptyList());
-
-		// when
-		List<DiaryMarkerResponseDto> result = mapService.getDiariesByGeohash(geohash);
-
-		// then
-		assertThat(result).isEmpty();
-	}
-
 }

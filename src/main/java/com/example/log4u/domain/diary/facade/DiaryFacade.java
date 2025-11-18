@@ -38,10 +38,9 @@ public class DiaryFacade {
 
 	/**
 	 * 다이어리 생성 use case
-	 * <ul><li>호출 과정</li></ul>
-	 * 1. mediaService: 섬네일 이미지 url 생성<br>
-	 * 2. diaryService: 다이어리 생성<br>
-	 * 2. mediaService: 해당 다이어리의 이미지 저장<br>
+	 * 1. mediaService: 섬네일 이미지 url 생성
+	 * 2. diaryService: 다이어리 생성
+	 * 2. mediaService: 해당 다이어리의 이미지 저장
 	 * 3. mapService: 해당 구역 카운트 증가
 	 * 4. diaryGeohashService: 해당 다이어리 위치가 포함되어있는 geoHash 문자열 저장
 	 * */
@@ -60,30 +59,29 @@ public class DiaryFacade {
 
 	/**
 	 * 다이어리 삭제 use case
-	 * <ul><li>호출 과정</li></ul>
 	 * 1. diaryService: 다이어리 검증
-	 * 2. mediaService: 해당 다이어리 이미지 삭제<br>
-	 * 3. mapService: 해당 구역 카운트 감소
-	 * 4. diaryGeohashService: 캐싱 되어있는 id, 데이터 삭제
-	 * 5. diaryService: 다이어리 삭제<br>
-	 *
+	 * 2. mediaService: 해당 다이어리 이미지 삭제
+	 * 3. mapService: 시/도, 시/군/구 지역 다이어리 개수 감소 및 클러스터 캐싱 키 삭제
+	 * 4. diaryGeohashService: 다이어리 Goehash 문자열 및 마커 캐싱 키 삭제
+	 * 5. diaryService: 다이어리 삭제
 	 * */
 	@Transactional
 	public void deleteDiary(Long userId, Long diaryId) {
 		Diary diary = diaryService.getDiaryAfterValidateOwnership(diaryId, userId);
 		mediaService.deleteMediaByDiaryId(diaryId);
 		hashtagService.deleteHashtagsByDiaryId(diaryId);
-		mapService.decreaseRegionDiaryCount(diary.getLocation().getLatitude(), diary.getLocation().getLongitude());
 
-		diaryGeohashService.deleteGeohashAndCache(diaryId);
+		double lat = diary.getLocation().getLatitude();
+		double lon = diary.getLocation().getLongitude();
+		mapService.decreaseRegionDiaryCount(lat, lon);
+		diaryGeohashService.deleteGeohash(diaryId);
 		diaryService.deleteDiary(diary);
 	}
 
 	/**
 	 * 다이어리 수정 use case
-	 * <ul><li>호출 과정</li></ul>
-	 * 1. diaryService: 다이어리 검증<br>
-	 * 2. mediaService: 해당 다이어리 이미지 삭제<br>
+	 * 1. diaryService: 다이어리 검증
+	 * 2. mediaService: 해당 다이어리 이미지 삭제
 	 * 3. diaryService: 다이어리 수정
 	 * 4. mapService: 해당 구역 카운트 감소
 	 * 5. mapService: 해당 구역 카운트 증가
@@ -93,10 +91,13 @@ public class DiaryFacade {
 		Diary diary = diaryService.getDiaryAfterValidateOwnership(diaryId, userId);
 		mediaService.updateMediaByDiaryId(diary.getDiaryId(), request.mediaList());
 		hashtagService.saveOrUpdateHashtag(diary.getDiaryId(), request.hashtagList());
-		mapService.decreaseRegionDiaryCount(diary.getLocation().getLatitude(), diary.getLocation().getLongitude());
-		mapService.increaseRegionDiaryCount(request.location().latitude(), request.location().longitude());
-
 		String newThumbnailUrl = mediaService.extractThumbnailUrl(request.mediaList());
+
+		double oldLat = diary.getLocation().getLatitude();
+		double oldLon = diary.getLocation().getLongitude();
+		double newLat = request.location().latitude();
+		double newLon = request.location().longitude();
+		mapService.updateRegionDiaryCount(oldLat, oldLon, newLat, newLon);
 		diaryService.updateDiary(diary, request, newThumbnailUrl);
 	}
 

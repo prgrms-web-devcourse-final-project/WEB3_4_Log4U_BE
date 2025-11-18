@@ -2,23 +2,12 @@ package com.example.log4u.domain.map.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import com.example.log4u.common.oauth2.dto.CustomOAuth2User;
-import com.example.log4u.domain.map.dto.MyLocationRequestDto;
-import com.example.log4u.domain.map.dto.ReverseGeocodingResponseDto;
 import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.example.log4u.domain.map.service.MapService;
@@ -37,7 +26,7 @@ public class MapController {
 	private final MapService mapService;
 
 	@GetMapping("/diaries/cluster")
-	public ResponseEntity<List<DiaryClusterResponseDto>> getDiaryClustersByGeohash(
+	public ResponseEntity<List<DiaryClusterResponseDto>> getDiaryClusters(
 		@RequestParam String geohash,
 		@RequestParam int level
 	) {
@@ -46,8 +35,8 @@ public class MapController {
 	}
 
 	@GetMapping("/diaries/marker")
-	public ResponseEntity<List<DiaryMarkerResponseDto>> getDiariesByGeohash(@RequestParam String geohash) {
-		List<DiaryMarkerResponseDto> diaries = mapService.getDiariesByGeohash(geohash);
+	public ResponseEntity<List<DiaryMarkerResponseDto>> getDiaryMarkers(@RequestParam String geohash) {
+		List<DiaryMarkerResponseDto> diaries = mapService.getDiaryMarkers(geohash);
 		return ResponseEntity.ok(diaries);
 	}
 }

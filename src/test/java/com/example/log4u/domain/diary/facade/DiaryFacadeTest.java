@@ -114,7 +114,7 @@ class DiaryFacadeTest {
 			diary.getLocation().getLatitude(),
 			diary.getLocation().getLongitude()
 		);
-		verify(diaryGeohashService).deleteGeohashAndCache(diaryId);
+		verify(diaryGeohashService).deleteGeohash(diaryId);
 		verify(diaryService).deleteDiary(diary);
 	}
 

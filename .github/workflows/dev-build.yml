@@ -35,20 +35,25 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: S3에서 init.sql 다운로드
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          mkdir -p docker
-          aws s3 cp s3://devcos4-team08-bucket/db/init.sql ./docker/init.sql
+#      - name: S3에서 init.sql 다운로드
+#        env:
+#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+#        run: |
+#          mkdir -p docker
+#          aws s3 cp s3://devcos4-team08-bucket/db/init.sql ./docker/init.sql
 
 
       - name: Docker Compose 설치
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
+
+      - name: CI용 빈 init.sql 생성
+        run: |
+          mkdir -p docker
+          touch docker/init.sql
 
       - name: Docker Compose 실행
         run: |
@@ -85,6 +90,7 @@ jobs:
           fi
 
       - name: Test and analyze
+        if: github.event_name != 'pull_request' 
         env:
           #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -95,7 +101,7 @@ jobs:
           NAVER_DEV_CLIENT_SECRET: ${{ secrets.NAVER_DEV_CLIENT_SECRET }}
           NAVER_DEV_REDIRECT_URI: ${{ secrets.NAVER_DEV_REDIRECT_URI }}
           GOOGLE_DEV_CLIENT_ID: ${{ secrets.GOOGLE_DEV_CLIENT_ID }}
-          GOOGLE_DEV_CLIENT_SECRET: ${{ secrets.GOOGLE_DEV_CLIENT_SECRET }}r
+          GOOGLE_DEV_CLIENT_SECRET: ${{ secrets.GOOGLE_DEV_CLIENT_SECRET }}
           GOOGLE_DEV_REDIRECT_URI: ${{ secrets.GOOGLE_DEV_REDIRECT_URI }}
           KAKAO_DEV_CLIENT_ID: ${{ secrets.KAKAO_DEV_CLIENT_ID }}
           KAKAO_DEV_CLIENT_SECRET: ${{ secrets.KAKAO_DEV_CLIENT_SECRET }}
