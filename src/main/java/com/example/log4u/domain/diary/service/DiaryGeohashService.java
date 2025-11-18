@@ -32,7 +32,7 @@ public class DiaryGeohashService {
 	}
 
 	@Transactional
-	public void deleteGeohashAndCache(Long diaryId) {
+	public void deleteGeohash(Long diaryId) {
 		DiaryGeoHash geoHash = diaryGeoHashRepository.findByDiaryId(diaryId);
 		markerCacheDao.evict(geoHash.getGeohash());
 		diaryGeoHashRepository.deleteById(diaryId);
@@ -40,5 +40,9 @@ public class DiaryGeohashService {
 
 	public List<Long> getDiaryIdsByGeohash(String geohash) {
 		return diaryGeoHashRepository.findDiaryIdByGeohash(geohash);
+	}
+
+	public DiaryGeoHash getGeohashByLatLon(double lat, double lon) {
+		return diaryGeoHashRepository.findByLatLon(lat, lon);
 	}
 }

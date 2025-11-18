@@ -5,10 +5,14 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.log4u.domain.diary.entity.DiaryGeoHash;
+import com.example.log4u.domain.diary.service.DiaryGeohashService;
 import com.example.log4u.domain.map.cache.dao.ClusterCacheDao;
 import com.example.log4u.domain.map.cache.dao.MarkerCacheDao;
 import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
+import com.example.log4u.domain.map.entity.SidoAreas;
+import com.example.log4u.domain.map.entity.SiggAreas;
 import com.example.log4u.domain.map.exception.InvalidGeohashException;
 import com.example.log4u.domain.map.repository.sido.SidoAreasDiaryCountRepository;
 import com.example.log4u.domain.map.repository.sido.SidoAreasRepository;
@@ -29,6 +33,7 @@ public class MapService {
 	private final SiggAreasDiaryCountRepository siggAreasDiaryCountRepository;
 	private final MarkerCacheDao markerCacheDao;
 	private final ClusterCacheDao clusterCacheDao;
+	private final DiaryGeohashService diaryGeohashService;
 
 	/**
 	 * 캐싱 전략: Look-Aside + Write-Around
@@ -63,43 +68,70 @@ public class MapService {
 		return markers;
 	}
 
-	private void validateGeohashLength(String geohash, int expectedLength) {
-		if (geohash == null || geohash.length() != expectedLength) {
-			throw new InvalidGeohashException();
-		}
-	}
-
 	@Transactional
 	public void increaseRegionDiaryCount(Double lat, Double lon) {
-		sidoAreasRepository.findRegionByLatLon(lat, lon)
-			.flatMap(sido -> sidoAreasDiaryCountRepository.findById(sido.getId()))
-			.ifPresent(count -> {
-				count.incrementCount();
-				sidoAreasDiaryCountRepository.save(count);
-			});
-
-		siggAreasRepository.findRegionByLatLon(lat, lon)
-			.flatMap(sigg -> siggAreasDiaryCountRepository.findById(sigg.getGid()))
-			.ifPresent(count -> {
-				count.incrementCount();
-				siggAreasDiaryCountRepository.save(count);
-			});
+		SidoAreas sido = updateSidoCount(lat, lon, +1);
+		SiggAreas sigg = updateSiggCount(lat, lon, +1);
+		clusterCacheDao.evictSido(sido.getGeohash());
+		clusterCacheDao.evictSigg(sigg.getGeohash());
 	}
 
 	@Transactional
 	public void decreaseRegionDiaryCount(Double lat, Double lon) {
-		sidoAreasRepository.findRegionByLatLon(lat, lon)
-			.flatMap(sido -> sidoAreasDiaryCountRepository.findById(sido.getId()))
-			.ifPresent(count -> {
-				count.decrementCount();
-				sidoAreasDiaryCountRepository.save(count);
-			});
+		SidoAreas sido = updateSidoCount(lat, lon, -1);
+		SiggAreas sigg = updateSiggCount(lat, lon, -1);
+		clusterCacheDao.evictSido(sido.getGeohash());
+		clusterCacheDao.evictSigg(sigg.getGeohash());
+	}
 
-		siggAreasRepository.findRegionByLatLon(lat, lon)
-			.flatMap(sigg -> siggAreasDiaryCountRepository.findById(sigg.getGid()))
+	@Transactional
+	public void updateRegionDiaryCount(double oldLat, double oldLon, double newLat, double newLon) {
+		boolean sameSido = sidoAreasRepository.isSameSidoRegion(oldLat, oldLon, newLat, newLon);
+		boolean sameSigg = siggAreasRepository.isSameSiggRegion(oldLat, oldLon, newLat, newLon);
+
+		if (!sameSido) {
+			updateSidoCount(oldLat, oldLon, -1);
+			updateSidoCount(newLat, newLon, +1);
+		}
+
+		if (!sameSigg) {
+			updateSiggCount(oldLat, oldLon, -1);
+			updateSiggCount(newLat, newLon, +1);
+		}
+
+		DiaryGeoHash diaryGeoHash = diaryGeohashService.getGeohashByLatLon(oldLat, oldLon);
+		markerCacheDao.evict(diaryGeoHash.getGeohash());
+	}
+
+	private SidoAreas updateSidoCount(Double lat, Double lon, int delta) {
+		SidoAreas sido = sidoAreasRepository.findSidoAreasByLatLon(lat, lon);
+		sidoAreasDiaryCountRepository.findById(sido.getId())
 			.ifPresent(count -> {
-				count.decrementCount();
-				siggAreasDiaryCountRepository.save(count);
+				if (delta > 0) {
+					count.incrementCount();
+				} else if (delta < 0) {
+					count.decrementCount();
+				}
 			});
+		return sido;
+	}
+
+	private SiggAreas updateSiggCount(Double lat, Double lon, int delta) {
+		SiggAreas sigg = siggAreasRepository.findSiggAreasByLatLon(lat, lon);
+		siggAreasDiaryCountRepository.findById(sigg.getGid())
+			.ifPresent(count -> {
+				if (delta > 0) {
+					count.incrementCount();
+				} else if (delta < 0) {
+					count.decrementCount();
+				}
+			});
+		return sigg;
+	}
+
+	private void validateGeohashLength(String geohash, int expectedLength) {
+		if (geohash == null || geohash.length() != expectedLength) {
+			throw new InvalidGeohashException();
+		}
 	}
 }
