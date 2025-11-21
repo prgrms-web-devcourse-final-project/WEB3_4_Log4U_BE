@@ -33,10 +33,10 @@ public class S3Service {
 	private final S3Client s3Client;
 	private final MediaRepository mediaRepository;
 
-	@Value("${S3_BUCKET_NAME}")
+	@Value("${spring.aws.s3.bucket}")
 	private String bucketName;
 
-	@Value("${AWS_REGION}")
+	@Value("${spring.aws.region:ap-northeast-2}")
 	private String s3Region;
 
 	/**

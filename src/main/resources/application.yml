@@ -3,5 +3,7 @@ spring:
     group:
       prod: "prod, prod-secret"
       dev: "dev, dev-secret"
+      test: "test, test-secret"
+
     # 프로필 변경 시 사용
     active: dev
