@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.log4u.common.executor.RetryExecutor;
 import com.example.log4u.domain.diary.entity.DiaryGeoHash;
 import com.example.log4u.domain.diary.service.DiaryGeohashService;
 import com.example.log4u.domain.map.cache.dao.ClusterCacheDao;
@@ -35,37 +36,30 @@ public class MapService {
 	private final ClusterCacheDao clusterCacheDao;
 	private final DiaryGeohashService diaryGeohashService;
 
-	/**
-	 * 캐싱 전략: Look-Aside + Write-Around
-	 * 		[HIT] geohash -> Redis에 저장된 클러스터 배열(JSON) 읽어 반환
-	 * 		[MISS] DB에서 geohash 셀 내 시/군/구 조회하여 Redis에 배열로 저장 후 반환
-	 * level 기준:
-	 *   	level 1: 시/도 단위 클러스터 (sido)
-	 *   	level 2: 시/군/구 단위 클러스터 (sigg)
-	 */
+	private final RetryExecutor retryExecutor;
+
 	@Transactional(readOnly = true)
 	public List<DiaryClusterResponseDto> getDiaryClusters(String geohash, int level) {
 		validateGeohashLength(geohash, 3);
-		List<DiaryClusterResponseDto> clusters = clusterCacheDao.load(geohash, level);
-		if (clusters == null) {
-			clusters = clusterCacheDao.loadAndCache(geohash, level);
-		}
-		return clusters;
+		return retryExecutor.runWithRetry(() -> {
+			List<DiaryClusterResponseDto> clusters = clusterCacheDao.load(geohash, level);
+			if (clusters == null) {
+				clusters = clusterCacheDao.loadAndCache(geohash, level);
+			}
+			return clusters;
+		});
 	}
 
-	/**
-	 * 캐싱 전략: Look-Aside + Write-Around
-	 * 		[HIT]  geohash -> Redis에 저장된 클러스터 배열(JSON) 읽어 반환
-	 * 		[MISS] DB에서 geohash 셀 내 다이어리 조회하여 Redis에 배열로 저장 후 반환
-	 */
 	@Transactional(readOnly = true)
 	public List<DiaryMarkerResponseDto> getDiaryMarkers(String geohash) {
 		validateGeohashLength(geohash, 5);
-		List<DiaryMarkerResponseDto> markers = markerCacheDao.load(geohash);
-		if (markers == null) {
-			markers = markerCacheDao.loadAndCache(geohash);
-		}
-		return markers;
+		return retryExecutor.runWithRetry(() -> {
+			List<DiaryMarkerResponseDto> markers = markerCacheDao.load(geohash);
+			if (markers == null) {
+				markers = markerCacheDao.loadAndCache(geohash);
+			}
+			return markers;
+		});
 	}
 
 	@Transactional

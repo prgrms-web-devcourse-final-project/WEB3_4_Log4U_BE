@@ -7,11 +7,11 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.example.log4u.common.executor.DistributedLockExecutor;
 import com.example.log4u.common.infra.cache.CacheManager;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.repository.DiaryGeoHashRepository;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
-import com.example.log4u.domain.map.cache.CacheKeyGenerator;
 import com.example.log4u.domain.map.cache.RedisTTLPolicy;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -24,13 +24,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MarkerCacheDao {
 
+	private static final String MARKER_CACHE_KEY = "marker:geohash:%s";
+	public static final String MARKER_LOCK_KEY = "marker-lock";
+
 	private final CacheManager cacheManager;
+
+	private final DistributedLockExecutor distributedLockExecutor;
 
 	private final DiaryRepository diaryRepository;
 	private final DiaryGeoHashRepository diaryGeoHashRepository;
 
 	public List<DiaryMarkerResponseDto> load(String geohash) {
-		String value = cacheManager.get(CacheKeyGenerator.markerCacheKey(geohash));
+		String key = String.format(MARKER_CACHE_KEY, geohash);
+		String value = cacheManager.get(key);
 		if (value == null) {
 			return null;
 		}
@@ -43,9 +49,11 @@ public class MarkerCacheDao {
 	}
 
 	public List<DiaryMarkerResponseDto> loadAndCache(String geohash) {
-		List<DiaryMarkerResponseDto> markers = loadMarkersFromDb(geohash);
-		cache(markers, geohash);
-		return markers;
+		return distributedLockExecutor.runWithLock(MARKER_LOCK_KEY, () -> {
+			List<DiaryMarkerResponseDto> markers = loadMarkersFromDb(geohash);
+			cache(markers, geohash);
+			return markers;
+		});
 	}
 
 	private List<DiaryMarkerResponseDto> loadMarkersFromDb(String geohash) {
@@ -60,11 +68,12 @@ public class MarkerCacheDao {
 	}
 
 	private void cache(List<DiaryMarkerResponseDto> markers, String geohash) {
-		String key = CacheKeyGenerator.markerCacheKey(geohash);
+		String key = String.format(MARKER_CACHE_KEY, geohash);
 		cacheManager.cache(key, writeValueAsString(markers), RedisTTLPolicy.MARKER_TTL);
 	}
 
 	public void evict(String geohash) {
-		cacheManager.evict(CacheKeyGenerator.markerCacheKey(geohash));
+		String key = String.format(MARKER_CACHE_KEY, geohash);
+		cacheManager.evict(key);
 	}
 }

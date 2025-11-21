@@ -14,7 +14,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RedisCacheManagerImpl implements CacheManager {
 
-    private final RedisTemplate<String, String> redisTemplate;
+	private static final String LOCK_VALUE = "locked";
+
+	private final RedisTemplate<String, String> redisTemplate;
+
+	public void init() {
+		Objects.requireNonNull(redisTemplate.getConnectionFactory())
+			.getConnection().flushAll();
+	}
 
     public void cache(String key, String value, Duration ttl) {
         redisTemplate.opsForValue().set(key, value, ttl);
@@ -27,4 +34,12 @@ public class RedisCacheManagerImpl implements CacheManager {
     public void evict(String key) {
         redisTemplate.delete(key);
     }
+
+	public Boolean tryLock(String key) {
+		return redisTemplate.opsForValue().setIfAbsent(key, LOCK_VALUE);
+	}
+
+	public void releaseLock(String key) {
+		redisTemplate.delete(key);
+	}
 }
