@@ -4,9 +4,15 @@ import java.time.Duration;
 
 public interface CacheManager {
 
-    void cache(String key, String value, Duration ttl);
+	void init();
+
+	void cache(String key, String value, Duration ttl);
 
     String get(String key);
 
     void evict(String key);
+
+	Boolean tryLock(String key);
+
+	void releaseLock(String key);
 }

@@ -8,14 +8,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
+import com.example.log4u.common.executor.RetryExecutor;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.diary.service.DiaryGeohashService;
@@ -26,7 +31,9 @@ import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
 import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.example.log4u.domain.map.exception.InvalidGeohashException;
 import com.example.log4u.domain.map.exception.InvalidMapLevelException;
+import com.example.log4u.domain.map.repository.sido.SidoAreasDiaryCountRepository;
 import com.example.log4u.domain.map.repository.sido.SidoAreasRepository;
+import com.example.log4u.domain.map.repository.sigg.SiggAreasDiaryCountRepository;
 import com.example.log4u.domain.map.repository.sigg.SiggAreasRepository;
 import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.fixture.DiaryFixture;
@@ -34,6 +41,7 @@ import com.example.log4u.fixture.DiaryMarkerFixture;
 
 @DisplayName("지도 API 단위 테스트")
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class MapServiceTest {
 
 	@InjectMocks
@@ -43,22 +51,25 @@ class MapServiceTest {
 	private SidoAreasRepository sidoAreasRepository;
 
 	@Mock
+	private SidoAreasDiaryCountRepository sidoAreasDiaryCountRepository;
+
+	@Mock
 	private SiggAreasRepository siggAreasRepository;
 
 	@Mock
-	private DiaryRepository diaryRepository;
+	private SiggAreasDiaryCountRepository siggAreasDiaryCountRepository;
 
 	@Mock
 	private MarkerCacheDao markerCacheDao;
 
 	@Mock
-	private DiaryService diaryService;
+	private ClusterCacheDao clusterCacheDao;
 
 	@Mock
 	private DiaryGeohashService diaryGeohashService;
 
 	@Mock
-	private ClusterCacheDao clusterCacheDao;
+	private RetryExecutor retryExecutor;
 
 	private static final String GEOHASH_L3 = "abc";
 	private static final String GEOHASH_L5 = "abcde";
@@ -75,6 +86,16 @@ class MapServiceTest {
 			DiaryFixture.createDiaryFixture(1L)
 		)
 	);
+
+	@BeforeEach
+	void setUp() {
+		given(retryExecutor.runWithRetry(any()))
+			.willAnswer(invocation -> {
+				@SuppressWarnings("unchecked")
+				Supplier<?> supplier = invocation.getArgument(0);
+				return supplier.get();
+			});
+	}
 
 	@DisplayName("성공: 클러스터 캐시 HIT")
 	@Test

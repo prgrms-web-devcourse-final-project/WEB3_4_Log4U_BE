@@ -1,42 +1,44 @@
-jwt:
-  secret: ${JWT_SECRET:${jwt.secret}}
-  access-token-expire-time-seconds: ${JWT_ACCESS_TOKEN_EXPIRE_TIME_SECONDS:${jwt.access-token-expire-time-seconds}}
-  refresh-token-expire-time-seconds: ${JWT_REFRESH_TOKEN_EXPIRE_TIME_SECONDS:${jwt.refresh-token-expire-time-seconds}}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics
+  endpoint:
+    metrics:
+      enabled: true
+  metrics:
+    tags:
+      application: log4u          
 
+spring:
+  datasource:
+    jdbc-url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  second-datasource:
+    jdbc-url: ${POSTGRES_DB_URL}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  aws:
+    region: ${AWS_REGION}
+    access-key-id: ${AWS_ACCESS_KEY_ID}
+    secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+    s3:
+      bucket: ${S3_BUCKET_NAME}
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expire-time-seconds: ${JWT_ACCESS_TOKEN_EXPIRE_TIME_SECONDS}
+  refresh-token-expire-time-seconds: ${JWT_REFRESH_TOKEN_EXPIRE_TIME_SECONDS}
 
 logging:
   level:
     org:
       springframework: debug
-
-spring:
-  jpa:
-    database-platform: org.hibernate.dialect.MySQLDialect
-    hibernate:
-      ddl-auto: update
-
-
-    properties:
-      hibernate:
-        format_sql: true
-        show_sql: true
-
-  datasource:
-    jdbc-url: ${DB_URL:jdbc:mysql://localhost:3307/log4u}
-    username: ${DB_USERNAME:dev}
-    password: ${DB_PASSWORD:devcos4-team08}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  second-datasource:
-    driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: 1234
-    jdbc-url: jdbc:postgresql://localhost:5432/gis_db
-
-  aws:
-    s3:
-      bucket: ${S3_BUCKET_NAME}  # S3 버킷 이름을 GitHub Secrets에서 참조
-    region: ${AWS_REGION:ap-northeast-2}  # 기본값 서울 리전(ap-northeast-2)
 
   security:
     oauth2:
