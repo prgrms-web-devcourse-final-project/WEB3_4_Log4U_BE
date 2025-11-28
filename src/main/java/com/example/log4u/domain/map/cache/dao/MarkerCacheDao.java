@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MarkerCacheDao {
 
 	private static final String MARKER_CACHE_KEY = "marker:geohash:%s";
-	public static final String MARKER_LOCK_KEY = "marker-lock";
+	private static final String MARKER_LOCK_KEY = "marker-lock:%s";
 
 	private final CacheManager cacheManager;
 
@@ -49,11 +49,11 @@ public class MarkerCacheDao {
 	}
 
 	public List<DiaryMarkerResponseDto> loadAndCache(String geohash) {
-		return distributedLockExecutor.runWithLock(MARKER_LOCK_KEY, () -> {
-			List<DiaryMarkerResponseDto> markers = loadMarkersFromDb(geohash);
-			cache(markers, geohash);
-			return markers;
-		});
+		return distributedLockExecutor.runWithLock(MARKER_LOCK_KEY.formatted(geohash), () -> {
+				List<DiaryMarkerResponseDto> markers = loadMarkersFromDb(geohash);
+				cache(markers, geohash);
+				return markers;
+			});
 	}
 
 	private List<DiaryMarkerResponseDto> loadMarkersFromDb(String geohash) {

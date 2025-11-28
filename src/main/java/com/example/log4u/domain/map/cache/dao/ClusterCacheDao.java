@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ClusterCacheDao {
 
 	private static final String CLUSTER_CACHE_KEY = "cluster:geohash:%s:level:%d";
-	public static final String CLUSTER_LOCK_KEY = "cluster-lock";
+	public static final String CLUSTER_LOCK_KEY = "cluster-lock:%s";
 
 	private final CacheManager cacheManager;
 
@@ -48,7 +48,7 @@ public class ClusterCacheDao {
 	}
 
 	public List<DiaryClusterResponseDto> loadAndCache(String geohash, int level) {
-		return distributedLockExecutor.runWithLock(CLUSTER_LOCK_KEY, () -> {
+		return distributedLockExecutor.runWithLock(CLUSTER_LOCK_KEY.formatted(geohash), () -> {
 			List<DiaryClusterResponseDto> clusters = loadClustersFromDb(geohash, level);
 			cache(clusters, geohash, level);
 			return clusters;

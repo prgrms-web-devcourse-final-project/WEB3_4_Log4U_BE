@@ -2,13 +2,15 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, metrics
+        include: health, metrics, prometheus
   endpoint:
     metrics:
       enabled: true
+    prometheus:
+      enabled: true
   metrics:
     tags:
-      application: log4u          
+      application: log4u
 
 spring:
   datasource:
