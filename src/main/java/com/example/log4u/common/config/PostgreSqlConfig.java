@@ -14,6 +14,9 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
+import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 
 @Configuration
 @EnableJpaRepositories(
@@ -27,14 +30,25 @@ public class PostgreSqlConfig {
 
 	@Bean
 	@ConfigurationProperties(prefix = "spring.second-datasource")
-	public DataSource postgresqlDataSource() {
-		return DataSourceBuilder.create().build();
+	public HikariDataSource postgresqlHikariDataSource() {
+		return DataSourceBuilder.create()
+			.type(HikariDataSource.class)
+			.build();
+	}
+
+	@Bean(name = "postgresqlDataSource")
+	public DataSource postgresqlDataSource(
+		@Qualifier("postgresqlHikariDataSource") HikariDataSource hikariDataSource
+	) {
+		return new LazyConnectionDataSourceProxy(hikariDataSource);
 	}
 
 	@Bean(name = "postgresqlEntityManagerFactory")
-	public LocalContainerEntityManagerFactoryBean postgresqlEntityManagerFactory() {
+	public LocalContainerEntityManagerFactoryBean postgresqlEntityManagerFactory(
+		@Qualifier("postgresqlDataSource") DataSource dataSource
+	) {
 		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-		em.setDataSource(postgresqlDataSource());
+		em.setDataSource(dataSource);
 		em.setPackagesToScan("com.example.log4u.domain.map.entity");
 
 		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
@@ -52,9 +66,11 @@ public class PostgreSqlConfig {
 	}
 
 	@Bean(name = "postgresqlTransactionManager")
-	public PlatformTransactionManager postgresqlTransactionManager() {
+	public PlatformTransactionManager postgresqlTransactionManager(
+		@Qualifier("postgresqlEntityManagerFactory") LocalContainerEntityManagerFactoryBean postgresqlEmf
+	) {
 		JpaTransactionManager transactionManager = new JpaTransactionManager();
-		transactionManager.setEntityManagerFactory(postgresqlEntityManagerFactory().getObject());
+		transactionManager.setEntityManagerFactory(postgresqlEmf.getObject());
 		return transactionManager;
 	}
 }
