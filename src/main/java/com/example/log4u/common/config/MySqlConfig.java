@@ -17,6 +17,9 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 
 @Configuration
 @EnableJpaRepositories(
@@ -41,27 +44,35 @@ public class MySqlConfig {
 	@Bean
 	@Primary
 	@ConfigurationProperties(prefix = "spring.datasource")
-	public DataSource mysqlDataSource() {
+	public HikariDataSource mysqlHikariDataSource() {
 		HikariDataSource dataSource = DataSourceBuilder.create()
 			.type(HikariDataSource.class)
 			.build();
 
-		// Hikari 커넥션 풀 설정
-		dataSource.setMaximumPoolSize(10);         // 최대 커넥션 수
-		dataSource.setMinimumIdle(10);             // 최소 유휴 커넥션
-		dataSource.setIdleTimeout(30000);          // 유휴 커넥션 유지 시간 (30초)
-		dataSource.setConnectionTimeout(3000);     // 커넥션 대기 시간 (3초)
-		dataSource.setMaxLifetime(1800000);        // 커넥션 최대 수명 (30분)
+		dataSource.setMaximumPoolSize(10);
+		dataSource.setMinimumIdle(10);
+		dataSource.setIdleTimeout(30000);
+		dataSource.setConnectionTimeout(3000);
+		dataSource.setMaxLifetime(1800000);
 
 		return dataSource;
 	}
 
+	@Bean(name = "mysqlDataSource")
+	@Primary
+	public DataSource mysqlDataSource(
+		@Qualifier("mysqlHikariDataSource") HikariDataSource hikariDataSource
+	) {
+		return new LazyConnectionDataSourceProxy(hikariDataSource);
+	}
 
 	@Bean(name = "mysqlEntityManagerFactory")
 	@Primary
-	public LocalContainerEntityManagerFactoryBean mysqlEntityManagerFactory() {
+	public LocalContainerEntityManagerFactoryBean mysqlEntityManagerFactory(
+		@Qualifier("mysqlDataSource") DataSource dataSource
+	) {
 		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-		em.setDataSource(mysqlDataSource());
+		em.setDataSource(dataSource);
 		em.setPackagesToScan(
 			"com.example.log4u.common",
 			"com.example.log4u.domain.comment",
@@ -75,6 +86,7 @@ public class MySqlConfig {
 			"com.example.log4u.domain.subscription",
 			"com.example.log4u.domain.hashtag"
 		);
+
 		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
 		vendorAdapter.setShowSql(true);
 		vendorAdapter.setGenerateDdl(true);
@@ -91,9 +103,11 @@ public class MySqlConfig {
 
 	@Bean(name = "mysqlTransactionManager")
 	@Primary
-	public PlatformTransactionManager mysqlTransactionManager() {
+	public PlatformTransactionManager mysqlTransactionManager(
+		@Qualifier("mysqlEntityManagerFactory") LocalContainerEntityManagerFactoryBean mysqlEmf
+	) {
 		JpaTransactionManager transactionManager = new JpaTransactionManager();
-		transactionManager.setEntityManagerFactory(mysqlEntityManagerFactory().getObject());
+		transactionManager.setEntityManagerFactory(mysqlEmf.getObject());
 		return transactionManager;
 	}
 }
