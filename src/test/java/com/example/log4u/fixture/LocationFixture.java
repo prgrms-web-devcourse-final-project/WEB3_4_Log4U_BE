@@ -1,7 +1,7 @@
 package com.example.log4u.fixture;
 
-import com.example.log4u.domain.map.dto.LocationDto;
-import com.example.log4u.domain.map.entitiy.Location;
+import com.example.log4u.domain.diary.dto.LocationDto;
+import com.example.log4u.domain.diary.entity.Location;
 
 public class LocationFixture {
 

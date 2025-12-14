@@ -9,7 +9,7 @@ import com.example.log4u.domain.diary.WeatherInfo;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
 import com.example.log4u.domain.diary.dto.DiaryWithAuthorDto;
 import com.example.log4u.domain.diary.entity.Diary;
-import com.example.log4u.domain.map.entitiy.Location;
+import com.example.log4u.domain.diary.entity.Location;
 import com.example.log4u.domain.media.dto.MediaRequestDto;
 
 public class DiaryFixture {

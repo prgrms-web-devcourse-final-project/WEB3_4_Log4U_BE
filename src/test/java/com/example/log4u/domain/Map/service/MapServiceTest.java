@@ -3,11 +3,7 @@ package com.example.log4u.domain.Map.service;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.*;
 import static org.mockito.BDDMockito.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -21,23 +17,20 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import com.example.log4u.common.executor.RetryExecutor;
-import com.example.log4u.domain.diary.entity.Diary;
-import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.diary.service.DiaryGeohashService;
-import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.map.cache.dao.ClusterCacheDao;
 import com.example.log4u.domain.map.cache.dao.MarkerCacheDao;
-import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
-import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
+import com.example.log4u.domain.map.dto.response.GetDiaryClusterResponse;
+import com.example.log4u.domain.map.dto.response.GetDiaryClustersResponse;
+import com.example.log4u.domain.map.dto.response.GetDiaryMarkerResponse;
+import com.example.log4u.domain.map.dto.response.GetDiaryMarkersResponse;
 import com.example.log4u.domain.map.exception.InvalidGeohashException;
-import com.example.log4u.domain.map.exception.InvalidMapLevelException;
 import com.example.log4u.domain.map.repository.sido.SidoAreasDiaryCountRepository;
 import com.example.log4u.domain.map.repository.sido.SidoAreasRepository;
 import com.example.log4u.domain.map.repository.sigg.SiggAreasDiaryCountRepository;
 import com.example.log4u.domain.map.repository.sigg.SiggAreasRepository;
 import com.example.log4u.domain.map.service.MapService;
 import com.example.log4u.fixture.DiaryFixture;
-import com.example.log4u.fixture.DiaryMarkerFixture;
 
 @DisplayName("지도 API 단위 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -77,14 +70,12 @@ class MapServiceTest {
 	private static final int LEVEL_SIDO = 1;
 	private static final int LEVEL_SIGG = 2;
 
-	private final List<DiaryClusterResponseDto> clusters = List.of(
-		new DiaryClusterResponseDto("서울", 1L, 37.5665, 126.9780, 10L)
+	private final List<GetDiaryClusterResponse> clusters = List.of(
+		new GetDiaryClusterResponse("서울", 1L, 37.5665, 126.9780, 10L)
 	);
 
-	private final List<DiaryMarkerResponseDto> markers = List.of(
-		DiaryMarkerResponseDto.of(
-			DiaryFixture.createDiaryFixture(1L)
-		)
+	private final List<GetDiaryMarkerResponse> markers = List.of(
+		GetDiaryMarkerResponse.of(DiaryFixture.createDiaryFixture(1L))
 	);
 
 	@BeforeEach
@@ -104,10 +95,10 @@ class MapServiceTest {
 		given(clusterCacheDao.load(GEOHASH_L3, LEVEL_SIDO)).willReturn(clusters);
 
 		// when
-		List<DiaryClusterResponseDto> result = mapService.getDiaryClusters(GEOHASH_L3, LEVEL_SIDO);
+		GetDiaryClustersResponse result = mapService.getClustersByRedisCache(GEOHASH_L3, LEVEL_SIDO);
 
 		// then
-		assertThat(result).isEqualTo(clusters);
+		assertThat(result).isEqualTo(GetDiaryClustersResponse.of(clusters));
 		verify(clusterCacheDao).load(GEOHASH_L3, LEVEL_SIDO);
 		verify(clusterCacheDao, never()).loadAndCache(anyString(), anyInt());
 	}
@@ -121,10 +112,10 @@ class MapServiceTest {
 		given(clusterCacheDao.loadAndCache(GEOHASH_L3, LEVEL_SIDO)).willReturn(clusters);
 
 		// when
-		List<DiaryClusterResponseDto> result = mapService.getDiaryClusters(GEOHASH_L3, LEVEL_SIDO);
+		GetDiaryClustersResponse result = mapService.getClustersByRedisCache(GEOHASH_L3, LEVEL_SIDO);
 
 		// then
-		assertThat(result).isEqualTo(clusters);
+		assertThat(result).isEqualTo(GetDiaryClustersResponse.of(clusters));
 		verify(clusterCacheDao).load(GEOHASH_L3, LEVEL_SIDO);
 		verify(clusterCacheDao).loadAndCache(GEOHASH_L3, LEVEL_SIDO);
 	}
@@ -136,7 +127,7 @@ class MapServiceTest {
 		String invalid = "abcd"; // 길이 4 → level(1/2) 기대 길이 3과 불일치
 
 		// expect
-		assertThatThrownBy(() -> mapService.getDiaryClusters(invalid, LEVEL_SIDO))
+		assertThatThrownBy(() -> mapService.getClustersByRedisCache(invalid, LEVEL_SIDO))
 			.isInstanceOf(InvalidGeohashException.class);
 		verifyNoInteractions(clusterCacheDao);
 	}
@@ -148,10 +139,10 @@ class MapServiceTest {
 		given(markerCacheDao.load(GEOHASH_L5)).willReturn(markers);
 
 		// when
-		List<DiaryMarkerResponseDto> result = mapService.getDiaryMarkers(GEOHASH_L5);
+		GetDiaryMarkersResponse result = mapService.getMarkersByRedisCache(GEOHASH_L5);
 
 		// then
-		assertThat(result).isEqualTo(markers);
+		assertThat(result).isEqualTo(GetDiaryMarkersResponse.ofMarkers(markers));
 		verify(markerCacheDao).load(GEOHASH_L5);
 		verify(markerCacheDao, never()).loadAndCache(anyString());
 	}
@@ -164,10 +155,10 @@ class MapServiceTest {
 		given(markerCacheDao.loadAndCache(GEOHASH_L5)).willReturn(markers);
 
 		// when
-		List<DiaryMarkerResponseDto> result = mapService.getDiaryMarkers(GEOHASH_L5);
+		GetDiaryMarkersResponse result = mapService.getMarkersByRedisCache(GEOHASH_L5);
 
 		// then
-		assertThat(result).isEqualTo(markers);
+		assertThat(result).isEqualTo(GetDiaryMarkersResponse.ofMarkers(markers));
 		verify(markerCacheDao).load(GEOHASH_L5);
 		verify(markerCacheDao).loadAndCache(GEOHASH_L5);
 	}
@@ -179,7 +170,7 @@ class MapServiceTest {
 		String invalid = "abcd";
 
 		// expect
-		assertThatThrownBy(() -> mapService.getDiaryMarkers(invalid))
+		assertThatThrownBy(() -> mapService.getMarkersByRedisCache(invalid))
 			.isInstanceOf(InvalidGeohashException.class);
 		verifyNoInteractions(markerCacheDao);
 	}
