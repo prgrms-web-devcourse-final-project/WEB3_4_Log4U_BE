@@ -13,7 +13,7 @@ import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.repository.DiaryGeoHashRepository;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
 import com.example.log4u.domain.map.cache.RedisTTLPolicy;
-import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
+import com.example.log4u.domain.map.dto.response.GetDiaryMarkerResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class MarkerCacheDao {
 	private final DiaryRepository diaryRepository;
 	private final DiaryGeoHashRepository diaryGeoHashRepository;
 
-	public List<DiaryMarkerResponseDto> load(String geohash) {
+	public List<GetDiaryMarkerResponse> load(String geohash) {
 		String key = String.format(MARKER_CACHE_KEY, geohash);
 		String value = cacheManager.get(key);
 		if (value == null) {
@@ -43,31 +43,31 @@ public class MarkerCacheDao {
 		return convertToMarkers(value);
 	}
 
-	private List<DiaryMarkerResponseDto> convertToMarkers(String value) {
+	private List<GetDiaryMarkerResponse> convertToMarkers(String value) {
 		return readValue(value, new TypeReference<>() {
 		});
 	}
 
-	public List<DiaryMarkerResponseDto> loadAndCache(String geohash) {
+	public List<GetDiaryMarkerResponse> loadAndCache(String geohash) {
 		return distributedLockExecutor.runWithLock(MARKER_LOCK_KEY.formatted(geohash), () -> {
-				List<DiaryMarkerResponseDto> markers = loadMarkersFromDb(geohash);
+				List<GetDiaryMarkerResponse> markers = loadMarkersFromDb(geohash);
 				cache(markers, geohash);
 				return markers;
 			});
 	}
 
-	private List<DiaryMarkerResponseDto> loadMarkersFromDb(String geohash) {
+	private List<GetDiaryMarkerResponse> loadMarkersFromDb(String geohash) {
 		List<Long> diaryIds = diaryGeoHashRepository.findDiaryIdByGeohash(geohash);
 		if (diaryIds.isEmpty()) {
 			return Collections.emptyList();
 		}
 		List<Diary> diaries = diaryRepository.findAllById(diaryIds);
 		return diaries.stream()
-			.map(DiaryMarkerResponseDto::of)
+			.map(GetDiaryMarkerResponse::of)
 			.toList();
 	}
 
-	private void cache(List<DiaryMarkerResponseDto> markers, String geohash) {
+	private void cache(List<GetDiaryMarkerResponse> markers, String geohash) {
 		String key = String.format(MARKER_CACHE_KEY, geohash);
 		cacheManager.cache(key, writeValueAsString(markers), RedisTTLPolicy.MARKER_TTL);
 	}

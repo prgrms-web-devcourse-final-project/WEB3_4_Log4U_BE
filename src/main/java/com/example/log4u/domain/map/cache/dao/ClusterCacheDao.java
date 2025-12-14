@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import com.example.log4u.common.executor.DistributedLockExecutor;
 import com.example.log4u.common.infra.cache.CacheManager;
 import com.example.log4u.domain.map.cache.RedisTTLPolicy;
-import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
+import com.example.log4u.domain.map.dto.response.GetDiaryClusterResponse;
 import com.example.log4u.domain.map.exception.InvalidMapLevelException;
 import com.example.log4u.domain.map.repository.sido.SidoAreasRepository;
 import com.example.log4u.domain.map.repository.sigg.SiggAreasRepository;
@@ -33,7 +33,7 @@ public class ClusterCacheDao {
 	private final SidoAreasRepository sidoAreasRepository;
 	private final SiggAreasRepository siggAreasRepository;
 
-	public List<DiaryClusterResponseDto> load(String geohash, int level) {
+	public List<GetDiaryClusterResponse> load(String geohash, int level) {
 		String key = String.format(CLUSTER_CACHE_KEY, geohash, level);
 		String value = cacheManager.get(key);
 		if (value == null) {
@@ -42,28 +42,28 @@ public class ClusterCacheDao {
 		return convertToClusters(value);
 	}
 
-	private List<DiaryClusterResponseDto> convertToClusters(String value) {
+	private List<GetDiaryClusterResponse> convertToClusters(String value) {
 		return readValue(value, new TypeReference<>() {
 		});
 	}
 
-	public List<DiaryClusterResponseDto> loadAndCache(String geohash, int level) {
+	public List<GetDiaryClusterResponse> loadAndCache(String geohash, int level) {
 		return distributedLockExecutor.runWithLock(CLUSTER_LOCK_KEY.formatted(geohash), () -> {
-			List<DiaryClusterResponseDto> clusters = loadClustersFromDb(geohash, level);
+			List<GetDiaryClusterResponse> clusters = loadClustersFromDb(geohash, level);
 			cache(clusters, geohash, level);
 			return clusters;
 		});
 	}
 
-	private List<DiaryClusterResponseDto> loadClustersFromDb(String geohash, int level) {
+	private List<GetDiaryClusterResponse> loadClustersFromDb(String geohash, int level) {
 		return switch (level) {
-			case 1 -> sidoAreasRepository.findByGeohashPrefix(geohash);
-			case 2 -> siggAreasRepository.findByGeohashPrefix(geohash);
+			case 1 -> sidoAreasRepository.findSidoAreasCluster(geohash);
+			case 2 -> siggAreasRepository.findSiggAreasCluster(geohash);
 			default -> throw new InvalidMapLevelException();
 		};
 	}
 
-	private void cache(List<DiaryClusterResponseDto> clusters, String geohash, int level) {
+	private void cache(List<GetDiaryClusterResponse> clusters, String geohash, int level) {
 		String key = String.format(CLUSTER_CACHE_KEY, geohash, level);
 		cacheManager.cache(key, writeValueAsString(clusters), RedisTTLPolicy.CLUSTER_TTL);
 	}
