@@ -10,13 +10,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
 @NoArgsConstructor
 @Table(name = "sigg_areas", schema = "public")
-public class SiggAreas implements Areas {
+public class SiggAreas {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,25 +56,5 @@ public class SiggAreas implements Areas {
 		this.sggName = sggName;
 		this.lat = lat;
 		this.lon = lon;
-	}
-
-	@Override
-	public String getName() {
-		return sggName;
-	}
-
-	@Override
-	public Long getId() {
-		return gid;
-	}
-
-	@Override
-	public Double getLat() {
-		return lat;
-	}
-
-	@Override
-	public Double getLon() {
-		return lon;
 	}
 }

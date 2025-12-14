@@ -1,6 +1,6 @@
-package com.example.log4u.domain.map.dto;
+package com.example.log4u.domain.diary.dto;
 
-import com.example.log4u.domain.map.entitiy.Location;
+import com.example.log4u.domain.diary.entity.Location;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

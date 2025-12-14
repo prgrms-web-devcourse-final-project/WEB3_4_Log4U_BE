@@ -6,8 +6,7 @@ import com.example.log4u.common.entity.BaseEntity;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.WeatherInfo;
 import com.example.log4u.domain.diary.dto.DiaryRequestDto;
-import com.example.log4u.domain.map.dto.LocationDto;
-import com.example.log4u.domain.map.entitiy.Location;
+import com.example.log4u.domain.diary.dto.LocationDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;

@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.log4u.domain.diary.entity.Diary;
-import com.example.log4u.domain.map.dto.LocationDto;
 import com.example.log4u.domain.media.dto.MediaResponseDto;
 import com.example.log4u.domain.media.entity.Media;
 import com.example.log4u.domain.user.entity.User;
@@ -43,7 +42,7 @@ public record DiaryResponseDto(
 			.authorId(diary.getUserId())
 			.authorNickname(author.getNickname())
 			.authorProfileImage(author.getProfileImage())
-			.location(com.example.log4u.domain.map.dto.LocationDto.of(diary.getLocation()))
+			.location(LocationDto.of(diary.getLocation()))
 			.title(diary.getTitle())
 			.content(diary.getContent())
 			.weatherInfo(diary.getWeatherInfo().name())
@@ -70,7 +69,7 @@ public record DiaryResponseDto(
 			.authorId(diary.getUserId())
 			.authorNickname(null)
 			.authorProfileImage(null)
-			.location(com.example.log4u.domain.map.dto.LocationDto.of(diary.getLocation()))
+			.location(LocationDto.of(diary.getLocation()))
 			.title(diary.getTitle())
 			.content(diary.getContent())
 			.weatherInfo(diary.getWeatherInfo().name())

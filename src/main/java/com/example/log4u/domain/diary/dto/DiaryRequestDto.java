@@ -6,7 +6,6 @@ import java.util.List;
 import com.example.log4u.domain.diary.VisibilityType;
 import com.example.log4u.domain.diary.WeatherInfo;
 import com.example.log4u.domain.diary.entity.Diary;
-import com.example.log4u.domain.map.dto.LocationDto;
 import com.example.log4u.domain.media.dto.MediaRequestDto;
 
 import jakarta.validation.Valid;

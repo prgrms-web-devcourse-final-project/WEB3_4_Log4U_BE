@@ -1,4 +1,4 @@
-package com.example.log4u.domain.map.entitiy;
+package com.example.log4u.domain.diary.entity;
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
@@ -13,13 +13,13 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Location {
 
-	private Double latitude; // 위도
+	private Double latitude;
 
-	private Double longitude; // 경도
+	private Double longitude;
 
-	private String sido; // 시/도
+	private String sido;
 
-	private String sigungu; // 시/군/구
+	private String sigungu;
 
-	private String eupmyeondong; // 읍/면/동
+	private String eupmyeondong;
 }

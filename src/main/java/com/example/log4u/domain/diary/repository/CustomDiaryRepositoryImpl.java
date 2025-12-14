@@ -17,7 +17,6 @@ import com.example.log4u.domain.hashtag.entity.QDiaryHashtag;
 import com.example.log4u.domain.hashtag.entity.QHashtag;
 import com.example.log4u.domain.like.entity.Like;
 import com.example.log4u.domain.like.entity.QLike;
-import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
 import com.example.log4u.domain.user.entity.QUser;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -238,64 +237,5 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository {
 
 		// 다음 페이지 존재 여부 판단 및 Slice 반환
 		return PageableUtil.checkAndCreateSlice(content, pageable);
-	}
-
-	@Override
-	public List<DiaryMarkerResponseDto> findDiariesInBounds(double south, double north, double west, double east) {
-
-		return queryFactory
-			.select(Projections.constructor(DiaryMarkerResponseDto.class,
-				diary.diaryId,
-				diary.title,
-				diary.thumbnailUrl,
-				diary.likeCount,
-				diary.location.latitude,
-				diary.location.longitude,
-				diary.createdAt
-			))
-			.from(diary)
-			.where(
-				diary.visibility.eq(VisibilityType.PUBLIC),
-				diary.location.latitude.between(south, north),
-				diary.location.longitude.between(west, east)
-			)
-			.orderBy(diary.createdAt.asc())
-			.fetch();
-	}
-
-	@Override
-	public List<Diary> findInBoundsByUserId(Long userId, double south, double north, double west, double east) {
-
-		return queryFactory
-			.selectFrom(diary)
-			.where(
-				diary.userId.eq(userId),
-				diary.location.latitude.between(south, north),
-				diary.location.longitude.between(west, east)
-			)
-			.fetch();
-	}
-
-	@Override
-	public List<DiaryMarkerResponseDto> findMyDiariesInBounds(Long userId, double south, double north, double west,
-		double east) {
-		return queryFactory
-			.select(Projections.constructor(DiaryMarkerResponseDto.class,
-				diary.diaryId,
-				diary.title,
-				diary.thumbnailUrl,
-				diary.likeCount,
-				diary.location.latitude,
-				diary.location.longitude,
-				diary.createdAt
-			))
-			.from(diary)
-			.where(
-				diary.userId.eq(userId),
-				diary.location.latitude.between(south, north),
-				diary.location.longitude.between(west, east)
-			)
-			.orderBy(diary.createdAt.asc())
-			.fetch();
 	}
 }
