@@ -18,22 +18,8 @@ public interface SiggAreasRepository extends JpaRepository<SiggAreas, Long>, Sig
 		SELECT r FROM SiggAreas r
 		WHERE ST_Contains(r.geom, ST_SetSRID(ST_Point(:lon, :lat), 4326)) = true
 		""")
-	Optional<SiggAreas> findRegionByLatLon(@Param("lat") Double lat, @Param("lon") Double lon);
-
-	@Query("""
-		SELECT r FROM SiggAreas r
-		WHERE r.lat BETWEEN :south AND :north
-		AND r.lon BETWEEN :west AND :east
-		""")
-	List<SiggAreas> findWithinBoundingBox(@Param("south") double south, @Param("north") double north,
-		@Param("west") double west, @Param("east") double east
-	);
-
-	@Query("""
-		SELECT r FROM SiggAreas r
-		WHERE ST_Contains(r.geom, ST_SetSRID(ST_Point(:lon, :lat), 4326)) = true
-		""")
 	SiggAreas findSiggAreasByLatLon(@Param("lat") Double lat, @Param("lon") Double lon);
+
 
 	@Query("""
 		SELECT CASE WHEN COUNT(r1) > 0 THEN true ELSE false END
@@ -46,5 +32,4 @@ public interface SiggAreasRepository extends JpaRepository<SiggAreas, Long>, Sig
 		@Param("oldLon") Double oldLon,
 		@Param("newLat") Double newLat,
 		@Param("newLon") Double newLon);
-
 }

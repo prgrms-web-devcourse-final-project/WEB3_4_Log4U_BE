@@ -33,7 +33,7 @@ public class RetryExecutorTest {
 		int level = 1;
 
 		// when
-		mapService.getDiaryClusters(geohash, level);
+		mapService.getClustersByRedisCache(geohash, level);
 
 		// then
 		verify(retryExecutor, atLeastOnce()).runWithRetry(any());
@@ -46,7 +46,7 @@ public class RetryExecutorTest {
 		String geohash = "wyd4k";
 
 		// when
-		mapService.getDiaryMarkers(geohash);
+		mapService.getMarkersByRedisCache(geohash);
 
 		// then
 		verify(retryExecutor, atLeastOnce()).runWithRetry(any());

@@ -38,7 +38,6 @@ public class DiaryService {
 	private final DiaryRepository diaryRepository;
 	private final FollowRepository followRepository;
 	private final MediaService mediaService;
-	private final LikeRepository likeRepository;
 	private final HashtagService hashtagService;
 
 	// 다이어리 생성
@@ -279,7 +278,11 @@ public class DiaryService {
 		return diaryRepository.findTop10ByVisibilityOrderByLikeCountDesc(VisibilityType.PUBLIC);
 	}
 
-	public List<Diary> getDiaries(List<Long> ids) {
-		return diaryRepository.findAllById(ids);
+	public List<Diary> getDiariesByGeohash(String geohash) {
+		return diaryRepository.findDiariesByGeohash(geohash);
+	}
+
+	public List<Diary> getDiariesByGeohashByIndexScan(String geohash) {
+		return diaryRepository.findDiariesByGeohashByIndexScan(geohash);
 	}
 }

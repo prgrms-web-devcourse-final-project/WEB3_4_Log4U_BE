@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.example.log4u.domain.diary.entity.Diary;
 
-public record DiaryMarkerResponseDto(
+public record GetDiaryMarkerResponse(
 	Long diaryId,
 	String title,
 	String thumbnailUrl,
@@ -13,8 +13,8 @@ public record DiaryMarkerResponseDto(
 	Double lon,
 	LocalDateTime createdAt
 ) {
-	public static DiaryMarkerResponseDto of(Diary diary) {
-		return new DiaryMarkerResponseDto(
+	public static GetDiaryMarkerResponse of(Diary diary) {
+		return new GetDiaryMarkerResponse(
 			diary.getDiaryId(),
 			diary.getTitle(),
 			diary.getThumbnailUrl(),

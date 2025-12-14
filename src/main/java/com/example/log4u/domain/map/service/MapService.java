@@ -6,15 +6,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.log4u.common.executor.RetryExecutor;
+import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.entity.DiaryGeoHash;
 import com.example.log4u.domain.diary.service.DiaryGeohashService;
+import com.example.log4u.domain.diary.service.DiaryService;
 import com.example.log4u.domain.map.cache.dao.ClusterCacheDao;
 import com.example.log4u.domain.map.cache.dao.MarkerCacheDao;
-import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
-import com.example.log4u.domain.map.dto.response.DiaryMarkerResponseDto;
+import com.example.log4u.domain.map.dto.response.GetDiaryClusterResponse;
+import com.example.log4u.domain.map.dto.response.GetDiaryClustersResponse;
+import com.example.log4u.domain.map.dto.response.GetDiaryMarkerResponse;
+import com.example.log4u.domain.map.dto.response.GetDiaryMarkersResponse;
 import com.example.log4u.domain.map.entity.SidoAreas;
 import com.example.log4u.domain.map.entity.SiggAreas;
 import com.example.log4u.domain.map.exception.InvalidGeohashException;
+import com.example.log4u.domain.map.exception.InvalidMapLevelException;
 import com.example.log4u.domain.map.repository.sido.SidoAreasDiaryCountRepository;
 import com.example.log4u.domain.map.repository.sido.SidoAreasRepository;
 import com.example.log4u.domain.map.repository.sigg.SiggAreasDiaryCountRepository;
@@ -32,6 +37,7 @@ public class MapService {
 	private final SidoAreasDiaryCountRepository sidoAreasDiaryCountRepository;
 	private final SiggAreasRepository siggAreasRepository;
 	private final SiggAreasDiaryCountRepository siggAreasDiaryCountRepository;
+	private final DiaryService diaryService;
 	private final MarkerCacheDao markerCacheDao;
 	private final ClusterCacheDao clusterCacheDao;
 	private final DiaryGeohashService diaryGeohashService;
@@ -39,28 +45,63 @@ public class MapService {
 	private final RetryExecutor retryExecutor;
 
 	@Transactional(readOnly = true)
-	public List<DiaryClusterResponseDto> getDiaryClusters(String geohash, int level) {
+	public GetDiaryClustersResponse getClusters(String geohash, int level) {
+		validateGeohashLength(geohash, 3);
+		List<GetDiaryClusterResponse> areas = switch (level) {
+				case 1 -> sidoAreasRepository.findSidoAreasCluster(geohash);
+				case 2 -> siggAreasRepository.findSiggAreasCluster(geohash);
+				default -> throw new InvalidMapLevelException();
+			};
+		return GetDiaryClustersResponse.of(areas);
+	}
+
+	@Transactional(readOnly = true)
+	public GetDiaryClustersResponse getClustersByIndexScan(String geohash, int level) {
+		validateGeohashLength(geohash, 3);
+		List<GetDiaryClusterResponse> areas = switch (level) {
+				case 1 -> sidoAreasRepository.findSidoAreasClusterByIndexScan(geohash);
+				case 2 -> siggAreasRepository.findSiggAreasClusterByIndexScan(geohash);
+				default -> throw new InvalidMapLevelException();
+			};
+		return GetDiaryClustersResponse.of(areas);
+	}
+
+	@Transactional(readOnly = true)
+	public GetDiaryClustersResponse getClustersByRedisCache(String geohash, int level) {
 		validateGeohashLength(geohash, 3);
 		return retryExecutor.runWithRetry(() -> {
-			List<DiaryClusterResponseDto> clusters = clusterCacheDao.load(geohash, level);
-			if (clusters == null) {
-				clusters = clusterCacheDao.loadAndCache(geohash, level);
+			List<GetDiaryClusterResponse> areas = clusterCacheDao.load(geohash, level);
+			if (areas == null) {
+				areas = clusterCacheDao.loadAndCache(geohash, level);
 			}
-			return clusters;
+			return GetDiaryClustersResponse.of(areas);
 		});
 	}
 
 	@Transactional(readOnly = true)
-	public List<DiaryMarkerResponseDto> getDiaryMarkers(String geohash) {
+	public GetDiaryMarkersResponse getMarkers(String geohash) {
+		List<Diary> diaries = diaryService.getDiariesByGeohash(geohash);
+		return GetDiaryMarkersResponse.ofDiaries(diaries);
+	}
+
+	@Transactional(readOnly = true)
+	public GetDiaryMarkersResponse getMarkersByIndexScan(String geohash) {
+		List<Diary> diaries = diaryService.getDiariesByGeohashByIndexScan(geohash);
+		return GetDiaryMarkersResponse.ofDiaries(diaries);
+	}
+
+	@Transactional(readOnly = true)
+	public GetDiaryMarkersResponse getMarkersByRedisCache(String geohash) {
 		validateGeohashLength(geohash, 5);
 		return retryExecutor.runWithRetry(() -> {
-			List<DiaryMarkerResponseDto> markers = markerCacheDao.load(geohash);
+			List<GetDiaryMarkerResponse> markers = markerCacheDao.load(geohash);
 			if (markers == null) {
 				markers = markerCacheDao.loadAndCache(geohash);
 			}
-			return markers;
+			return GetDiaryMarkersResponse.ofMarkers(markers);
 		});
 	}
+
 
 	@Transactional
 	public void increaseRegionDiaryCount(Double lat, Double lon) {

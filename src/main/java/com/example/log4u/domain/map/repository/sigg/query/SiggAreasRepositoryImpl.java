@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
-import com.example.log4u.domain.map.dto.response.QDiaryClusterResponseDto;
+import com.example.log4u.domain.map.dto.response.GetDiaryClusterResponse;
+import com.example.log4u.domain.map.dto.response.QGetDiaryClusterResponse;
 import com.example.log4u.domain.map.entity.QSiggAreas;
 import com.example.log4u.domain.map.entity.QSiggAreasDiaryCount;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -21,12 +21,31 @@ public class SiggAreasRepositoryImpl implements SiggAreasRepositoryCustom {
 	}
 
 	@Override
-	public List<DiaryClusterResponseDto> findByGeohashPrefix(String geohashPrefix) {
+	public List<GetDiaryClusterResponse> findSiggAreasCluster(String geohashPrefix) {
 		QSiggAreas s = QSiggAreas.siggAreas;
 		QSiggAreasDiaryCount c = QSiggAreasDiaryCount.siggAreasDiaryCount;
 
 		return queryFactory
-			.select(new QDiaryClusterResponseDto(
+			.select(new QGetDiaryClusterResponse(
+				s.sggName,
+				s.gid,
+				s.lat,
+				s.lon,
+				c.diaryCount.coalesce(0L)
+			))
+			.from(s)
+			.leftJoin(c).on(s.gid.eq(c.id))
+			.where(s.geohash.startsWith(geohashPrefix))
+			.fetch();
+	}
+
+	@Override
+	public List<GetDiaryClusterResponse> findSiggAreasClusterByIndexScan(String geohashPrefix) {
+		QSiggAreas s = QSiggAreas.siggAreas;
+		QSiggAreasDiaryCount c = QSiggAreasDiaryCount.siggAreasDiaryCount;
+
+		return queryFactory
+			.select(new QGetDiaryClusterResponse(
 				s.sggName,
 				s.gid,
 				s.lat,

@@ -1,4 +1,4 @@
-package com.example.log4u.domain.map.dto;
+package com.example.log4u.domain.diary.dto;
 
 public record MyLocationRequestDto(
 	String coords,

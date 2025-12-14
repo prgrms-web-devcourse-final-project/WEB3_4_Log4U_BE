@@ -2,9 +2,12 @@ package com.example.log4u.domain.map.repository.sido.query;
 
 import java.util.List;
 
-import com.example.log4u.domain.map.dto.response.DiaryClusterResponseDto;
+import com.example.log4u.domain.map.dto.response.GetDiaryClusterResponse;
 
 public interface SidoAreasRepositoryCustom {
 
-	List<DiaryClusterResponseDto> findByGeohashPrefix(String geohashPrefix);
+	List<GetDiaryClusterResponse> findSidoAreasCluster(String geohashPrefix);
+
+	List<GetDiaryClusterResponse> findSidoAreasClusterByIndexScan(String geohashPrefix);
+
 }

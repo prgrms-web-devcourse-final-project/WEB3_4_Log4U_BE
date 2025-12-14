@@ -44,7 +44,7 @@ class DistributedLockExecutorTest {
 		int level = 1;
 
 		// when
-		mapService.getDiaryClusters(geohash, level);
+		mapService.getClustersByRedisCache(geohash, level);
 
 		// then
 		verify(distributedLockExecutor, atLeastOnce())
@@ -58,7 +58,7 @@ class DistributedLockExecutorTest {
 		String geohash = "wyd4k";
 
 		// when
-		mapService.getDiaryMarkers(geohash);
+		mapService.getMarkersByRedisCache(geohash);
 
 		// then
 		verify(distributedLockExecutor, atLeastOnce())
