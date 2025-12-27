@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -21,12 +22,9 @@ public class SidoAreasDiaryCount {
 	@Column(name = "diary_count")
 	private Long diaryCount;
 
-
-	public void incrementCount() {
-		this.diaryCount++;
-	}
-
-	public void decrementCount() {
-		this.diaryCount = Math.max(0, this.diaryCount - 1);
+	@Builder
+	public SidoAreasDiaryCount(Long id, Long diaryCount) {
+		this.id = id;
+		this.diaryCount = diaryCount;
 	}
 }
