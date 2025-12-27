@@ -1,29 +1,24 @@
 spring:
   datasource:
-    jdbc-url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+      username: sa
+      password:
+      driver-class-name: org.h2.Driver
+      hikari:
+        maximum-pool-size: 100
+        minimum-idle: 10
 
   second-datasource:
-    jdbc-url: ${POSTGRES_DB_URL}
-    username: ${POSTGRES_USERNAME}
-    password: ${POSTGRES_PASSWORD}
-    driver-class-name: org.postgresql.Driver
-
-  aws:
-    region: ${AWS_REGION}
-    access-key-id: ${AWS_ACCESS_KEY_ID}
-    secret-access-key: ${AWS_SECRET_ACCESS_KEY}
-    s3:
-      bucket: ${S3_BUCKET_NAME}
+    url: jdbc:h2:mem:testdb2;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 100
+      minimum-idle: 10
 
 logging:
   level:
-    org:
-      springframework: debug
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
 
-jwt:
-  secret: ${JWT_SECRET}
-  access-token-expire-time-seconds: ${JWT_ACCESS_TOKEN_EXPIRE_TIME_SECONDS}
-  refresh-token-expire-time-seconds: ${JWT_REFRESH_TOKEN_EXPIRE_TIME_SECONDS}
