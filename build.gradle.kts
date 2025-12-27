@@ -42,6 +42,10 @@ dependencies {
     // Local cache
     implementation ("com.github.ben-manes.caffeine:caffeine")
 
+    //TestContainer
+    testImplementation("org.testcontainers:testcontainers:2.0.2")
+    testImplementation("org.testcontainers:junit-jupiter:1.21.4")
+
     // PostgreSQL + PostGIS
     implementation("org.postgresql:postgresql:42.7.3") // 최신 버전 확인
     implementation ("org.hibernate.orm:hibernate-spatial:6.2.7.Final") // 최신 Hibernate 6
