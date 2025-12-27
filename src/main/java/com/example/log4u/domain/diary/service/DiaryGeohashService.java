@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.log4u.domain.diary.entity.DiaryGeoHash;
 import com.example.log4u.domain.diary.repository.DiaryGeoHashRepository;
-import com.example.log4u.domain.map.cache.dao.MarkerCacheDao;
+import com.example.log4u.domain.map.cache.manager.MarkersCacheManager;
 
 import ch.hsr.geohash.GeoHash;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DiaryGeohashService {
 
 	private final DiaryGeoHashRepository diaryGeoHashRepository;
-	private final MarkerCacheDao markerCacheDao;
+	private final MarkersCacheManager markersCacheManager;
 
 	@Transactional
 	public void saveGeohash(Long diaryId, double lat, double lon) {
@@ -34,7 +34,7 @@ public class DiaryGeohashService {
 	@Transactional
 	public void deleteGeohash(Long diaryId) {
 		DiaryGeoHash geoHash = diaryGeoHashRepository.findByDiaryId(diaryId);
-		markerCacheDao.evict(geoHash.getGeohash());
+		markersCacheManager.evict(geoHash.getGeohash());
 		diaryGeoHashRepository.deleteById(diaryId);
 	}
 
