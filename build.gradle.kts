@@ -39,6 +39,12 @@ dependencies {
 
     implementation("ch.hsr:geohash:1.4.0")
 
+    // Local cache
+    implementation ("com.github.ben-manes.caffeine:caffeine")
+
+    //TestContainer
+    testImplementation("org.testcontainers:testcontainers:2.0.2")
+    testImplementation("org.testcontainers:junit-jupiter:1.21.4")
 
     // PostgreSQL + PostGIS
     implementation("org.postgresql:postgresql:42.7.3") // 최신 버전 확인

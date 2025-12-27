@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -42,9 +43,13 @@ public class SidoAreas  {
 	@Column(name = "geohash")
 	private String geohash;
 
-	public SidoAreas(String name, double lat, double lon) {
+	@Builder
+	public SidoAreas(Long id, String code, String name, Double lat, Double lon, String geohash) {
+		this.id = id;
+		this.code = code;
 		this.name = name;
 		this.lat = lat;
 		this.lon = lon;
+		this.geohash = geohash;
 	}
 }

@@ -3,18 +3,20 @@ package com.example.log4u.domain.Map.executor;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.time.LocalDateTime;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
+import com.example.log4u.common.RedisTestContainersConfig;
 import com.example.log4u.common.executor.RetryExecutor;
-import com.example.log4u.domain.map.service.MapService;
+import com.example.log4u.domain.map.cache.ClustersCacheService;
+import com.example.log4u.domain.map.cache.MarkersCacheService;
 
+@Import(RedisTestContainersConfig.class)
 @ActiveProfiles("test")
 @SpringBootTest
 public class RetryExecutorTest {
@@ -23,9 +25,12 @@ public class RetryExecutorTest {
 	private RetryExecutor retryExecutor;
 
 	@Autowired
-	private MapService mapService;
+	private ClustersCacheService clustersCacheService;
 
-	@DisplayName("다이어리 클러스터 조회 시 RetryExecutor가 호출된다.")
+	@Autowired
+	private MarkersCacheService markersCacheService;
+
+	@DisplayName("지역 클러스터 목록을 불러오는 경우, RetryExecutor가 호출된다.")
 	@Test
 	void retryShouldBeAppliedOnGetDiaryClusters() {
 		// given
@@ -33,20 +38,20 @@ public class RetryExecutorTest {
 		int level = 1;
 
 		// when
-		mapService.getClustersByRedisCache(geohash, level);
+		clustersCacheService.getClusters(geohash, level);
 
 		// then
 		verify(retryExecutor, atLeastOnce()).runWithRetry(any());
 	}
 
-	@DisplayName("다이어리 마커 조회 시 RetryExecutor가 호출된다.")
+	@DisplayName("마커 목록을 불러오는 경우, RetryExecutor가 호출된다.")
 	@Test
 	void retryShouldBeAppliedOnGetDiaryMarkers() {
 		// given
 		String geohash = "wyd4k";
 
 		// when
-		mapService.getMarkersByRedisCache(geohash);
+		markersCacheService.getMarkers(geohash);
 
 		// then
 		verify(retryExecutor, atLeastOnce()).runWithRetry(any());

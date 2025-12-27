@@ -16,7 +16,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long>, CustomDiary
 
 	@Query(value = """
 		SELECT d.*
-		FROM diary d
+		FROM Diary d
 		JOIN DiaryGeoHash g ON d.diaryId = g.diaryId
 		WHERE g.geohash = :geohash
 		""",
@@ -25,7 +25,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long>, CustomDiary
 
 	@Query(value = """
 		SELECT /*+ INDEX(d idx_geohash_diary) */ d.*
-		FROM diary d
+		FROM Diary d
 		JOIN DiaryGeoHash g ON d.diaryId = g.diaryId
 		WHERE g.geohash = :geohash
 		""",

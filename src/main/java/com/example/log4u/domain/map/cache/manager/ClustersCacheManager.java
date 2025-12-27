@@ -1,4 +1,4 @@
-package com.example.log4u.domain.map.cache.dao;
+package com.example.log4u.domain.map.cache.manager;
 
 import static com.example.log4u.common.config.redis.ObjectMapperFactory.*;
 
@@ -21,20 +21,30 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class ClusterCacheDao {
+public class ClustersCacheManager {
 
 	private static final String CLUSTER_CACHE_KEY = "cluster:geohash:%s:level:%d";
-	public static final String CLUSTER_LOCK_KEY = "cluster-lock:%s";
+	private static final String CLUSTER_LOCK_KEY  = "cluster-lock:%s:level:%d";
 
 	private final CacheManager cacheManager;
-
 	private final DistributedLockExecutor distributedLockExecutor;
 
 	private final SidoAreasRepository sidoAreasRepository;
 	private final SiggAreasRepository siggAreasRepository;
 
+	public void refresh(String geohash, int level) {
+		String lockKey  = CLUSTER_LOCK_KEY.formatted(geohash, level);
+		String cacheKey = CLUSTER_CACHE_KEY.formatted(geohash, level);
+
+		distributedLockExecutor.runWithLock(lockKey, () -> {
+			cacheManager.evict(cacheKey);
+			List<GetDiaryClusterResponse> clusters = loadClustersFromDb(geohash, level);
+			cache(clusters, geohash, level);
+		});
+	}
+
 	public List<GetDiaryClusterResponse> load(String geohash, int level) {
-		String key = String.format(CLUSTER_CACHE_KEY, geohash, level);
+		String key = CLUSTER_CACHE_KEY.formatted(geohash, level);
 		String value = cacheManager.get(key);
 		if (value == null) {
 			return null;
@@ -43,12 +53,13 @@ public class ClusterCacheDao {
 	}
 
 	private List<GetDiaryClusterResponse> convertToClusters(String value) {
-		return readValue(value, new TypeReference<>() {
-		});
+		return readValue(value, new TypeReference<>() {});
 	}
 
 	public List<GetDiaryClusterResponse> loadAndCache(String geohash, int level) {
-		return distributedLockExecutor.runWithLock(CLUSTER_LOCK_KEY.formatted(geohash), () -> {
+		String lockKey = CLUSTER_LOCK_KEY.formatted(geohash, level);
+
+		return distributedLockExecutor.runWithLock(lockKey, () -> {
 			List<GetDiaryClusterResponse> clusters = loadClustersFromDb(geohash, level);
 			cache(clusters, geohash, level);
 			return clusters;
@@ -64,18 +75,7 @@ public class ClusterCacheDao {
 	}
 
 	private void cache(List<GetDiaryClusterResponse> clusters, String geohash, int level) {
-		String key = String.format(CLUSTER_CACHE_KEY, geohash, level);
+		String key = CLUSTER_CACHE_KEY.formatted(geohash, level);
 		cacheManager.cache(key, writeValueAsString(clusters), RedisTTLPolicy.CLUSTER_TTL);
 	}
-
-	public void evictSido(String geohash) {
-		String key = String.format(CLUSTER_CACHE_KEY, geohash, 1);
-		cacheManager.evict(key);
-	}
-
-	public void evictSigg(String geohash) {
-		String key = String.format(CLUSTER_CACHE_KEY, geohash, 2);
-		cacheManager.evict(key);
-	}
-
 }
