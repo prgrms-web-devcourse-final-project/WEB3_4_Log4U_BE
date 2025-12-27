@@ -32,6 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class MapService {
+	private final ClustersLocalCacheService clustersLocalCacheService;
+	private final MarkersLocalCacheService markersLocalCacheService;
 
 	private final SidoAreasRepository sidoAreasRepository;
 	private final SidoAreasDiaryCountRepository sidoAreasDiaryCountRepository;
@@ -73,9 +75,11 @@ public class MapService {
 			List<GetDiaryClusterResponse> areas = clusterCacheDao.load(geohash, level);
 			if (areas == null) {
 				areas = clusterCacheDao.loadAndCache(geohash, level);
-			}
-			return GetDiaryClustersResponse.of(areas);
-		});
+	@Transactional(readOnly = true)
+	public GetDiaryClustersResponse getClustersByLocalCache(String geohash, int level) {
+		validateGeohashLength(geohash, 3);
+		List<GetDiaryClusterResponse> diaryClusters = clustersLocalCacheService.getClusters(geohash, level);
+		return GetDiaryClustersResponse.of(diaryClusters);
 	}
 
 	@Transactional(readOnly = true)
@@ -97,12 +101,12 @@ public class MapService {
 			List<GetDiaryMarkerResponse> markers = markerCacheDao.load(geohash);
 			if (markers == null) {
 				markers = markerCacheDao.loadAndCache(geohash);
-			}
-			return GetDiaryMarkersResponse.ofMarkers(markers);
-		});
+	@Transactional(readOnly = true)
+	public GetDiaryMarkersResponse getMarkersByLocalCache(String geohash) {
+		validateGeohashLength(geohash, 5);
+		List<GetDiaryMarkerResponse> markers = markersLocalCacheService.getMarkers(geohash);
+		return GetDiaryMarkersResponse.ofMarkers(markers);
 	}
-
-
 	@Transactional
 	public void increaseRegionDiaryCount(Double lat, Double lon) {
 		SidoAreas sido = updateSidoCount(lat, lon, +1);

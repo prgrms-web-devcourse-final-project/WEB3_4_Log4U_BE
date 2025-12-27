@@ -52,6 +52,15 @@ public class MapController {
 		return ResponseEntity.ok(response);
 	}
 
+	@Operation(summary = "다이어리 클러스터 조회 (Local Cache)")
+	@GetMapping("/diaries/cluster-local-cache")
+	public ResponseEntity<GetDiaryClustersResponse> getClustersByLocalCache(
+		@Parameter(description = "조회 기준 geohash (예: 'wyd')") @RequestParam String geohash,
+		@Parameter(description = "클러스터 레벨 (1: 시/도, 2: 시/군/구)") @RequestParam int level) {
+		GetDiaryClustersResponse response = mapService.getClustersByLocalCache(geohash, level);
+		return ResponseEntity.ok(response);
+	}
+
 	@Operation(summary = "다이어리 마커 조회 (DB Full Table Scan)")
 	@GetMapping("/diaries/marker")
 	public ResponseEntity<GetDiaryMarkersResponse> getMarkers(
@@ -76,4 +85,11 @@ public class MapController {
 		return ResponseEntity.ok(response);
 	}
 
+	@Operation(summary = "다이어리 마커 조회 (Local Cache)")
+	@GetMapping("/diaries/marker-local-cache")
+	public ResponseEntity<GetDiaryMarkersResponse> getMarkersByLocalCache(
+		@Parameter(description = "조회 기준 geohash (예: 'wydm6')") @RequestParam String geohash) {
+		GetDiaryMarkersResponse response = mapService.getMarkersByLocalCache(geohash);
+		return ResponseEntity.ok(response);
+	}
 }
