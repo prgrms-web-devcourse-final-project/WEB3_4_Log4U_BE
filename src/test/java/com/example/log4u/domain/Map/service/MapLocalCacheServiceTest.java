@@ -188,13 +188,13 @@ public class MapLocalCacheServiceTest extends ServiceTest {
 					siggAreasDiaryCount2.getDiaryCount()));
 	}
 
-	@DisplayName("로컬 캐싱된 마커 목록을 조회한다.")
+	@DisplayName("로컬 캐싱된 마커 목록을 조회하여 좋아요 순으로 정렬된 300개 미만의 마커 목록을 반환한다 ")
 	@Test
-	void getMarkers() {
+	void getTopLikedMarkers() {
 		// given
 		String geohash = "wydm5";
 
-		Location location1 = Location.builder()
+		Location location = Location.builder()
 			.latitude(37.5665)
 			.longitude(126.9780)
 			.sido("서울")
@@ -202,84 +202,63 @@ public class MapLocalCacheServiceTest extends ServiceTest {
 			.eupmyeondong("명동")
 			.build();
 
-		Location location2 = Location.builder()
-			.latitude(37.5650)
-			.longitude(126.9760)
-			.sido("서울")
-			.sigungu("중구")
-			.eupmyeondong("을지로")
-			.build();
-
-		Diary diary1 = Diary.builder()
-			.userId(1L)
-			.diaryId(1L)
+		Diary d1 = Diary.builder()
+			.userId(1L).diaryId(1L)
 			.title("다이어리1")
 			.thumbnailUrl("http://localhost:8080/thumb1")
 			.content("내용1")
 			.diaryDate(LocalDate.of(2026, 1, 1))
-			.location(location1)
+			.location(location)
 			.weatherInfo(WeatherInfo.SUNNY)
 			.visibility(VisibilityType.PUBLIC)
 			.likeCount(3L)
 			.build();
 
-		Diary diary2 = Diary.builder()
-			.userId(2L)
-			.diaryId(2L)
+		Diary d2 = Diary.builder()
+			.userId(2L).diaryId(2L)
 			.title("다이어리2")
 			.thumbnailUrl("http://localhost:8080/thumb2")
 			.content("내용2")
 			.diaryDate(LocalDate.of(2026, 1, 2))
-			.location(location2)
+			.location(location)
 			.weatherInfo(WeatherInfo.CLOUDY)
 			.visibility(VisibilityType.PUBLIC)
 			.likeCount(10L)
 			.build();
 
-		DiaryGeoHash diaryGeoHash1 = DiaryGeoHash.builder()
-			.id(1L)
-			.diaryId(diary1.getDiaryId())
-			.geohash("wydm5")
+		Diary d3 = Diary.builder()
+			.userId(3L).diaryId(3L)
+			.title("다이어리3")
+			.thumbnailUrl("http://localhost:8080/thumb3")
+			.content("내용3")
+			.diaryDate(LocalDate.of(2026, 1, 3))
+			.location(location)
+			.weatherInfo(WeatherInfo.RAINY)
+			.visibility(VisibilityType.PUBLIC)
+			.likeCount(7L)
 			.build();
 
-		DiaryGeoHash diaryGeoHash2 = DiaryGeoHash.builder()
-			.id(2L)
-			.diaryId(diary2.getDiaryId())
-			.geohash("wydm5")
-			.build();
+		diaryRepository.saveAll(List.of(d1, d2, d3));
+		diaryGeoHashRepository.saveAll(List.of(
+			DiaryGeoHash.builder().id(1L).diaryId(1L).geohash(geohash).build(),
+			DiaryGeoHash.builder().id(2L).diaryId(2L).geohash(geohash).build(),
+			DiaryGeoHash.builder().id(3L).diaryId(3L).geohash(geohash).build()
+		));
 
-		diaryRepository.save(diary1);
-		diaryRepository.save(diary2);
-		diaryGeoHashRepository.save(diaryGeoHash1);
-		diaryGeoHashRepository.save(diaryGeoHash2);
+		markersLocalCacheService.refresh(geohash);
 
 		// when
-		List<GetDiaryMarkerResponse> markers = markersLocalCacheService.getMarkers(geohash);
+		List<Diary> result = markersLocalCacheService.getTopLikedMarkers(geohash);
 
 		// then
-		assertThat(markers).isNotNull();
-		assertThat(markers)
-			.extracting(
-				GetDiaryMarkerResponse::diaryId,
-				GetDiaryMarkerResponse::title,
-				GetDiaryMarkerResponse::thumbnailUrl,
-				GetDiaryMarkerResponse::lat,
-				GetDiaryMarkerResponse::lon,
-				GetDiaryMarkerResponse::likeCount)
-			.containsExactlyInAnyOrder(
-				tuple(
-					diary1.getDiaryId(),
-					diary1.getTitle(),
-					diary1.getThumbnailUrl(),
-					diary1.getLocation().getLatitude(),
-					diary1.getLocation().getLongitude(),
-					diary1.getLikeCount()),
-				tuple(
-					diary2.getDiaryId(),
-					diary2.getTitle(),
-					diary2.getThumbnailUrl(),
-					diary2.getLocation().getLatitude(),
-					diary2.getLocation().getLongitude(),
-					diary2.getLikeCount()));
+		assertThat(result).hasSize(3);
+		assertThat(result)
+			.extracting(Diary::getDiaryId, Diary::getLikeCount)
+			.containsExactly(
+				tuple(2L, 10L),
+				tuple(3L, 7L),
+				tuple(1L, 3L)
+			);
 	}
+
 }
