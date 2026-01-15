@@ -19,6 +19,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long>, CustomDiary
 		FROM Diary d
 		JOIN DiaryGeoHash g ON d.diaryId = g.diaryId
 		WHERE g.geohash = :geohash
+		AND d.visibility = 'PUBLIC';
 		""",
 		nativeQuery = true)
 	List<Diary> findDiariesByGeohash(@Param("geohash") String geohash);
@@ -28,6 +29,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long>, CustomDiary
 		FROM Diary d
 		JOIN DiaryGeoHash g ON d.diaryId = g.diaryId
 		WHERE g.geohash = :geohash
+		AND d.visibility = 'PUBLIC';
 		""",
 		nativeQuery = true)
 	List<Diary> findDiariesByGeohashByIndexScan(@Param("geohash") String geohash);

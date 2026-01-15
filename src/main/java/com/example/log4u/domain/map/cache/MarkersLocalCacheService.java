@@ -25,15 +25,15 @@ public class MarkersLocalCacheService {
 		markersLocalCacheManager.evict(geohash);
 	}
 
-	public List<GetDiaryMarkerResponse> getMarkers(String geohash) {
+	public List<Diary> getTopLikedMarkers(String geohash) {
 		return retryExecutor.runWithRetry(() -> {
-			List<GetDiaryMarkerResponse> markers = loadWithFallback(geohash);
+			List<Diary> markers = loadWithFallback(geohash);
 			return markers;
 		});
 	}
 
-	private List<GetDiaryMarkerResponse> loadWithFallback(String geohash) {
-		List<GetDiaryMarkerResponse> markers = markersLocalCacheManager.load(geohash);
+	private List<Diary> loadWithFallback(String geohash) {
+		List<Diary> markers = markersLocalCacheManager.load(geohash);
 		if (markers != null) {
 			return markers;
 		}

@@ -37,12 +37,12 @@ public class MarkersCacheManager {
 
 		distributedLockExecutor.runWithLock(lockKey, () -> {
 			cacheManager.evict(cacheKey);
-			List<GetDiaryMarkerResponse> markers = loadMarkersFromDb(geohash);
+			List<Diary> markers = loadMarkersFromDb(geohash);
 			cache(markers, geohash);
 		});
 	}
 
-	public List<GetDiaryMarkerResponse> load(String geohash) {
+	public List<Diary> load(String geohash) {
 		String key = MARKER_CACHE_KEY.formatted(geohash);
 		String value = cacheManager.get(key);
 		if (value == null) {
@@ -51,29 +51,26 @@ public class MarkersCacheManager {
 		return convertToMarkers(value);
 	}
 
-	private List<GetDiaryMarkerResponse> convertToMarkers(String value) {
+	private List<Diary> convertToMarkers(String value) {
 		return readValue(value, new TypeReference<>() {
 		});
 	}
 
-	public List<GetDiaryMarkerResponse> loadAndCache(String geohash) {
+	public List<Diary> loadAndCache(String geohash) {
 		String lockKey = MARKER_LOCK_KEY.formatted(geohash);
 
 		return distributedLockExecutor.runWithLock(lockKey, () -> {
-				List<GetDiaryMarkerResponse> markers = loadMarkersFromDb(geohash);
+				List<Diary> markers = loadMarkersFromDb(geohash);
 				cache(markers, geohash);
 				return markers;
 			});
 	}
 
-	private List<GetDiaryMarkerResponse> loadMarkersFromDb(String geohash) {
-		List<Diary> diaries = diaryRepository.findDiariesByGeohash(geohash);
-		return diaries.stream()
-			.map(GetDiaryMarkerResponse::of)
-			.toList();
+	private List<Diary> loadMarkersFromDb(String geohash) {
+		return diaryRepository.findDiariesByGeohash(geohash);
 	}
 
-	private void cache(List<GetDiaryMarkerResponse> markers, String geohash) {
+	private void cache(List<Diary> markers, String geohash) {
 		String key = MARKER_CACHE_KEY.formatted(geohash);
 		cacheManager.cache(key, writeValueAsString(markers), RedisTTLPolicy.MARKER_TTL);
 	}

@@ -89,14 +89,14 @@ public class MapService {
 	public GetDiaryMarkersResponse getMarkers(String geohash) {
 		validateGeohashLength(geohash, 5);
 		List<Diary> diaryMarkers = diaryService.getDiariesByGeohash(geohash);
-		return GetDiaryMarkersResponse.ofDiaries(diaryMarkers);
+		return GetDiaryMarkersResponse.of(diaryMarkers);
 	}
 
 	@Transactional(readOnly = true)
 	public GetDiaryMarkersResponse getMarkersByIndexScan(String geohash) {
 		validateGeohashLength(geohash, 5);
 		List<Diary> diaryMarkers = diaryService.getDiariesByGeohashByIndexScan(geohash);
-		return GetDiaryMarkersResponse.ofDiaries(diaryMarkers);
+		return GetDiaryMarkersResponse.of(diaryMarkers);
 	}
 
 	@Transactional(readOnly = true)

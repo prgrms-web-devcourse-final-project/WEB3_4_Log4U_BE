@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.map.dto.response.GetDiaryMarkerResponse;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -17,18 +18,18 @@ public class MarkersLocalCacheManager {
 
 	private static final String MARKERS_CACHE_KEY = "marker:geohash:%s";
 
-	private final Cache<String, List<GetDiaryMarkerResponse>> markersLocalCache = Caffeine
+	private final Cache<String, List<Diary>> markersLocalCache = Caffeine
 		.newBuilder()
 		.recordStats()
 		.expireAfterWrite(Duration.ofMinutes(10))
 		.maximumSize(1)
 		.build();
 
-	public void cache(String geohash, List<GetDiaryMarkerResponse> markers) {
+	public void cache(String geohash, List<Diary> markers) {
 		markersLocalCache.put(MARKERS_CACHE_KEY.formatted(geohash), markers);
 	}
 
-	public List<GetDiaryMarkerResponse> load(String geohash) {
+	public List<Diary> load(String geohash) {
 		return markersLocalCache.getIfPresent(MARKERS_CACHE_KEY.formatted(geohash));
 	}
 

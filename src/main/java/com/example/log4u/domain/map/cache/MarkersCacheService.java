@@ -22,9 +22,9 @@ public class MarkersCacheService {
 		markersCacheManager.refresh(geohash);
 	}
 
-	public List<GetDiaryMarkerResponse> getMarkers(String geohash) {
+	public List<Diary> getMarkers(String geohash) {
 		return retryExecutor.runWithRetry(() -> {
-			List<GetDiaryMarkerResponse> markers = markersCacheManager.load(geohash);
+			List<Diary> markers = markersCacheManager.load(geohash);
 			if (markers == null) {
 				markers = markersCacheManager.loadAndCache(geohash);
 			}
