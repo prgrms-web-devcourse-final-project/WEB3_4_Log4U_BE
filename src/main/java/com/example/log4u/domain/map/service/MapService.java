@@ -15,7 +15,6 @@ import com.example.log4u.domain.map.cache.MarkersCacheService;
 import com.example.log4u.domain.map.cache.MarkersLocalCacheService;
 import com.example.log4u.domain.map.dto.response.GetDiaryClusterResponse;
 import com.example.log4u.domain.map.dto.response.GetDiaryClustersResponse;
-import com.example.log4u.domain.map.dto.response.GetDiaryMarkerResponse;
 import com.example.log4u.domain.map.dto.response.GetDiaryMarkersResponse;
 import com.example.log4u.domain.map.entity.SidoAreas;
 import com.example.log4u.domain.map.entity.SiggAreas;
@@ -100,17 +99,17 @@ public class MapService {
 	}
 
 	@Transactional(readOnly = true)
-	public GetDiaryMarkersResponse getMarkersByRedisCache(String geohash) {
+	public GetDiaryMarkersResponse getTopLikedMarkersByRedisCache(String geohash) {
 		validateGeohashLength(geohash, 5);
-		List<GetDiaryMarkerResponse> diaryMarkers = markersCacheService.getMarkers(geohash);
-		return GetDiaryMarkersResponse.ofMarkers(diaryMarkers);
+		List<Diary> diaryMarkers = markersCacheService.getTopLikedMarkers(geohash);
+		return GetDiaryMarkersResponse.of(diaryMarkers);
 	}
 
 	@Transactional(readOnly = true)
-	public GetDiaryMarkersResponse getMarkersByLocalCache(String geohash) {
+	public GetDiaryMarkersResponse getTopLikedMarkersByLocalCache(String geohash) {
 		validateGeohashLength(geohash, 5);
-		List<GetDiaryMarkerResponse> markers = markersLocalCacheService.getMarkers(geohash);
-		return GetDiaryMarkersResponse.ofMarkers(markers);
+		List<Diary> markers = markersLocalCacheService.getTopLikedMarkers(geohash);
+		return GetDiaryMarkersResponse.of(markers);
 	}
 
 	public void increaseRegionDiaryCount(double lat, double lon) {

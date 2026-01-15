@@ -79,17 +79,17 @@ public class MapController {
 
 	@Operation(summary = "다이어리 마커 조회 (Redis Cache)")
 	@GetMapping("/diaries/marker-redis")
-	public ResponseEntity<GetDiaryMarkersResponse> getMarkersByRedis(
+	public ResponseEntity<GetDiaryMarkersResponse> getTopLikedMarkersByRedisCache(
 		@Parameter(description = "조회 기준 geohash (예: 'wydm6')") @RequestParam String geohash) {
-		GetDiaryMarkersResponse response = mapService.getMarkersByRedisCache(geohash);
+		GetDiaryMarkersResponse response = mapService.getTopLikedMarkersByRedisCache(geohash);
 		return ResponseEntity.ok(response);
 	}
 
 	@Operation(summary = "다이어리 마커 조회 (Local Cache)")
 	@GetMapping("/diaries/marker-local-cache")
-	public ResponseEntity<GetDiaryMarkersResponse> getMarkersByLocalCache(
+	public ResponseEntity<GetDiaryMarkersResponse> getTopLikedMarkersByLocalCache(
 		@Parameter(description = "조회 기준 geohash (예: 'wydm6')") @RequestParam String geohash) {
-		GetDiaryMarkersResponse response = mapService.getMarkersByLocalCache(geohash);
+		GetDiaryMarkersResponse response = mapService.getTopLikedMarkersByLocalCache(geohash);
 		return ResponseEntity.ok(response);
 	}
 }
