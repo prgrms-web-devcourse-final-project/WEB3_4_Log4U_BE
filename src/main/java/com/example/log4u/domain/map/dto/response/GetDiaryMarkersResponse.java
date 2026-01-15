@@ -12,7 +12,7 @@ public record GetDiaryMarkersResponse(
 	List<GetDiaryMarkerResponse> markers
 ) {
 
-	public static GetDiaryMarkersResponse ofDiaries(List<Diary> diaries) {
+	public static GetDiaryMarkersResponse of(List<Diary> diaries) {
 		return new GetDiaryMarkersResponse(
 			diaries.stream()
 				.map(GetDiaryMarkerResponse::of)

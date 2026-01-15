@@ -319,21 +319,20 @@ public class MapCacheServiceTest extends ServiceTest {
 		diaryRepository.save(diary);
 		diaryGeoHashRepository.save(diaryGeoHash);
 
+		// when
 		markersCacheService.refresh(geohash);
 
-		// when
-		List<GetDiaryMarkerResponse> markers = markersCacheService.getMarkers(geohash);
-
 		// then
+		List<Diary> markers = markersCacheService.getMarkers(geohash);
 		assertThat(markers).isNotNull();
 		assertThat(markers)
 			.extracting(
-				GetDiaryMarkerResponse::diaryId,
-				GetDiaryMarkerResponse::title,
-				GetDiaryMarkerResponse::thumbnailUrl,
-				GetDiaryMarkerResponse::lat,
-				GetDiaryMarkerResponse::lon,
-				GetDiaryMarkerResponse::likeCount)
+				Diary::getDiaryId,
+				Diary::getTitle,
+				Diary::getThumbnailUrl,
+				d -> d.getLocation().getLatitude(),
+				d -> d.getLocation().getLongitude(),
+				Diary::getLikeCount)
 			.containsExactly(
 				tuple(
 					diary.getDiaryId(),
@@ -412,18 +411,18 @@ public class MapCacheServiceTest extends ServiceTest {
 		markersCacheService.refresh(geohash);
 
 		// when
-		List<GetDiaryMarkerResponse> markers = markersCacheService.getMarkers(geohash);
+		List<Diary> markers = markersCacheService.getMarkers(geohash);
 
 		// then
 		assertThat(markers).isNotNull();
 		assertThat(markers)
 			.extracting(
-				GetDiaryMarkerResponse::diaryId,
-				GetDiaryMarkerResponse::title,
-				GetDiaryMarkerResponse::thumbnailUrl,
-				GetDiaryMarkerResponse::lat,
-				GetDiaryMarkerResponse::lon,
-				GetDiaryMarkerResponse::likeCount)
+				Diary::getDiaryId,
+				Diary::getTitle,
+				Diary::getThumbnailUrl,
+				d -> d.getLocation().getLatitude(),
+				d -> d.getLocation().getLongitude(),
+				Diary::getLikeCount)
 			.containsExactlyInAnyOrder(
 				tuple(
 					diary1.getDiaryId(),
@@ -440,4 +439,78 @@ public class MapCacheServiceTest extends ServiceTest {
 					diary2.getLocation().getLongitude(),
 					diary2.getLikeCount()));
 	}
+
+	@DisplayName("캐싱된 마커 목록을 조회하여 좋아요 순으로 정렬된 300개 미만의 마커 목록을 반환한다 ")
+	@Test
+	void getTopLikedMarkers() {
+		// given
+		String geohash = "wydm5";
+
+		Location location = Location.builder()
+			.latitude(37.5665)
+			.longitude(126.9780)
+			.sido("서울")
+			.sigungu("중구")
+			.eupmyeondong("명동")
+			.build();
+
+		Diary d1 = Diary.builder()
+			.userId(1L).diaryId(1L)
+			.title("다이어리1")
+			.thumbnailUrl("http://localhost:8080/thumb1")
+			.content("내용1")
+			.diaryDate(LocalDate.of(2026, 1, 1))
+			.location(location)
+			.weatherInfo(WeatherInfo.SUNNY)
+			.visibility(VisibilityType.PUBLIC)
+			.likeCount(3L)
+			.build();
+
+		Diary d2 = Diary.builder()
+			.userId(2L).diaryId(2L)
+			.title("다이어리2")
+			.thumbnailUrl("http://localhost:8080/thumb2")
+			.content("내용2")
+			.diaryDate(LocalDate.of(2026, 1, 2))
+			.location(location)
+			.weatherInfo(WeatherInfo.CLOUDY)
+			.visibility(VisibilityType.PUBLIC)
+			.likeCount(10L)
+			.build();
+
+		Diary d3 = Diary.builder()
+			.userId(3L).diaryId(3L)
+			.title("다이어리3")
+			.thumbnailUrl("http://localhost:8080/thumb3")
+			.content("내용3")
+			.diaryDate(LocalDate.of(2026, 1, 3))
+			.location(location)
+			.weatherInfo(WeatherInfo.RAINY)
+			.visibility(VisibilityType.PUBLIC)
+			.likeCount(7L)
+			.build();
+
+		diaryRepository.saveAll(List.of(d1, d2, d3));
+		diaryGeoHashRepository.saveAll(List.of(
+			DiaryGeoHash.builder().id(1L).diaryId(1L).geohash(geohash).build(),
+			DiaryGeoHash.builder().id(2L).diaryId(2L).geohash(geohash).build(),
+			DiaryGeoHash.builder().id(3L).diaryId(3L).geohash(geohash).build()
+		));
+
+		markersCacheService.refresh(geohash);
+
+		// when
+		List<Diary> result = markersCacheService.getTopLikedMarkers(geohash);
+
+		// then
+		assertThat(result).hasSize(3);
+		assertThat(result)
+			.extracting(Diary::getDiaryId, Diary::getLikeCount)
+			.containsExactly(
+				tuple(2L, 10L),
+				tuple(3L, 7L),
+				tuple(1L, 3L)
+			);
+	}
+
 }

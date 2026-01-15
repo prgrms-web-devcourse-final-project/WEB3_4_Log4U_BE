@@ -5,7 +5,6 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.example.log4u.common.ServiceTest;
@@ -37,7 +36,7 @@ class MapServiceTest extends ServiceTest {
 		String geohash = "wydm6ef2";
 
 		// when, then
-		assertThatThrownBy(() -> mapService.getMarkersByRedisCache(geohash))
+		assertThatThrownBy(() -> mapService.getTopLikedMarkersByRedisCache(geohash))
 			.isInstanceOf(InvalidGeohashException.class)
 			.hasMessage(INVALID_GEOHASH.getErrorMessage());
 	}
