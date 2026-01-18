@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.example.log4u.common.executor.RetryExecutor;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.map.cache.manager.MarkersCacheManager;
+import com.example.log4u.domain.map.cache.support.DiaryUtils;
 
 import lombok.RequiredArgsConstructor;
 

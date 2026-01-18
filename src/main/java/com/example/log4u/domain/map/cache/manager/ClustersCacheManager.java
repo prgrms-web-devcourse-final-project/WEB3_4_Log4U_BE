@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.example.log4u.common.executor.DistributedLockExecutor;
 import com.example.log4u.common.infra.cache.CacheManager;
-import com.example.log4u.domain.map.cache.RedisTTLPolicy;
+import com.example.log4u.domain.map.cache.support.RedisTTLPolicy;
 import com.example.log4u.domain.map.dto.response.GetDiaryClusterResponse;
 import com.example.log4u.domain.map.exception.InvalidMapLevelException;
 import com.example.log4u.domain.map.repository.sido.SidoAreasRepository;

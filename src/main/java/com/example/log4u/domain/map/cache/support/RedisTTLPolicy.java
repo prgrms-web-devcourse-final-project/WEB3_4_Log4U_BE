@@ -1,4 +1,4 @@
-package com.example.log4u.domain.map.cache;
+package com.example.log4u.domain.map.cache.support;
 
 import java.time.Duration;
 

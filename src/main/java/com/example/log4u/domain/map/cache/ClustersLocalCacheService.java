@@ -2,6 +2,7 @@ package com.example.log4u.domain.map.cache;
 
 import java.util.List;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.example.log4u.common.executor.RetryExecutor;
@@ -19,6 +20,11 @@ public class ClustersLocalCacheService {
 	private final ClustersLocalCacheManager clustersLocalCacheManager;
 
 	private final RetryExecutor retryExecutor;
+
+	@Scheduled(cron = "0 0/10 * * * ?")
+	public void refreshOnSchedule() {
+		clustersLocalCacheManager.evictAll();
+	}
 
 	public void refresh(String geohash, int level) {
 		clustersCacheManager.refresh(geohash, level);
