@@ -10,8 +10,7 @@ import com.example.log4u.common.executor.DistributedLockExecutor;
 import com.example.log4u.common.infra.cache.CacheManager;
 import com.example.log4u.domain.diary.entity.Diary;
 import com.example.log4u.domain.diary.repository.DiaryRepository;
-import com.example.log4u.domain.map.cache.RedisTTLPolicy;
-import com.example.log4u.domain.map.dto.response.GetDiaryMarkerResponse;
+import com.example.log4u.domain.map.cache.support.RedisTTLPolicy;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import lombok.RequiredArgsConstructor;
